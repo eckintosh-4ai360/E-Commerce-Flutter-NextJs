@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+model Product {
+  id           Int         @id
+  name         String
+  description  String
+  price        Float
+  originalPrice Float?
+  imagePath    String
+  category     String
+  tags         String      @default("[]")
+  rating       Float       @default(4.5)
+  reviewCount  Int         @default(0)
+  inStock      Boolean     @default(true)
+  sizes        String      @default("[]")
+  colors       String      @default("[]")
+  isNew        Boolean     @default(false)
+  isBestSeller Boolean     @default(false)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  orderItems   OrderItem[]
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  customerName    String
+  customerEmail   String?
+  customerPhone   String
+  deliveryAddress String?
+  notes           String?
+  subtotal        Float
+  shippingFee     Float
+  total           Float
+  status          OrderStatus @default(PENDING)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  items           OrderItem[]
+}
+
+model OrderItem {
+  id            String   @id @default(cuid())
+  orderId       String
+  productId     Int
+  productName   String
+  unitPrice     Float
+  quantity      Int
+  selectedColor String?
+  selectedSize  String?
+  order         Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product       Product  @relation(fields: [productId], references: [id])
+}
