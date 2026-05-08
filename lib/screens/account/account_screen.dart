@@ -219,7 +219,14 @@ class AccountScreen extends StatelessWidget {
                             fontSize: 13, fontWeight: FontWeight.w500)),
                     trailing: const Icon(Icons.chevron_right,
                         size: 18, color: AppTheme.textLight),
-                    onTap: () {},
+                    onTap: () {
+                      if (item.$3 != null) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => item.$3!),
+                        );
+                      }
+                    },
                   ),
                   if (i < items.length - 1)
                     const Divider(indent: 66, height: 1),
