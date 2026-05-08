@@ -44,7 +44,7 @@ class AppShell extends StatelessWidget {
       padding: const EdgeInsets.all(8),
       color: Colors.transparent,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 30),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Container(
           height: 60,
           decoration: BoxDecoration(
@@ -62,9 +62,9 @@ class AppShell extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               _navItem(context, 0, currentIndex, Icons.home_rounded),
-              _navItem(context, 1, currentIndex, Icons.search_rounded),
               _navItem(
-                  context, 2, currentIndex, Icons.favorite_outline_rounded),
+                  context, 1, currentIndex, Icons.favorite_outline_rounded),
+              _navItem(context, 2, currentIndex, Icons.shopping_bag_outlined),
               _navItem(context, 3, currentIndex, Icons.person_outline_rounded),
             ],
           ),
