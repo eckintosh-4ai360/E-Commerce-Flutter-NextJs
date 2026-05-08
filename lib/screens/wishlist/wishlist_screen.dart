@@ -43,8 +43,8 @@ class WishlistScreen extends StatelessWidget {
                           fontSize: 24, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 8),
                   Text('Save your favourite pieces here',
-                      style:
-                          GoogleFonts.kumbhSans(color: AppTheme.textMed, fontSize: 13)),
+                      style: GoogleFonts.kumbhSans(
+                          color: AppTheme.textMed, fontSize: 13)),
                   const SizedBox(height: 28),
                   ElevatedButton(
                     onPressed: () =>
