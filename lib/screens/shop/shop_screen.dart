@@ -346,10 +346,38 @@ class _ShopScreenState extends State<ShopScreen> {
                   // Filter by Size
                   Text('Filter by Size', style: GoogleFonts.kumbhSans(fontSize: 16, fontWeight: FontWeight.w700)),
                   const SizedBox(height: 12),
-                  ..._sizes.entries.map((e) => Padding(
-                        padding: const EdgeInsets.only(bottom: 8.0),
-                        child: Text('${e.key} (${e.value})', style: GoogleFonts.kumbhSans(fontSize: 14, color: AppTheme.textMed)),
-                      )),
+                  ..._sizes.entries.map((e) {
+                    final isSelected = _selectedSizes.contains(e.key);
+                    return InkWell(
+                      onTap: () {
+                        setState(() {
+                          if (isSelected) {
+                            _selectedSizes.remove(e.key);
+                          } else {
+                            _selectedSizes.add(e.key);
+                          }
+                        });
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 6.0),
+                        child: Row(
+                          children: [
+                            Icon(
+                              isSelected ? Icons.check_box : Icons.check_box_outline_blank,
+                              color: isSelected ? AppTheme.primary : AppTheme.textLight,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Text('${e.key} (${e.value})', style: GoogleFonts.kumbhSans(
+                              fontSize: 14, 
+                              color: isSelected ? AppTheme.textDark : AppTheme.textMed,
+                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                            )),
+                          ],
+                        ),
+                      ),
+                    );
+                  }),
                 ],
               ),
             ),
