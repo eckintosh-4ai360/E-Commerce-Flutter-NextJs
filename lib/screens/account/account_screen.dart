@@ -15,7 +15,7 @@ class AccountScreen extends StatelessWidget {
         elevation: 0,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 110),
         child: Column(
           children: [
             _buildProfileHeader(),
