@@ -531,8 +531,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         ));
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content:
-                            Text('Added to cart!', style: GoogleFonts.kumbhSans()),
+                        content: Text('Added to cart!',
+                            style: GoogleFonts.kumbhSans()),
                         backgroundColor: AppTheme.primary,
                         behavior: SnackBarBehavior.floating,
                         shape: RoundedRectangleBorder(
