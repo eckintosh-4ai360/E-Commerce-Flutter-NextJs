@@ -68,7 +68,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           CustomScrollView(
             controller: _scrollController,
             slivers: [
-              const SliverToBoxAdapter(child: SizedBox(height: 100)),
+              const SliverToBoxAdapter(child: SizedBox(height: 140)),
               SliverToBoxAdapter(child: _buildHeroBanner()),
               SliverToBoxAdapter(child: _buildFeatureStrip()),
               SliverToBoxAdapter(child: _buildSaleSection()),
