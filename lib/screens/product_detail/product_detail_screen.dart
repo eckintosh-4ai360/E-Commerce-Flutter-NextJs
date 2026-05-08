@@ -476,7 +476,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(
-                          color: AppTheme.accent.withOpacity(0.15),
+                          color: AppTheme.accent.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Icon(f.$1, color: AppTheme.accent, size: 20),
