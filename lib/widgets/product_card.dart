@@ -52,8 +52,7 @@ class ProductCard extends StatelessWidget {
       children: [
         ClipRRect(
           borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-          child: AspectRatio(
-            aspectRatio: 0.8,
+          child: SizedBox.expand(
             child: product.images.first.startsWith('assets')
                 ? Image.asset(
                     product.images.first,
