@@ -405,14 +405,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             ),
           ),
           const SizedBox(width: 12),
-          SingleChildScrollView(
-            child: Expanded(
-              child: _buildCategoryBanner(
-                'Accessories',
-                '7 Products',
-                AppTheme.badge,
-                Icons.watch_outlined,
-              ),
+          Expanded(
+            child: _buildCategoryBanner(
+              'Accessories',
+              '7 Products',
+              AppTheme.badge,
+              Icons.watch_outlined,
             ),
           ),
         ],
