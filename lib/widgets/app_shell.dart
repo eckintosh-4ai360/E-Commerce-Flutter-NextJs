@@ -81,6 +81,7 @@ class AppShell extends StatelessWidget {
   ) {
     final isActive = index == currentIndex;
 
+    // Custom icon for Home (Shoe with motion lines)
     Widget iconWidget;
     if (index == 0) {
       iconWidget = Stack(
@@ -117,8 +118,8 @@ class AppShell extends StatelessWidget {
           ),
         ],
       );
-    } else if (index == 2) {
-      // Wishlist with checkmark-like feel
+    } else if (index == 1) {
+      // Wishlist
       iconWidget = Stack(
         alignment: Alignment.center,
         children: [
