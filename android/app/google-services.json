@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "24986377031",
+    "project_id": "commerce-80c74",
+    "storage_bucket": "commerce-80c74.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:24986377031:android:ebf6008ba9398f4268ca62",
+        "android_client_info": {
+          "package_name": "com.example.esiarkomall"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAm6ARgwLiFXLmBvhX9M6DjGSk1TDdLQLU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
