@@ -146,7 +146,7 @@ class AppShell extends StatelessWidget {
             ),
         ],
       );
-    } else if (index == 2) {
+    } else if (index == 3) {
       // Cart
       iconWidget = Icon(
         isActive ? Icons.shopping_bag_rounded : Icons.shopping_bag_outlined,
@@ -155,7 +155,7 @@ class AppShell extends StatelessWidget {
       );
     } else {
       iconWidget = Icon(
-        index == 3 ? Icons.person_outline_rounded : icon,
+        index == 4 ? Icons.person_outline_rounded : icon,
         color: Colors.white,
         size: 26,
       );
