@@ -25,13 +25,14 @@ class ProductCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: SingleChildScrollView(
+        physics: const NeverScrollableScrollPhysics(),
         child: Container(
           decoration: BoxDecoration(
             color: AppTheme.surface,
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withValues(alpha: 0.05),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
