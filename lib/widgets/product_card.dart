@@ -195,7 +195,7 @@ class ProductCard extends StatelessWidget {
               if (product.originalPrice != null) ...[
                 const SizedBox(width: 6),
                 Text(
-                  '₵${product.originalPrice!.toStringAsFixed(0)}',
+                  'GH₵${product.originalPrice!.toStringAsFixed(0)}',
                   style: GoogleFonts.kumbhSans(
                     fontSize: 11,
                     color: AppTheme.textLight,
