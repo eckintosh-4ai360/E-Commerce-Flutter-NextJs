@@ -8,6 +8,7 @@ import '../blocs/cart/cart_state.dart';
 import '../blocs/navigation/navigation_bloc.dart';
 import '../blocs/wishlist/wishlist_bloc.dart';
 import '../screens/home/home_screen.dart';
+import '../screens/shop/shop_screen.dart';
 import '../screens/cart/cart_screen.dart';
 import '../screens/wishlist/wishlist_screen.dart';
 import '../screens/account/account_screen.dart';
@@ -20,6 +21,7 @@ class AppShell extends StatelessWidget {
   Widget build(BuildContext context) {
     final screens = [
       const HomeScreen(),
+      const ShopScreen(),
       const WishlistScreen(),
       const CartScreen(),
       const AccountScreen(),
