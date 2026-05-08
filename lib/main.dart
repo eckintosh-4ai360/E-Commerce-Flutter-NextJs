@@ -28,7 +28,13 @@ void main() {
       statusBarIconBrightness: Brightness.dark,
     ),
   );
-  runApp(const EckintoshApp());
+
+  runApp(
+    DevicePreview(
+      enabled: !kReleaseMode,
+      builder: (context) => const EckintoshApp(),
+    ),
+  );
 }
 
 class EckintoshApp extends StatelessWidget {
