@@ -81,23 +81,26 @@ class _ShopScreenState extends State<ShopScreen> {
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: AppTheme.background,
-      appBar: AppBar(
-        title: Text('Shop', style: GoogleFonts.kumbhSans(fontWeight: FontWeight.w700, fontSize: 28)),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.filter_list),
-            onPressed: () {
-              _scaffoldKey.currentState?.openEndDrawer();
-            },
-          ),
-        ],
-      ),
       endDrawer: _buildFilterDrawer(),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Shop', style: GoogleFonts.kumbhSans(fontWeight: FontWeight.w700, fontSize: 28)),
+                  IconButton(
+                    icon: const Icon(Icons.filter_list),
+                    onPressed: () {
+                      _scaffoldKey.currentState?.openEndDrawer();
+                    },
+                  ),
+                ],
+              ),
+            ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Text(
