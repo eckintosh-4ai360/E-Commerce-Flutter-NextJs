@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../theme/app_theme.dart';
+import '../orders/orders_screen.dart';
+import '../order_tracking/order_tracking_screen.dart';
+import 'returns_refunds_screen.dart';
+import 'edit_profile_screen.dart';
+import 'delivery_addresses_screen.dart';
+import 'payment_methods_screen.dart';
+import 'faq_help_screen.dart';
 
 class AccountScreen extends StatelessWidget {
   const AccountScreen({super.key});
@@ -8,7 +15,7 @@ class AccountScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppTheme.cardBg,
       appBar: AppBar(
         title: const Text('Account'),
         backgroundColor: Colors.transparent,
