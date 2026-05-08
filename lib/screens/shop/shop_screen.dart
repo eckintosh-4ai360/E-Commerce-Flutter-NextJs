@@ -246,10 +246,28 @@ class _ShopScreenState extends State<ShopScreen> {
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('Filters', style: GoogleFonts.kumbhSans(fontSize: 20, fontWeight: FontWeight.w700)),
+                  const Spacer(),
+                  TextButton(
+                    onPressed: () {
+                      setState(() {
+                        _selectedColors.clear();
+                        _selectedSizes.clear();
+                        _priceRange = const RangeValues(0, 350);
+                      });
+                    },
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: Text('Reset', style: GoogleFonts.kumbhSans(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.primary)),
+                  ),
+                  const SizedBox(width: 8),
                   IconButton(
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
                     icon: const Icon(Icons.close),
                     onPressed: () => Navigator.pop(context),
                   ),
