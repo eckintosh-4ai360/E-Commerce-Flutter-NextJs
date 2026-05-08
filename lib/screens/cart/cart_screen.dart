@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_const_declarations
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -61,7 +63,7 @@ class CartScreen extends StatelessWidget {
           Container(
             width: 100,
             height: 100,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: AppTheme.cardBg,
               shape: BoxShape.circle,
             ),
@@ -74,7 +76,8 @@ class CartScreen extends StatelessWidget {
                   fontSize: 24, fontWeight: FontWeight.w600)),
           const SizedBox(height: 8),
           Text('Discover our beautiful collection',
-              style: GoogleFonts.kumbhSans(color: AppTheme.textMed, fontSize: 13)),
+              style:
+                  GoogleFonts.kumbhSans(color: AppTheme.textMed, fontSize: 13)),
           const SizedBox(height: 28),
           ElevatedButton(
             onPressed: () =>
@@ -96,7 +99,7 @@ class CartScreen extends StatelessWidget {
         color: AppTheme.surface,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withValues(alpha: 0.08),
             blurRadius: 20,
             offset: const Offset(0, -4),
           ),
