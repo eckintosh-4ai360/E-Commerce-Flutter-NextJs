@@ -129,14 +129,23 @@ class AppShell extends StatelessWidget {
             size: 26,
           ),
           if (isActive)
-            const Positioned(
-              child: Icon(Icons.check, size: 10, color: Colors.black),
+            const Icon(
+              Icons.check,
+              color: Colors.black,
+              size: 16,
             ),
         ],
       );
+    } else if (index == 2) {
+      // Cart
+      iconWidget = Icon(
+        isActive ? Icons.shopping_bag_rounded : Icons.shopping_bag_outlined,
+        color: Colors.white,
+        size: 26,
+      );
     } else {
       iconWidget = Icon(
-        index == 3 ? Icons.account_circle_outlined : icon,
+        index == 3 ? Icons.person_outline_rounded : icon,
         color: Colors.white,
         size: 26,
       );
