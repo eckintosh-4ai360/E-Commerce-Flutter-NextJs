@@ -37,7 +37,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   Widget build(BuildContext context) {
     final p = widget.product;
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppTheme.surface,
       body: CustomScrollView(
         slivers: [
           _buildSliverAppBar(context, p),
