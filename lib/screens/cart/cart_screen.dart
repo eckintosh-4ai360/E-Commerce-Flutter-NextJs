@@ -280,7 +280,8 @@ class CartScreen extends StatelessWidget {
             Center(
               child: Text(
                 'Contact us: +233 59 859 9687 | info@esiarkomall.com',
-                style: GoogleFonts.kumbhSans(fontSize: 11, color: AppTheme.textMed),
+                style: GoogleFonts.kumbhSans(
+                    fontSize: 11, color: AppTheme.textMed),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -301,17 +302,17 @@ class _CartItemCard extends StatelessWidget {
     return Dismissible(
       key: Key('cart_${item.product.id}'),
       direction: DismissDirection.endToStart,
-      onDismissed: (_) => context
-          .read<CartBloc>()
-          .add(RemoveFromCart(item.product.id)),
+      onDismissed: (_) =>
+          context.read<CartBloc>().add(RemoveFromCart(item.product.id)),
       background: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
         decoration: BoxDecoration(
-          color: AppTheme.error.withOpacity(0.1),
+          color: AppTheme.error.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
         ),
-        child: const Icon(Icons.delete_outline, color: AppTheme.error, size: 28),
+        child:
+            const Icon(Icons.delete_outline, color: AppTheme.error, size: 28),
       ),
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
@@ -321,7 +322,7 @@ class _CartItemCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: Colors.black.withValues(alpha: 0.04),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
