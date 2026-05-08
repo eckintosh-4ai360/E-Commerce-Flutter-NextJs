@@ -63,102 +63,139 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
     return Scaffold(
       backgroundColor: AppTheme.background,
-      body: CustomScrollView(
-        controller: _scrollController,
-        slivers: [
-          _buildSliverAppBar(),
-          SliverToBoxAdapter(child: _buildHeroBanner()),
-          SliverToBoxAdapter(child: _buildFeatureStrip()),
-          SliverToBoxAdapter(child: _buildSaleSection()),
-          SliverToBoxAdapter(child: _buildCategoryBanners()),
-          SliverToBoxAdapter(
-              child: _buildSectionHeader(
-                  'All Products', 'Eckintosh essentials for every season')),
-          SliverToBoxAdapter(child: _buildCategoryTabs()),
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            sliver: SliverGrid(
-              delegate: SliverChildBuilderDelegate(
-                (context, i) => ProductCard(
-                  product: filteredProducts[i],
-                  onTap: () => _openProduct(context, filteredProducts[i]),
+      body: Stack(
+        children: [
+          CustomScrollView(
+            controller: _scrollController,
+            slivers: [
+              const SliverToBoxAdapter(child: SizedBox(height: 100)),
+              SliverToBoxAdapter(child: _buildHeroBanner()),
+              SliverToBoxAdapter(child: _buildFeatureStrip()),
+              SliverToBoxAdapter(child: _buildSaleSection()),
+              SliverToBoxAdapter(child: _buildCategoryBanners()),
+              SliverToBoxAdapter(
+                  child: _buildSectionHeader(
+                      'All Products', 'Eckintosh essentials for every season')),
+              SliverToBoxAdapter(child: _buildCategoryTabs()),
+              SliverPadding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                sliver: SliverGrid(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, i) => ProductCard(
+                      product: filteredProducts[i],
+                      onTap: () => _openProduct(context, filteredProducts[i]),
+                    ),
+                    childCount: filteredProducts.length,
+                  ),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    childAspectRatio: 0.62,
+                  ),
                 ),
-                childCount: filteredProducts.length,
               ),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: 0.62,
-              ),
-            ),
+              const SliverToBoxAdapter(child: SizedBox(height: 110)),
+            ],
           ),
-          const SliverToBoxAdapter(child: SizedBox(height: 110)),
+          _buildFloatingHeader(),
         ],
       ),
     );
   }
 
-  Widget _buildSliverAppBar() {
-    return SliverAppBar(
-      backgroundColor: AppTheme.background,
-      elevation: 0,
-      floating: true,
-      pinned: true,
-      expandedHeight: 0,
-      title: AnimatedOpacity(
-        opacity: _showAppBarTitle ? 1.0 : 0.0,
-        duration: const Duration(milliseconds: 200),
-        child: Text(
-          'ECKINTOSH',
-          style: GoogleFonts.kumbhSans(
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 3,
-            color: AppTheme.primary,
-          ),
-        ),
-      ),
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.search, color: AppTheme.primary),
-          onPressed: () => _showSearch(context),
-        ),
-        BlocBuilder<CartBloc, CartState>(
-          builder: (context, state) => Stack(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.shopping_bag_outlined,
-                    color: AppTheme.primary),
-                onPressed: () =>
-                    context.read<NavigationBloc>().add(const NavigateTo(2)),
+  Widget _buildFloatingHeader() {
+    final topPadding = MediaQuery.of(context).padding.top;
+    return AnimatedPositioned(
+      duration: const Duration(milliseconds: 300),
+      top: _isHeaderVisible ? 0 : -(topPadding + 100),
+      left: 0,
+      right: 0,
+      child: Container(
+        padding: EdgeInsets.fromLTRB(16, topPadding + 10, 16, 15),
+        decoration: BoxDecoration(
+          color: AppTheme.background.withValues(alpha: 0.95),
+          boxShadow: [
+            if (_lastOffset > 10)
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               ),
-              if (state.totalItems > 0)
-                Positioned(
-                  right: 6,
-                  top: 6,
-                  child: Container(
-                    width: 18,
-                    height: 18,
-                    decoration: const BoxDecoration(
-                      color: AppTheme.accent,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Center(
-                      child: Text(
-                        '${state.totalItems}',
+          ],
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: GestureDetector(
+                onTap: () => _showSearch(context),
+                child: Container(
+                  height: 48,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: AppTheme.surface,
+                    borderRadius: BorderRadius.circular(15),
+                    border: Border.all(color: AppTheme.divider),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.search,
+                          color: AppTheme.textMed, size: 22),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Search bags, accessories...',
                         style: GoogleFonts.kumbhSans(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                            color: AppTheme.primary),
+                          color: AppTheme.textMed,
+                          fontSize: 14,
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ),
-            ],
-          ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            BlocBuilder<CartBloc, CartState>(
+              builder: (context, state) => _buildCartAction(state),
+            ),
+          ],
         ),
-        const SizedBox(width: 4),
+      ),
+    );
+  }
+
+  Widget _buildCartAction(CartState state) {
+    return Stack(
+      children: [
+        IconButton(
+          icon:
+              const Icon(Icons.shopping_bag_outlined, color: AppTheme.primary),
+          onPressed: () =>
+              context.read<NavigationBloc>().add(const NavigateTo(2)),
+        ),
+        if (state.totalItems > 0)
+          Positioned(
+            right: 6,
+            top: 6,
+            child: Container(
+              width: 18,
+              height: 18,
+              decoration: const BoxDecoration(
+                color: AppTheme.accent,
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Text(
+                  '${state.totalItems}',
+                  style: GoogleFonts.kumbhSans(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.primary),
+                ),
+              ),
+            ),
+          ),
       ],
     );
   }
@@ -181,63 +218,66 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               Positioned.fill(
                 child: CustomPaint(painter: _HeroPainter()),
               ),
-              Padding(
-                padding: const EdgeInsets.all(28),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppTheme.accent.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border.all(
-                            color: AppTheme.accent.withValues(alpha: 0.5)),
-                      ),
-                      child: Text(
-                        'EXCLUSIVE OFFER',
-                        style: GoogleFonts.kumbhSans(
-                          color: AppTheme.accent,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 2,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'For the\nStylish &\nFashionable',
-                      style: GoogleFonts.kumbhSans(
-                        color: Colors.white,
-                        fontSize: 30,
-                        fontWeight: FontWeight.w700,
-                        height: 1.2,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    GestureDetector(
-                      onTap: () {},
-                      child: Container(
+              SingleChildScrollView(
+                physics: const NeverScrollableScrollPhysics(),
+                child: Padding(
+                  padding: const EdgeInsets.all(28),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 10),
+                            horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: AppTheme.accent,
-                          borderRadius: BorderRadius.circular(6),
+                          color: AppTheme.accent.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(
+                              color: AppTheme.accent.withValues(alpha: 0.5)),
                         ),
                         child: Text(
-                          'SHOP NOW',
+                          'EXCLUSIVE OFFER',
                           style: GoogleFonts.kumbhSans(
-                            color: AppTheme.primary,
-                            fontSize: 12,
+                            color: AppTheme.accent,
+                            fontSize: 10,
                             fontWeight: FontWeight.w700,
-                            letterSpacing: 1.5,
+                            letterSpacing: 2,
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 12),
+                      Text(
+                        'For the\nStylish &\nFashionable',
+                        style: GoogleFonts.kumbhSans(
+                          color: Colors.white,
+                          fontSize: 30,
+                          fontWeight: FontWeight.w700,
+                          height: 1.2,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      GestureDetector(
+                        onTap: () {},
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: AppTheme.accent,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            'SHOP NOW',
+                            style: GoogleFonts.kumbhSans(
+                              color: AppTheme.primary,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1.5,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               // Decorative bag icon
