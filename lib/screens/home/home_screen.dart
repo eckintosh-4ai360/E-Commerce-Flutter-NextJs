@@ -406,14 +406,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             ),
           ),
           const SizedBox(width: 12),
-          SingleChildScrollView(
-            child: Expanded(
-              child: _buildCategoryBanner(
-                'Accessories',
-                '7 Products',
-                AppTheme.badge,
-                Icons.watch_outlined,
-              ),
+          Expanded(
+            child: _buildCategoryBanner(
+              'Accessories',
+              '7 Products',
+              AppTheme.badge,
+              Icons.watch_outlined,
             ),
           ),
         ],
@@ -628,7 +626,7 @@ class _ProductSearchDelegate extends SearchDelegate<Product?> {
         BlocProvider.value(value: wishlistBloc),
       ],
       child: GridView.builder(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 110),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
           crossAxisSpacing: 12,
