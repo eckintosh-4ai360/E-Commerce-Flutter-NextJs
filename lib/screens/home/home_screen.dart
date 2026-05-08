@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../blocs/cart/cart_bloc.dart';
-import '../../blocs/cart/cart_state.dart';
 import '../../blocs/navigation/navigation_bloc.dart';
 import '../../blocs/wishlist/wishlist_bloc.dart';
 import '../../models/product.dart';
