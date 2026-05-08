@@ -171,7 +171,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           icon:
               const Icon(Icons.shopping_bag_outlined, color: AppTheme.primary),
           onPressed: () =>
-              context.read<NavigationBloc>().add(const NavigateTo(2)),
+              context.read<NavigationBloc>().add(const NavigateTo(3)),
         ),
         if (state.totalItems > 0)
           Positioned(
