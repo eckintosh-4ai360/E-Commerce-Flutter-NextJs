@@ -206,8 +206,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
             color: p.inStock
-                ? AppTheme.success.withOpacity(0.1)
-                : AppTheme.error.withOpacity(0.1),
+                ? AppTheme.success.withValues(alpha: 0.1)
+                : AppTheme.error.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(4),
           ),
           child: Text(
