@@ -85,7 +85,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       product: filteredProducts[i],
                       onTap: () => _openProduct(context, filteredProducts[i]),
                     ),
-                    childCount: filteredProducts.length,
+                    childCount: filteredProducts.length > 4 ? 4 : filteredProducts.length,
                   ),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
