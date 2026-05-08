@@ -20,6 +20,8 @@ class _ShopScreenState extends State<ShopScreen> {
   String _selectedCategory = 'All products';
   String _sortBy = 'Sort by latest';
   RangeValues _priceRange = const RangeValues(0, 350);
+  List<String> _selectedColors = [];
+  List<String> _selectedSizes = [];
 
   final List<String> _categories = [
     'All products',
@@ -67,15 +69,33 @@ class _ShopScreenState extends State<ShopScreen> {
   @override
   Widget build(BuildContext context) {
     // Determine the product list to show
-    List<Product> displayProducts = ProductData.products;
+    List<Product> displayProducts = List.from(ProductData.products);
     if (_selectedCategory != 'All products' && _selectedCategory != 'All') {
-      displayProducts = ProductData.products
+      displayProducts = displayProducts
           .where((p) => p.category.toLowerCase() == _selectedCategory.toLowerCase())
           .toList();
     }
-    // If no products found for a category, let's just show all as fallback for UI demonstration
-    if (displayProducts.isEmpty) {
-      displayProducts = ProductData.products;
+    
+    // Filter by price
+    displayProducts = displayProducts.where((p) => p.price >= _priceRange.start && p.price <= _priceRange.end).toList();
+    
+    // Filter by color
+    if (_selectedColors.isNotEmpty) {
+      displayProducts = displayProducts.where((p) => p.colors.any((c) => _selectedColors.contains(c))).toList();
+    }
+    
+    // Filter by size
+    if (_selectedSizes.isNotEmpty) {
+      displayProducts = displayProducts.where((p) => p.sizes.any((s) => _selectedSizes.contains(s))).toList();
+    }
+
+    // Sort
+    if (_sortBy == 'Sort by price: low to high') {
+      displayProducts.sort((a, b) => a.price.compareTo(b.price));
+    } else if (_sortBy == 'Sort by price: high to low') {
+      displayProducts.sort((a, b) => b.price.compareTo(a.price));
+    } else if (_sortBy == 'Sort by popularity') {
+      displayProducts.sort((a, b) => b.reviewCount.compareTo(a.reviewCount));
     }
 
     return Scaffold(
