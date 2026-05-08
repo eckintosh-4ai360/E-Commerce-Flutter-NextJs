@@ -14,7 +14,7 @@ class WishlistScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppTheme.cardBg,
       appBar: AppBar(
         title: const Text('Wishlist'),
         backgroundColor: Colors.transparent,
