@@ -22,7 +22,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   late AnimationController _bannerController;
   late Animation<double> _bannerFade;
   final ScrollController _scrollController = ScrollController();
-  bool _showAppBarTitle = false;
+  bool _isHeaderVisible = true;
+  double _lastOffset = 0;
 
   @override
   void initState() {
@@ -34,10 +35,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     _bannerController.forward();
 
     _scrollController.addListener(() {
-      final show = _scrollController.offset > 180;
-      if (show != _showAppBarTitle) {
-        setState(() => _showAppBarTitle = show);
+      final currentOffset = _scrollController.offset;
+
+      if (currentOffset <= 0) {
+        if (!_isHeaderVisible) setState(() => _isHeaderVisible = true);
+      } else if (currentOffset > _lastOffset && currentOffset > 80) {
+        // Scrolling down
+        if (_isHeaderVisible) setState(() => _isHeaderVisible = false);
+      } else if (currentOffset < _lastOffset) {
+        // Scrolling up
+        if (!_isHeaderVisible) setState(() => _isHeaderVisible = true);
       }
+      _lastOffset = currentOffset;
     });
   }
 
