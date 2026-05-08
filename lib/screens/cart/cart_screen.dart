@@ -130,7 +130,8 @@ class CartScreen extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 12),
               child: Row(
                 children: [
-                  const Icon(Icons.local_shipping, size: 16, color: AppTheme.success),
+                  const Icon(Icons.local_shipping,
+                      size: 16, color: AppTheme.success),
                   const SizedBox(width: 6),
                   Text(
                     'You qualify for free shipping! 🎉',
@@ -164,7 +165,8 @@ class CartScreen extends StatelessWidget {
                 onPressed: () => _showCheckoutDialog(context, state),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primary,
-                  padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 16),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 36, vertical: 16),
                 ),
                 child: const Text('CHECKOUT'),
               ),
@@ -226,8 +228,7 @@ class CartScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Expanded(
-                        child: Text(
-                            '${item.product.name} × ${item.quantity}',
+                        child: Text('${item.product.name} × ${item.quantity}',
                             style: GoogleFonts.kumbhSans(fontSize: 13)),
                       ),
                       Text(
@@ -261,7 +262,8 @@ class CartScreen extends StatelessWidget {
                   context.read<CartBloc>().add(ClearCart());
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Order placed! We\'ll contact you shortly. Call +233 59 859 9687',
+                      content: Text(
+                          'Order placed! We\'ll contact you shortly. Call +233 59 859 9687',
                           style: GoogleFonts.kumbhSans()),
                       backgroundColor: AppTheme.success,
                       behavior: SnackBarBehavior.floating,
