@@ -296,7 +296,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             const SizedBox(width: 8),
             Text(
               _selectedColor ?? '',
-              style: GoogleFonts.kumbhSans(fontSize: 13, color: AppTheme.textMed),
+              style:
+                  GoogleFonts.kumbhSans(fontSize: 13, color: AppTheme.textMed),
             ),
           ],
         ),
