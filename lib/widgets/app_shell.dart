@@ -64,10 +64,11 @@ class AppShell extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               _navItem(context, 0, currentIndex, Icons.home_rounded),
+              _navItem(context, 1, currentIndex, Icons.storefront_rounded),
               _navItem(
-                  context, 1, currentIndex, Icons.favorite_outline_rounded),
-              _navItem(context, 2, currentIndex, Icons.shopping_bag_outlined),
-              _navItem(context, 3, currentIndex, Icons.person_outline_rounded),
+                  context, 2, currentIndex, Icons.favorite_outline_rounded),
+              _navItem(context, 3, currentIndex, Icons.shopping_bag_outlined),
+              _navItem(context, 4, currentIndex, Icons.person_outline_rounded),
             ],
           ),
         ),
@@ -121,6 +122,13 @@ class AppShell extends StatelessWidget {
         ],
       );
     } else if (index == 1) {
+      // Shop
+      iconWidget = Icon(
+        isActive ? Icons.storefront_rounded : Icons.storefront_outlined,
+        color: Colors.white,
+        size: 26,
+      );
+    } else if (index == 2) {
       // Wishlist
       iconWidget = Stack(
         alignment: Alignment.center,
