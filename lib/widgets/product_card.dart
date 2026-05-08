@@ -141,11 +141,11 @@ class ProductCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: isWishlisted
                         ? AppTheme.primary
-                        : Colors.white.withOpacity(0.9),
+                        : Colors.white.withValues(alpha: 0.9),
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: Colors.black.withValues(alpha: 0.1),
                         blurRadius: 6,
                         offset: const Offset(0, 2),
                       ),
@@ -185,7 +185,7 @@ class ProductCard extends StatelessWidget {
           Row(
             children: [
               Text(
-                '₵${product.price.toStringAsFixed(0)}',
+                'GH₵${product.price.toStringAsFixed(0)}',
                 style: GoogleFonts.kumbhSans(
                   fontSize: compact ? 13 : 15,
                   fontWeight: FontWeight.w700,
