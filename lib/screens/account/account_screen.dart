@@ -65,6 +65,7 @@ class AccountScreen extends StatelessWidget {
           ],
         ),
       ),
+      ),
     );
   }
 
