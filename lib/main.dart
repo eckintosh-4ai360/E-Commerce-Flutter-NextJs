@@ -54,7 +54,7 @@ class EckintoshApp extends StatelessWidget {
         theme: AppTheme.lightTheme,
         builder: (context, child) {
           return Container(
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
