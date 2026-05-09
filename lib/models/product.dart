@@ -35,6 +35,54 @@ class Product extends Equatable {
     this.isBestSeller = false,
   });
 
+  factory Product.fromJson(Map<String, dynamic> json) {
+    return Product(
+      id: (json['id'] as num).toInt(),
+      name: json['name'] as String,
+      description: json['description'] as String? ?? '',
+      price: (json['price'] as num).toDouble(),
+      originalPrice: (json['originalPrice'] as num?)?.toDouble(),
+      images: (json['images'] as List<dynamic>? ?? const [])
+          .map((image) => image.toString())
+          .toList(),
+      category: json['category'] as String? ?? 'General',
+      tags: (json['tags'] as List<dynamic>? ?? const [])
+          .map((tag) => tag.toString())
+          .toList(),
+      rating: (json['rating'] as num?)?.toDouble() ?? 4.5,
+      reviewCount: (json['reviewCount'] as num?)?.toInt() ?? 0,
+      inStock: json['inStock'] as bool? ?? true,
+      sizes: (json['sizes'] as List<dynamic>? ?? const [])
+          .map((size) => size.toString())
+          .toList(),
+      colors: (json['colors'] as List<dynamic>? ?? const [])
+          .map((color) => color.toString())
+          .toList(),
+      isNew: json['isNew'] as bool? ?? false,
+      isBestSeller: json['isBestSeller'] as bool? ?? false,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'description': description,
+      'price': price,
+      'originalPrice': originalPrice,
+      'images': images,
+      'category': category,
+      'tags': tags,
+      'rating': rating,
+      'reviewCount': reviewCount,
+      'inStock': inStock,
+      'sizes': sizes,
+      'colors': colors,
+      'isNew': isNew,
+      'isBestSeller': isBestSeller,
+    };
+  }
+
   double? get discountPercent {
     if (originalPrice != null && originalPrice! > price) {
       return ((originalPrice! - price) / originalPrice! * 100).roundToDouble();
