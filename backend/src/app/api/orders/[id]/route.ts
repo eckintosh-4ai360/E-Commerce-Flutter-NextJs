@@ -32,7 +32,7 @@ export async function GET(request: Request, context: RouteContext) {
   }
 
   return jsonResponse({
-    order: serialiseOrder(order, new URL(request.url).origin),
+    order: serialiseOrder(order, getRequestOrigin(request)),
   });
 }
 
