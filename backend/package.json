@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@prisma/client": "^6.8.2",
+    "cloudinary": "^2.10.0",
     "framer-motion": "^12.38.0",
     "lucide-react": "^1.14.0",
     "next": "^16.1.6",
