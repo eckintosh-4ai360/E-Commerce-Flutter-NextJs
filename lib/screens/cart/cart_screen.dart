@@ -136,14 +136,19 @@ class CartScreen extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 12),
               child: Row(
                 children: [
-                  const Icon(Icons.local_shipping_outlined,
-                      size: 16, color: AppTheme.textMed),
+                  const Icon(
+                    Icons.local_shipping_outlined,
+                    size: 16,
+                    color: AppTheme.textMed,
+                  ),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
-                      'Add ₵${remaining.toStringAsFixed(0)} more for free shipping',
+                      'Add GHS ${remaining.toStringAsFixed(0)} more for free shipping',
                       style: GoogleFonts.kumbhSans(
-                          fontSize: 12, color: AppTheme.textMed),
+                        fontSize: 12,
+                        color: AppTheme.textMed,
+                      ),
                     ),
                   ),
                 ],
@@ -154,15 +159,19 @@ class CartScreen extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 12),
               child: Row(
                 children: [
-                  const Icon(Icons.local_shipping,
-                      size: 16, color: AppTheme.success),
+                  const Icon(
+                    Icons.local_shipping,
+                    size: 16,
+                    color: AppTheme.success,
+                  ),
                   const SizedBox(width: 6),
                   Text(
-                    'You qualify for free shipping! 🎉',
+                    'You qualify for free shipping.',
                     style: GoogleFonts.kumbhSans(
-                        fontSize: 12,
-                        color: AppTheme.success,
-                        fontWeight: FontWeight.w600),
+                      fontSize: 12,
+                      color: AppTheme.success,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ],
               ),
@@ -173,15 +182,20 @@ class CartScreen extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Total',
-                      style: GoogleFonts.kumbhSans(
-                          fontSize: 12, color: AppTheme.textMed)),
                   Text(
-                    '₵${state.totalPrice.toStringAsFixed(2)}',
+                    'Total',
                     style: GoogleFonts.kumbhSans(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w700,
-                        color: AppTheme.primary),
+                      fontSize: 12,
+                      color: AppTheme.textMed,
+                    ),
+                  ),
+                  Text(
+                    'GHS ${state.totalPrice.toStringAsFixed(2)}',
+                    style: GoogleFonts.kumbhSans(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.primary,
+                    ),
                   ),
                 ],
               ),
@@ -189,8 +203,10 @@ class CartScreen extends StatelessWidget {
                 onPressed: () => _showCheckoutDialog(context, state),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primary,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 36, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 36,
+                    vertical: 16,
+                  ),
                 ),
                 child: const Text('CHECKOUT'),
               ),
@@ -206,112 +222,71 @@ class CartScreen extends StatelessWidget {
       context: context,
       builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        title: Text('Clear Cart',
-            style: GoogleFonts.kumbhSans(fontWeight: FontWeight.w700)),
-        content: Text('Remove all items from your cart?',
-            style: GoogleFonts.kumbhSans(fontSize: 14)),
+        title: Text(
+          'Clear Cart',
+          style: GoogleFonts.kumbhSans(fontWeight: FontWeight.w700),
+        ),
+        content: Text(
+          'Remove all items from your cart?',
+          style: GoogleFonts.kumbhSans(fontSize: 14),
+        ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text('Cancel',
-                  style: GoogleFonts.kumbhSans(color: AppTheme.textMed))),
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancel',
+              style: GoogleFonts.kumbhSans(color: AppTheme.textMed),
+            ),
+          ),
           TextButton(
             onPressed: () {
               context.read<CartBloc>().add(ClearCart());
               Navigator.pop(context);
             },
-            child: Text('Clear',
-                style: GoogleFonts.kumbhSans(
-                    color: AppTheme.error, fontWeight: FontWeight.w600)),
+            child: Text(
+              'Clear',
+              style: GoogleFonts.kumbhSans(
+                color: AppTheme.error,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  void _showCheckoutDialog(BuildContext context, CartState state) {
-    showModalBottomSheet(
+  Future<void> _showCheckoutDialog(
+    BuildContext context,
+    CartState state,
+  ) async {
+    final order = await showModalBottomSheet<AppOrder>(
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (_) => Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Order Summary',
-                style: GoogleFonts.kumbhSans(
-                    fontSize: 24, fontWeight: FontWeight.w700)),
-            const SizedBox(height: 16),
-            ...state.items.map((item) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text('${item.product.name} × ${item.quantity}',
-                            style: GoogleFonts.kumbhSans(fontSize: 13)),
-                      ),
-                      Text(
-                        '₵${item.totalPrice.toStringAsFixed(2)}',
-                        style: GoogleFonts.kumbhSans(
-                            fontWeight: FontWeight.w600, fontSize: 13),
-                      ),
-                    ],
-                  ),
-                )),
-            const Divider(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Total',
-                    style: GoogleFonts.kumbhSans(
-                        fontWeight: FontWeight.w700, fontSize: 16)),
-                Text(
-                  '₵${state.totalPrice.toStringAsFixed(2)}',
-                  style: GoogleFonts.kumbhSans(
-                      fontSize: 24, fontWeight: FontWeight.w700),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  context.read<CartBloc>().add(ClearCart());
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                          'Order placed! We\'ll contact you shortly. Call +233 59 859 9687',
-                          style: GoogleFonts.kumbhSans()),
-                      backgroundColor: AppTheme.success,
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8)),
-                      duration: const Duration(seconds: 4),
-                    ),
-                  );
-                },
-                child: const Text('PLACE ORDER'),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Center(
-              child: Text(
-                'Contact us: +233 59 859 9687 | info@esiarkomall.com',
-                style: GoogleFonts.kumbhSans(
-                    fontSize: 11, color: AppTheme.textMed),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            const SizedBox(height: 12),
-          ],
+      builder: (_) => CheckoutSheet(
+        items: state.items,
+        cartTotal: state.totalPrice,
+      ),
+    );
+
+    if (order == null || !context.mounted) {
+      return;
+    }
+
+    context.read<CartBloc>().add(ClearCart());
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Order ${order.id} placed successfully. Tracking is now available in the app.',
+          style: GoogleFonts.kumbhSans(),
         ),
+        backgroundColor: AppTheme.success,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        duration: const Duration(seconds: 4),
       ),
     );
   }
