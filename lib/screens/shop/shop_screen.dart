@@ -381,7 +381,7 @@ class _ShopScreenState extends State<ShopScreen> {
                       setState(() {
                         _selectedColors.clear();
                         _selectedSizes.clear();
-                        _priceRange = const RangeValues(0, 350);
+                        _priceRange = RangeValues(0, maxPrice);
                       });
                     },
                     style: TextButton.styleFrom(
@@ -389,7 +389,14 @@ class _ShopScreenState extends State<ShopScreen> {
                       minimumSize: Size.zero,
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
-                    child: Text('Reset', style: GoogleFonts.kumbhSans(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.primary)),
+                    child: Text(
+                      'Reset',
+                      style: GoogleFonts.kumbhSans(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.primary,
+                      ),
+                    ),
                   ),
                   const SizedBox(width: 8),
                   IconButton(
@@ -406,62 +413,94 @@ class _ShopScreenState extends State<ShopScreen> {
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
-                  // Filter by Color
-                  Text('Filter by Color', style: GoogleFonts.kumbhSans(fontSize: 16, fontWeight: FontWeight.w700)),
+                  Text(
+                    'Filter by Color',
+                    style: GoogleFonts.kumbhSans(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                   const SizedBox(height: 12),
-                  ..._colors.entries.map((e) {
-                    final isSelected = _selectedColors.contains(e.key);
+                  ...colorCounts.entries.map((entry) {
+                    final isSelected = _selectedColors.contains(entry.key);
                     return InkWell(
                       onTap: () {
                         setState(() {
                           if (isSelected) {
-                            _selectedColors.remove(e.key);
+                            _selectedColors.remove(entry.key);
                           } else {
-                            _selectedColors.add(e.key);
+                            _selectedColors.add(entry.key);
                           }
                         });
                       },
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 6.0),
+                        padding: const EdgeInsets.symmetric(vertical: 6),
                         child: Row(
                           children: [
                             Icon(
-                              isSelected ? Icons.check_box : Icons.check_box_outline_blank,
-                              color: isSelected ? AppTheme.primary : AppTheme.textLight,
+                              isSelected
+                                  ? Icons.check_box
+                                  : Icons.check_box_outline_blank,
+                              color: isSelected
+                                  ? AppTheme.primary
+                                  : AppTheme.textLight,
                               size: 20,
                             ),
                             const SizedBox(width: 8),
-                            Text('${e.key} (${e.value})', style: GoogleFonts.kumbhSans(
-                              fontSize: 14, 
-                              color: isSelected ? AppTheme.textDark : AppTheme.textMed,
-                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                            )),
+                            Text(
+                              '${entry.key} (${entry.value})',
+                              style: GoogleFonts.kumbhSans(
+                                fontSize: 14,
+                                color: isSelected
+                                    ? AppTheme.textDark
+                                    : AppTheme.textMed,
+                                fontWeight: isSelected
+                                    ? FontWeight.w600
+                                    : FontWeight.w500,
+                              ),
+                            ),
                           ],
                         ),
                       ),
                     );
                   }),
-                  
                   const SizedBox(height: 24),
-                  
-                  // Filter by price
-                  Text('Filter by price', style: GoogleFonts.kumbhSans(fontSize: 16, fontWeight: FontWeight.w700)),
+                  Text(
+                    'Filter by price',
+                    style: GoogleFonts.kumbhSans(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                   const SizedBox(height: 12),
                   Row(
                     children: [
-                      Expanded(child: _buildPriceInput(_priceRange.start.round().toString(), 'Min price')),
-                      const Padding(padding: EdgeInsets.symmetric(horizontal: 8.0), child: Text('-')),
-                      Expanded(child: _buildPriceInput(_priceRange.end.round().toString(), 'Max price')),
+                      Expanded(
+                        child: _buildPriceInput(
+                          effectivePriceRange.start.round().toString(),
+                          'Min price',
+                        ),
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 8.0),
+                        child: Text('-'),
+                      ),
+                      Expanded(
+                        child: _buildPriceInput(
+                          effectivePriceRange.end.round().toString(),
+                          'Max price',
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 8),
                   RangeSlider(
-                    values: _priceRange,
+                    values: effectivePriceRange,
                     min: 0,
-                    max: 500,
+                    max: maxPrice,
                     activeColor: AppTheme.primary,
                     inactiveColor: AppTheme.divider,
-                    onChanged: (RangeValues values) {
+                    onChanged: (values) {
                       setState(() {
                         _priceRange = values;
                       });
@@ -471,8 +510,13 @@ class _ShopScreenState extends State<ShopScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Price: GH₵${_priceRange.start.round()} — GH₵${_priceRange.end.round()}', 
-                        style: GoogleFonts.kumbhSans(fontSize: 13, color: AppTheme.textMed)),
+                      Text(
+                        'Price: GHs${effectivePriceRange.start.round()} - GHs${effectivePriceRange.end.round()}',
+                        style: GoogleFonts.kumbhSans(
+                          fontSize: 13,
+                          color: AppTheme.textMed,
+                        ),
+                      ),
                       ElevatedButton(
                         onPressed: () => Navigator.pop(context),
                         style: ElevatedButton.styleFrom(
