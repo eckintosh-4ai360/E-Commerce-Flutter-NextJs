@@ -6,13 +6,14 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "db:init": "node scripts/init-sqlite.mjs",
     "prisma:generate": "prisma generate",
     "db:push": "prisma db push",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "prisma db execute --schema prisma/schema.prisma --file prisma/seed.sql"
   },
   "dependencies": {
     "@prisma/client": "^6.8.2",
+    "framer-motion": "^12.38.0",
+    "lucide-react": "^1.14.0",
     "next": "^16.1.6",
     "react": "^19.2.4",
     "react-dom": "^19.2.4"
