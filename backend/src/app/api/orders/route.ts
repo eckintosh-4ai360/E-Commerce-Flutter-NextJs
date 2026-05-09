@@ -51,7 +51,7 @@ export async function GET(request: Request) {
   });
 
   return jsonResponse({
-    orders: orders.map((order) => serialiseOrder(order, url.origin)),
+    orders: orders.map((order) => serialiseOrder(order, origin)),
   });
 }
 
