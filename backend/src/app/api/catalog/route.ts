@@ -15,7 +15,7 @@ export async function GET(request: Request) {
     orderBy: [{ isBestSeller: 'desc' }, { createdAt: 'desc' }],
   });
 
-  const origin = url.origin;
+  const origin = getRequestOrigin(request);
   const categories = Array.from(
     new Set<string>(
       products.map((product: PrismaProduct) => product.category),
