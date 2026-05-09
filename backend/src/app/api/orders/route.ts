@@ -1,4 +1,9 @@
-import { errorResponse, jsonResponse, optionsResponse } from '@/lib/http';
+import {
+  errorResponse,
+  getRequestOrigin,
+  jsonResponse,
+  optionsResponse,
+} from '@/lib/http';
 import { getPrisma } from '@/lib/prisma';
 import {
   flatShippingFee,
@@ -27,6 +32,7 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const phone = url.searchParams.get('phone');
   const email = url.searchParams.get('email');
+  const origin = getRequestOrigin(request);
 
   const orders = await prisma.order.findMany({
     where: {
