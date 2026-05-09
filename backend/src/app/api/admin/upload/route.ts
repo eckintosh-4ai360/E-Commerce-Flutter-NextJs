@@ -26,27 +26,26 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'File size must be under 5 MB.' }, { status: 400 });
     }
 
-    // Build a clean filename: lowercase, spaces → hyphens, keep extension
-    const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
-    const baseName = file.name
-      .replace(/\.[^/.]+$/, '')      // remove extension
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')  // replace non-alphanumeric with hyphen
-      .replace(/^-|-$/g, '');       // strip leading/trailing hyphens
-
-    const filename = `${baseName}-${Date.now()}.${ext}`;
-
-    // Ensure public/products directory exists
-    const uploadDir = path.join(process.cwd(), 'public', 'products');
-    await mkdir(uploadDir, { recursive: true });
-
-    // Write file to disk
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    await writeFile(path.join(uploadDir, filename), buffer);
 
-    const imagePath = `/products/${filename}`;
-    return NextResponse.json({ imagePath, filename }, { status: 201 });
+    // Upload to Cloudinary
+    const result = await new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder: 'esiarko-mall',
+          resource_type: 'auto',
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+      uploadStream.end(buffer);
+    }) as any;
+
+    const imagePath = result.secure_url;
+    return NextResponse.json({ imagePath, filename: result.public_id }, { status: 201 });
   } catch (err: any) {
     console.error('Upload error:', err);
     return NextResponse.json({ error: 'Upload failed. Please try again.' }, { status: 500 });
