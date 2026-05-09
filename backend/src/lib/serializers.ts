@@ -69,7 +69,7 @@ export function serialiseOrder(order: OrderWithItems, origin: string) {
       quantity: item.quantity,
       selectedColor: item.selectedColor,
       selectedSize: item.selectedSize,
-      imageUrl: new URL(item.product.imagePath, origin).toString(),
+      imageUrl: getImageUrl(item.product.imagePath, origin),
     })),
   };
 }
