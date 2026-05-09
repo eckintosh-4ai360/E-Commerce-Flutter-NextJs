@@ -34,7 +34,9 @@ class AppOrderItem extends Equatable {
       quantity: (json['quantity'] as num).toInt(),
       selectedColor: json['selectedColor'] as String?,
       selectedSize: json['selectedSize'] as String?,
-      imageUrl: json['imageUrl'] as String?,
+      imageUrl: json['imageUrl'] == null
+          ? null
+          : AppConfig.resolveMediaUrl(json['imageUrl'] as String),
     );
   }
 
