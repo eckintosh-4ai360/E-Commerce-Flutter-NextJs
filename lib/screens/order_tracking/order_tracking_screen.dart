@@ -80,12 +80,16 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
           children: [
             Text(
               'Enter your order ID to get updates on your delivery status.',
-              style: GoogleFonts.kumbhSans(color: AppTheme.textMed, fontSize: 14),
+              style: GoogleFonts.kumbhSans(
+                color: AppTheme.textMed,
+                fontSize: 14,
+              ),
             ),
             const SizedBox(height: 24),
             TextField(
+              controller: _controller,
               decoration: InputDecoration(
-                hintText: 'Order ID (e.g., 10045)',
+                hintText: 'Order ID',
                 hintStyle: GoogleFonts.kumbhSans(color: AppTheme.textLight),
                 prefixIcon: const Icon(Icons.search, color: AppTheme.textLight),
                 filled: true,
@@ -102,7 +106,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: _isLoading ? null : _trackOrder,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primary,
                   foregroundColor: Colors.white,
