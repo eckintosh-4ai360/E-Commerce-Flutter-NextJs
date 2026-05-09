@@ -1,4 +1,9 @@
-import { errorResponse, jsonResponse, optionsResponse } from '@/lib/http';
+import {
+  errorResponse,
+  getRequestOrigin,
+  jsonResponse,
+  optionsResponse,
+} from '@/lib/http';
 import { getPrisma } from '@/lib/prisma';
 import { serialiseProduct } from '@/lib/serializers';
 
