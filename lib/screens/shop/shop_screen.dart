@@ -1,6 +1,10 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+import '../../blocs/catalog/catalog_cubit.dart';
 import '../../blocs/cart/cart_bloc.dart';
 import '../../blocs/wishlist/wishlist_bloc.dart';
 import '../../models/product.dart';
@@ -17,39 +21,11 @@ class ShopScreen extends StatefulWidget {
 
 class _ShopScreenState extends State<ShopScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  String _selectedCategory = 'All products';
+  String _selectedCategory = 'All';
   String _sortBy = 'Sort by latest';
-  RangeValues _priceRange = const RangeValues(0, 350);
-  List<String> _selectedColors = [];
-  List<String> _selectedSizes = [];
-
-  final List<String> _categories = [
-    'All products',
-    'Accessories',
-    'Baby',
-    'Bags',
-    'Beauty and skin',
-    'Belts',
-    'Cargo Trousers',
-    'CENNA',
-    'Kids',
-    'Men',
-    'Outerwear',
-    'Shoes',
-    'Watches'
-  ];
-
-  final Map<String, int> _colors = {
-    'Army Green': 2, 'Ash': 1, 'blue black': 4, 'Brown': 13,
-    'cocoa': 1, 'coconut': 1, 'Cream': 2, 'Gold': 1,
-    'Nude': 7, 'Orange': 1, 'Rose': 1, 'silver': 2,
-    'wine': 4, 'Black': 25, 'Blue': 2, 'Green': 1,
-    'Pink': 10, 'Red': 5, 'White': 5, 'Yellow': 1
-  };
-
-  final Map<String, int> _sizes = {
-    '36': 1, '36/37': 2, '37': 3, '38': 5, '39': 4, '40': 2
-  };
+  RangeValues _priceRange = const RangeValues(0, 500);
+  final List<String> _selectedColors = [];
+  final List<String> _selectedSizes = [];
 
   void _openProduct(BuildContext context, Product product) {
     Navigator.push(
@@ -68,176 +44,321 @@ class _ShopScreenState extends State<ShopScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Determine the product list to show
-    List<Product> displayProducts = List.from(ProductData.products);
-    if (_selectedCategory != 'All products' && _selectedCategory != 'All') {
-      displayProducts = displayProducts
-          .where((p) => p.category.toLowerCase() == _selectedCategory.toLowerCase())
-          .toList();
-    }
-    
-    // Filter by price
-    displayProducts = displayProducts.where((p) => p.price >= _priceRange.start && p.price <= _priceRange.end).toList();
-    
-    // Filter by color
-    if (_selectedColors.isNotEmpty) {
-      displayProducts = displayProducts.where((p) => p.colors.any((c) => _selectedColors.contains(c))).toList();
-    }
-    
-    // Filter by size
-    if (_selectedSizes.isNotEmpty) {
-      displayProducts = displayProducts.where((p) => p.sizes.any((s) => _selectedSizes.contains(s))).toList();
-    }
+    return BlocBuilder<CatalogCubit, CatalogState>(
+      builder: (context, catalogState) {
+        final showInitialLoader = catalogState.status == CatalogStatus.loading &&
+            catalogState.products.isEmpty;
+        final showFatalError = catalogState.status == CatalogStatus.failure &&
+            catalogState.products.isEmpty;
+        final categories = ['All', ...catalogState.categories];
+        final selectedCategory =
+            categories.contains(_selectedCategory) ? _selectedCategory : 'All';
+        final maxCatalogPrice = catalogState.products.isEmpty
+            ? 0.0
+            : catalogState.products
+                .map((product) => product.price)
+                .reduce((current, next) => current > next ? current : next);
+        final maxPrice = math.max(500.0, maxCatalogPrice).toDouble();
+        final effectivePriceRange = _normalisePriceRange(maxPrice);
+        final colorCounts =
+            _buildFacetCounts(catalogState.products, (product) => product.colors);
+        final sizeCounts =
+            _buildFacetCounts(catalogState.products, (product) => product.sizes);
 
-    // Sort
-    if (_sortBy == 'Sort by price: low to high') {
-      displayProducts.sort((a, b) => a.price.compareTo(b.price));
-    } else if (_sortBy == 'Sort by price: high to low') {
-      displayProducts.sort((a, b) => b.price.compareTo(a.price));
-    } else if (_sortBy == 'Sort by popularity') {
-      displayProducts.sort((a, b) => b.reviewCount.compareTo(a.reviewCount));
-    }
+        var displayProducts =
+            List<Product>.from(catalogState.byCategory(selectedCategory));
 
-    return Scaffold(
-      key: _scaffoldKey,
-      backgroundColor: AppTheme.background,
-      endDrawer: _buildFilterDrawer(),
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Shop', style: GoogleFonts.kumbhSans(fontWeight: FontWeight.w700, fontSize: 28)),
-                  IconButton(
-                    icon: const Icon(Icons.filter_list),
-                    onPressed: () {
-                      _scaffoldKey.currentState?.openEndDrawer();
-                    },
-                  ),
-                ],
-              ),
-            ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Text(
-              'Product Categories',
-              style: GoogleFonts.kumbhSans(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.textMed),
-            ),
+        displayProducts = displayProducts
+            .where(
+              (product) =>
+                  product.price >= effectivePriceRange.start &&
+                  product.price <= effectivePriceRange.end,
+            )
+            .toList();
+
+        if (_selectedColors.isNotEmpty) {
+          displayProducts = displayProducts
+              .where(
+                (product) =>
+                    product.colors.any((color) => _selectedColors.contains(color)),
+              )
+              .toList();
+        }
+
+        if (_selectedSizes.isNotEmpty) {
+          displayProducts = displayProducts
+              .where(
+                (product) =>
+                    product.sizes.any((size) => _selectedSizes.contains(size)),
+              )
+              .toList();
+        }
+
+        if (_sortBy == 'Sort by price: low to high') {
+          displayProducts.sort((a, b) => a.price.compareTo(b.price));
+        } else if (_sortBy == 'Sort by price: high to low') {
+          displayProducts.sort((a, b) => b.price.compareTo(a.price));
+        } else if (_sortBy == 'Sort by popularity') {
+          displayProducts.sort(
+            (a, b) => b.reviewCount.compareTo(a.reviewCount),
+          );
+        }
+
+        return Scaffold(
+          key: _scaffoldKey,
+          backgroundColor: AppTheme.background,
+          endDrawer: _buildFilterDrawer(
+            colorCounts,
+            sizeCounts,
+            maxPrice,
+            effectivePriceRange,
           ),
-          const SizedBox(height: 12),
-          SizedBox(
-            height: 40,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: _categories.length,
-              itemBuilder: (context, index) {
-                final cat = _categories[index];
-                final isSelected = _selectedCategory == cat;
-                return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _selectedCategory = cat;
-                    });
-                  },
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    margin: const EdgeInsets.only(right: 8),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: isSelected ? AppTheme.primary : AppTheme.surface,
-                      borderRadius: BorderRadius.circular(4),
-                      border: Border.all(
-                        color: isSelected ? AppTheme.primary : AppTheme.divider,
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        if (isSelected) ...[
-                          const Icon(Icons.check_box, color: Colors.white, size: 16),
-                          const SizedBox(width: 6),
-                        ],
-                        Text(
-                          cat,
-                          style: GoogleFonts.kumbhSans(
-                            fontSize: 13,
-                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                            color: isSelected ? Colors.white : AppTheme.textMed,
+          body: SafeArea(
+            child: showInitialLoader
+                ? const Center(
+                    child: CircularProgressIndicator(color: AppTheme.primary),
+                  )
+                : showFatalError
+                    ? _buildErrorState(context)
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Shop',
+                                  style: GoogleFonts.kumbhSans(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 28,
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.filter_list),
+                                  onPressed: () {
+                                    _scaffoldKey.currentState?.openEndDrawer();
+                                  },
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
+                          if (catalogState.message != null)
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
+                              child: _buildStatusBanner(catalogState.message!),
+                            ),
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 16.0),
+                            child: Text(
+                              'Product Categories',
+                              style: GoogleFonts.kumbhSans(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.textMed,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            height: 40,
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
+                              itemCount: categories.length,
+                              itemBuilder: (context, index) {
+                                final category = categories[index];
+                                final isSelected =
+                                    selectedCategory == category;
+                                return GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      _selectedCategory = category;
+                                    });
+                                  },
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 200),
+                                    margin:
+                                        const EdgeInsets.only(right: 8),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 8,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: isSelected
+                                          ? AppTheme.primary
+                                          : AppTheme.surface,
+                                      borderRadius: BorderRadius.circular(4),
+                                      border: Border.all(
+                                        color: isSelected
+                                            ? AppTheme.primary
+                                            : AppTheme.divider,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        if (isSelected) ...[
+                                          const Icon(
+                                            Icons.check_box,
+                                            color: Colors.white,
+                                            size: 16,
+                                          ),
+                                          const SizedBox(width: 6),
+                                        ],
+                                        Text(
+                                          category,
+                                          style: GoogleFonts.kumbhSans(
+                                            fontSize: 13,
+                                            fontWeight: isSelected
+                                                ? FontWeight.w600
+                                                : FontWeight.w500,
+                                            color: isSelected
+                                                ? Colors.white
+                                                : AppTheme.textMed,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 16.0),
+                            child: Row(
+                              mainAxisAlignment:
+                                  MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Showing ${displayProducts.length} results',
+                                  style: GoogleFonts.kumbhSans(
+                                    fontSize: 12,
+                                    color: AppTheme.textLight,
+                                  ),
+                                ),
+                                Row(
+                                  children: [
+                                    Text(
+                                      'Sort: ',
+                                      style: GoogleFonts.kumbhSans(
+                                        fontSize: 12,
+                                        color: AppTheme.textLight,
+                                      ),
+                                    ),
+                                    DropdownButton<String>(
+                                      value: _sortBy,
+                                      icon: const Icon(
+                                        Icons.keyboard_arrow_down,
+                                        size: 16,
+                                      ),
+                                      underline: const SizedBox(),
+                                      style: GoogleFonts.kumbhSans(
+                                        fontSize: 13,
+                                        color: AppTheme.textDark,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                      onChanged: (value) {
+                                        if (value == null) {
+                                          return;
+                                        }
+
+                                        setState(() {
+                                          _sortBy = value;
+                                        });
+                                      },
+                                      items: const [
+                                        'Sort by latest',
+                                        'Sort by popularity',
+                                        'Sort by price: low to high',
+                                        'Sort by price: high to low',
+                                      ].map((value) {
+                                        return DropdownMenuItem<String>(
+                                          value: value,
+                                          child: Text(value),
+                                        );
+                                      }).toList(),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Expanded(
+                            child: displayProducts.isEmpty
+                                ? _buildEmptyResults()
+                                : GridView.builder(
+                                    padding: const EdgeInsets.fromLTRB(
+                                      16,
+                                      8,
+                                      16,
+                                      110,
+                                    ),
+                                    gridDelegate:
+                                        const SliverGridDelegateWithFixedCrossAxisCount(
+                                      crossAxisCount: 2,
+                                      crossAxisSpacing: 12,
+                                      mainAxisSpacing: 12,
+                                      childAspectRatio: 0.62,
+                                    ),
+                                    itemCount: displayProducts.length,
+                                    itemBuilder: (context, index) =>
+                                        ProductCard(
+                                      product: displayProducts[index],
+                                      onTap: () => _openProduct(
+                                        context,
+                                        displayProducts[index],
+                                      ),
+                                    ),
+                                  ),
+                          ),
+                        ],
+                      ),
           ),
-          const SizedBox(height: 16),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Showing 1–${displayProducts.length} of ${displayProducts.length} results',
-                  style: GoogleFonts.kumbhSans(fontSize: 12, color: AppTheme.textLight),
-                ),
-                Row(
-                  children: [
-                    Text('Sort: ', style: GoogleFonts.kumbhSans(fontSize: 12, color: AppTheme.textLight)),
-                    DropdownButton<String>(
-                      value: _sortBy,
-                      icon: const Icon(Icons.keyboard_arrow_down, size: 16),
-                      underline: const SizedBox(),
-                      style: GoogleFonts.kumbhSans(fontSize: 13, color: AppTheme.textDark, fontWeight: FontWeight.w600),
-                      onChanged: (String? newValue) {
-                        if (newValue != null) {
-                          setState(() {
-                            _sortBy = newValue;
-                          });
-                        }
-                      },
-                      items: <String>['Sort by latest', 'Sort by popularity', 'Sort by price: low to high', 'Sort by price: high to low']
-                          .map<DropdownMenuItem<String>>((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value),
-                        );
-                      }).toList(),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 8),
-          Expanded(
-            child: GridView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 110), // Padding for bottom nav
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: 0.62,
-              ),
-              itemCount: displayProducts.length,
-              itemBuilder: (context, i) => ProductCard(
-                product: displayProducts[i],
-                onTap: () => _openProduct(context, displayProducts[i]),
-              ),
-            ),
-          ),
-        ],
-      ),
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildFilterDrawer() {
+  Map<String, int> _buildFacetCounts(
+    List<Product> products,
+    List<String> Function(Product) valuesBuilder,
+  ) {
+    final counts = <String, int>{};
+
+    for (final product in products) {
+      for (final value in valuesBuilder(product)) {
+        counts.update(value, (count) => count + 1, ifAbsent: () => 1);
+      }
+    }
+
+    final sortedEntries = counts.entries.toList()
+      ..sort((a, b) => a.key.toLowerCase().compareTo(b.key.toLowerCase()));
+
+    return {
+      for (final entry in sortedEntries) entry.key: entry.value,
+    };
+  }
+
+  RangeValues _normalisePriceRange(double maxPrice) {
+    final start = _priceRange.start.clamp(0, maxPrice).toDouble();
+    final end = _priceRange.end.clamp(start, maxPrice).toDouble();
+    return RangeValues(start, end);
+  }
+
+  Widget _buildFilterDrawer(
+    Map<String, int> colorCounts,
+    Map<String, int> sizeCounts,
+    double maxPrice,
+    RangeValues effectivePriceRange,
+  ) {
     return Drawer(
       backgroundColor: AppTheme.background,
       child: SafeArea(
@@ -247,7 +368,13 @@ class _ShopScreenState extends State<ShopScreen> {
               padding: const EdgeInsets.all(16.0),
               child: Row(
                 children: [
-                  Text('Filters', style: GoogleFonts.kumbhSans(fontSize: 20, fontWeight: FontWeight.w700)),
+                  Text(
+                    'Filters',
+                    style: GoogleFonts.kumbhSans(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                   const Spacer(),
                   TextButton(
                     onPressed: () {
