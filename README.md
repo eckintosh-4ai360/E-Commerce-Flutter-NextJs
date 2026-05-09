@@ -60,5 +60,5 @@ flutter run --dart-define=API_BASE_URL=http://YOUR_IP:3000/api
 
 ## Notes
 
-- `npm run db:init` is included as a SQLite bootstrap step for this Windows setup.
-- The backend seed currently loads the same storefront products the Flutter demo used before the API integration.
+- The backend now targets Neon Postgres instead of the previous local SQLite setup.
+- The backend seed still loads the same storefront products the Flutter demo used before the API integration.
