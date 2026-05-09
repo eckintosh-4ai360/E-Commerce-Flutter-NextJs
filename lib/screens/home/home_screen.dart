@@ -678,11 +678,13 @@ class _HeroPainter extends CustomPainter {
 }
 
 class _ProductSearchDelegate extends SearchDelegate<Product?> {
+  final List<Product> products;
   final void Function(Product) onProductTap;
   final CartBloc cartBloc;
   final WishlistBloc wishlistBloc;
 
   _ProductSearchDelegate({
+    required this.products,
     required this.onProductTap,
     required this.cartBloc,
     required this.wishlistBloc,
@@ -691,7 +693,6 @@ class _ProductSearchDelegate extends SearchDelegate<Product?> {
   @override
   String get searchFieldLabel => 'Search bags, accessories...';
 
-  @override
   @override
   TextStyle get searchFieldStyle =>
       GoogleFonts.kumbhSans(fontSize: 14, color: AppTheme.textDark);
@@ -719,8 +720,8 @@ class _ProductSearchDelegate extends SearchDelegate<Product?> {
 
   Widget _buildSearchResults(BuildContext context) {
     final results = query.isEmpty
-        ? ProductData.products
-        : ProductData.products
+        ? products
+        : products
             .where((p) =>
                 p.name.toLowerCase().contains(query.toLowerCase()) ||
                 p.category.toLowerCase().contains(query.toLowerCase()))
