@@ -3,10 +3,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import '../../blocs/cart/cart_bloc.dart';
 import '../../blocs/navigation/navigation_bloc.dart';
+import '../../models/app_order.dart';
 import '../../models/cart_item.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/checkout_sheet.dart';
 
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
@@ -22,12 +25,19 @@ class CartScreen extends StatelessWidget {
         actions: [
           BlocBuilder<CartBloc, CartState>(
             builder: (context, state) {
-              if (state.items.isEmpty) return const SizedBox();
+              if (state.items.isEmpty) {
+                return const SizedBox();
+              }
+
               return TextButton(
                 onPressed: () => _showClearDialog(context),
-                child: Text('Clear',
-                    style: GoogleFonts.kumbhSans(
-                        color: AppTheme.error, fontWeight: FontWeight.w600)),
+                child: Text(
+                  'Clear',
+                  style: GoogleFonts.kumbhSans(
+                    color: AppTheme.error,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               );
             },
           ),
@@ -35,14 +45,19 @@ class CartScreen extends StatelessWidget {
       ),
       body: BlocBuilder<CartBloc, CartState>(
         builder: (context, state) {
-          if (state.items.isEmpty) return _buildEmpty(context);
+          if (state.items.isEmpty) {
+            return _buildEmpty(context);
+          }
+
           return Column(
             children: [
               Expanded(
                 child: ListView.builder(
                   padding: const EdgeInsets.all(16),
                   itemCount: state.items.length,
-                  itemBuilder: (_, i) => _CartItemCard(item: state.items[i]),
+                  itemBuilder: (_, index) => _CartItemCard(
+                    item: state.items[index],
+                  ),
                 ),
               ),
               _buildCheckoutBar(context, state),
@@ -65,17 +80,28 @@ class CartScreen extends StatelessWidget {
               color: AppTheme.cardBg,
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.shopping_bag_outlined,
-                size: 48, color: AppTheme.textLight),
+            child: const Icon(
+              Icons.shopping_bag_outlined,
+              size: 48,
+              color: AppTheme.textLight,
+            ),
           ),
           const SizedBox(height: 20),
-          Text('Your cart is empty',
-              style: GoogleFonts.kumbhSans(
-                  fontSize: 24, fontWeight: FontWeight.w600)),
+          Text(
+            'Your cart is empty',
+            style: GoogleFonts.kumbhSans(
+              fontSize: 24,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
           const SizedBox(height: 8),
-          Text('Discover our beautiful collection',
-              style:
-                  GoogleFonts.kumbhSans(color: AppTheme.textMed, fontSize: 13)),
+          Text(
+            'Discover our beautiful collection',
+            style: GoogleFonts.kumbhSans(
+              color: AppTheme.textMed,
+              fontSize: 13,
+            ),
+          ),
           const SizedBox(height: 28),
           ElevatedButton(
             onPressed: () =>
@@ -88,7 +114,7 @@ class CartScreen extends StatelessWidget {
   }
 
   Widget _buildCheckoutBar(BuildContext context, CartState state) {
-    final freeShippingThreshold = 3000.0;
+    final freeShippingThreshold = 300.0;
     final remaining = freeShippingThreshold - state.totalPrice;
 
     return Container(
