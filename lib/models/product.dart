@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import '../config/app_config.dart';
+
 class Product extends Equatable {
   final int id;
   final String name;
