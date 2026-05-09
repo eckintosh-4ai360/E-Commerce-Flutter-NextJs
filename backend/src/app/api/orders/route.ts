@@ -162,7 +162,7 @@ export async function POST(request: Request) {
   return jsonResponse(
     {
       message: 'Order created successfully.',
-      order: serialiseOrder(order, new URL(request.url).origin),
+      order: serialiseOrder(order, getRequestOrigin(request)),
     },
     { status: 201 },
   );
