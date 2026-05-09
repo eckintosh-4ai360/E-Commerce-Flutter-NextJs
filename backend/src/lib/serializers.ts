@@ -26,7 +26,7 @@ export function serialiseProduct(product: Product, origin: string) {
     description: product.description,
     price: product.price,
     originalPrice: product.originalPrice,
-    images: [new URL(product.imagePath, origin).toString()],
+    images: [getImageUrl(product.imagePath, origin)],
     category: product.category,
     tags: parseList(product.tags),
     rating: product.rating,
