@@ -31,7 +31,7 @@ export async function GET(request: Request, context: RouteContext) {
   }
 
   return jsonResponse({
-    product: serialiseProduct(product, new URL(request.url).origin),
+    product: serialiseProduct(product, getRequestOrigin(request)),
   });
 }
 
