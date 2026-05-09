@@ -1,13 +1,53 @@
-html {
-  font-family: Arial, sans-serif;
-  background: #f8f3ec;
-  color: #151515;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --bg-color: #050505;
+  --surface-color: #111111;
+  --surface-hover: #1a1a1a;
+  --border-color: rgba(255, 255, 255, 0.08);
+  --text-primary: #f5f5f5;
+  --text-secondary: #a0a0a0;
+  --accent-color: #d4af37; /* Luxury Gold */
+  --accent-glow: rgba(212, 175, 55, 0.15);
+  
+  --method-get: #4ade80;
+  --method-post: #60a5fa;
+  --method-put: #facc15;
+  --method-delete: #f87171;
 }
 
-body {
+html, body {
   margin: 0;
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  min-height: 100vh;
 }
 
 * {
   box-sizing: border-box;
 }
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-color);
+}
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #444;
+}
+
+/* Syntax Highlighting overrides for JSON */
+.json-key { color: #8bb8fa; }
+.json-string { color: #a5d6a7; }
+.json-number { color: #ffcc80; }
+.json-boolean { color: #f48fb1; }
+.json-null { color: #b0bec5; }
