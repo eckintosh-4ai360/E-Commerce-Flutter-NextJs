@@ -525,25 +525,34 @@ class _ShopScreenState extends State<ShopScreen> {
                           elevation: 0,
                           side: const BorderSide(color: AppTheme.divider),
                         ),
-                        child: Text('FILTER', style: GoogleFonts.kumbhSans(fontSize: 12, fontWeight: FontWeight.w700)),
+                        child: Text(
+                          'FILTER',
+                          style: GoogleFonts.kumbhSans(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 24),
-
-                  // Filter by Size
-                  Text('Filter by Size', style: GoogleFonts.kumbhSans(fontSize: 16, fontWeight: FontWeight.w700)),
+                  Text(
+                    'Filter by Size',
+                    style: GoogleFonts.kumbhSans(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                   const SizedBox(height: 12),
-                  ..._sizes.entries.map((e) {
-                    final isSelected = _selectedSizes.contains(e.key);
+                  ...sizeCounts.entries.map((entry) {
+                    final isSelected = _selectedSizes.contains(entry.key);
                     return InkWell(
                       onTap: () {
                         setState(() {
                           if (isSelected) {
-                            _selectedSizes.remove(e.key);
+                            _selectedSizes.remove(entry.key);
                           } else {
-                            _selectedSizes.add(e.key);
+                            _selectedSizes.add(entry.key);
                           }
                         });
                       },
@@ -552,16 +561,27 @@ class _ShopScreenState extends State<ShopScreen> {
                         child: Row(
                           children: [
                             Icon(
-                              isSelected ? Icons.check_box : Icons.check_box_outline_blank,
-                              color: isSelected ? AppTheme.primary : AppTheme.textLight,
+                              isSelected
+                                  ? Icons.check_box
+                                  : Icons.check_box_outline_blank,
+                              color: isSelected
+                                  ? AppTheme.primary
+                                  : AppTheme.textLight,
                               size: 20,
                             ),
                             const SizedBox(width: 8),
-                            Text('${e.key} (${e.value})', style: GoogleFonts.kumbhSans(
-                              fontSize: 14, 
-                              color: isSelected ? AppTheme.textDark : AppTheme.textMed,
-                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                            )),
+                            Text(
+                              '${entry.key} (${entry.value})',
+                              style: GoogleFonts.kumbhSans(
+                                fontSize: 14,
+                                color: isSelected
+                                    ? AppTheme.textDark
+                                    : AppTheme.textMed,
+                                fontWeight: isSelected
+                                    ? FontWeight.w600
+                                    : FontWeight.w500,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -576,11 +596,17 @@ class _ShopScreenState extends State<ShopScreen> {
     );
   }
 
-  Widget _buildPriceInput(String val, String label) {
+  Widget _buildPriceInput(String value, String label) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: GoogleFonts.kumbhSans(fontSize: 12, color: AppTheme.textLight)),
+        Text(
+          label,
+          style: GoogleFonts.kumbhSans(
+            fontSize: 12,
+            color: AppTheme.textLight,
+          ),
+        ),
         const SizedBox(height: 4),
         Container(
           height: 40,
@@ -590,9 +616,113 @@ class _ShopScreenState extends State<ShopScreen> {
           ),
           alignment: Alignment.centerLeft,
           padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Text(val, style: GoogleFonts.kumbhSans(fontSize: 14, color: AppTheme.textDark)),
+          child: Text(
+            value,
+            style: GoogleFonts.kumbhSans(
+              fontSize: 14,
+              color: AppTheme.textDark,
+            ),
+          ),
         ),
       ],
+    );
+  }
+
+  Widget _buildStatusBanner(String message) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppTheme.accent.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.cloud_off_outlined, color: AppTheme.primary),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              message,
+              style: GoogleFonts.kumbhSans(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textDark,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyResults() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.inventory_2_outlined,
+              size: 48,
+              color: AppTheme.textLight,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No products match the current filters.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.kumbhSans(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Try widening the price range or clearing a few filters.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.kumbhSans(color: AppTheme.textMed),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorState(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.wifi_tethering_error_rounded,
+              size: 48,
+              color: AppTheme.textLight,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'We could not load the shop catalog.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.kumbhSans(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Start the Next.js backend and retry.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.kumbhSans(color: AppTheme.textMed),
+            ),
+            const SizedBox(height: 18),
+            ElevatedButton(
+              onPressed: () => context.read<CatalogCubit>().loadCatalog(),
+              child: const Text('RETRY'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
