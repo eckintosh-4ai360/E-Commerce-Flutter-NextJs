@@ -1,7 +1,7 @@
 import type { Product as PrismaProduct } from '@prisma/client';
 
 import { getPrisma } from '@/lib/prisma';
-import { jsonResponse, optionsResponse } from '@/lib/http';
+import { getRequestOrigin, jsonResponse, optionsResponse } from '@/lib/http';
 import { serialiseProduct } from '@/lib/serializers';
 
 export async function GET(request: Request) {
