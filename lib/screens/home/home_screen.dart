@@ -456,30 +456,36 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildCategoryBanners() {
+  Widget _buildCategoryBanners(
+    List<String> categories,
+    List<Product> products,
+  ) {
+    if (categories.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final featuredCategories = categories.take(2).toList();
+    final bannerColors = [AppTheme.primary, AppTheme.badge];
+    final bannerIcons = [
+      Icons.shopping_bag_outlined,
+      Icons.watch_outlined,
+    ];
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
       child: Row(
         children: [
-          Expanded(
-            child: _buildCategoryBanner(
-              'Bags',
-              '18 Products',
-              AppTheme.primary,
-              Icons.shopping_bag_outlined,
-            ),
-          ),
-          const SizedBox(width: 12),
-          SingleChildScrollView(
-            child: Expanded(
+          for (int index = 0; index < featuredCategories.length; index++) ...[
+            if (index > 0) const SizedBox(width: 12),
+            Expanded(
               child: _buildCategoryBanner(
-                'Accessories',
-                '7 Products',
-                AppTheme.badge,
-                Icons.watch_outlined,
+                featuredCategories[index],
+                '${products.where((product) => product.category == featuredCategories[index]).length} Products',
+                bannerColors[index % bannerColors.length],
+                bannerIcons[index % bannerIcons.length],
               ),
             ),
-          ),
+          ],
         ],
       ),
     );
@@ -541,16 +547,19 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildCategoryTabs() {
+  Widget _buildCategoryTabs(
+    List<String> categories,
+    String selectedCategory,
+  ) {
     return SizedBox(
       height: 40,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: ProductData.categories.length,
+        itemCount: categories.length,
         itemBuilder: (context, i) {
-          final cat = ProductData.categories[i];
-          final selected = cat == _selectedCategory;
+          final cat = categories[i];
+          final selected = cat == selectedCategory;
           return GestureDetector(
             onTap: () => setState(() => _selectedCategory = cat),
             child: AnimatedContainer(
@@ -594,13 +603,58 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  void _showSearch(BuildContext context) {
+  void _showSearch(BuildContext context, List<Product> products) {
     showSearch(
       context: context,
       delegate: _ProductSearchDelegate(
+        products: products,
         onProductTap: (p) => _openProduct(context, p),
         cartBloc: context.read<CartBloc>(),
         wishlistBloc: context.read<WishlistBloc>(),
+      ),
+    );
+  }
+
+  Widget _buildLoadingState() {
+    return const Center(
+      child: CircularProgressIndicator(color: AppTheme.primary),
+    );
+  }
+
+  Widget _buildErrorState(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.wifi_tethering_error_rounded,
+              size: 48,
+              color: AppTheme.textLight,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'We could not load the catalog.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.kumbhSans(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Check that the Next.js backend is running, then try again.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.kumbhSans(color: AppTheme.textMed),
+            ),
+            const SizedBox(height: 18),
+            ElevatedButton(
+              onPressed: () => context.read<CatalogCubit>().loadCatalog(),
+              child: const Text('RETRY'),
+            ),
+          ],
+        ),
       ),
     );
   }
