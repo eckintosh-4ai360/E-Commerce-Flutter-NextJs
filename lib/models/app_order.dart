@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import '../config/app_config.dart';
+
 class AppOrderItem extends Equatable {
   const AppOrderItem({
     required this.id,
