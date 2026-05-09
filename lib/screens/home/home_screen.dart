@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../blocs/catalog/catalog_cubit.dart';
 import '../../blocs/cart/cart_bloc.dart';
 import '../../blocs/navigation/navigation_bloc.dart';
 import '../../blocs/wishlist/wishlist_bloc.dart';
@@ -58,55 +59,91 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final filteredProducts = ProductData.getByCategory(_selectedCategory);
+    return BlocBuilder<CatalogCubit, CatalogState>(
+      builder: (context, catalogState) {
+        final categories = ['All', ...catalogState.categories];
+        final selectedCategory =
+            categories.contains(_selectedCategory) ? _selectedCategory : 'All';
+        final filteredProducts = catalogState.byCategory(selectedCategory);
+        final showInitialLoader = catalogState.status == CatalogStatus.loading &&
+            catalogState.products.isEmpty;
+        final showFatalError = catalogState.status == CatalogStatus.failure &&
+            catalogState.products.isEmpty;
 
-    return Scaffold(
-      backgroundColor: AppTheme.background,
-      body: Stack(
-        children: [
-          CustomScrollView(
-            controller: _scrollController,
-            slivers: [
-              const SliverToBoxAdapter(child: SizedBox(height: 140)),
-              SliverToBoxAdapter(child: _buildHeroBanner()),
-              SliverToBoxAdapter(child: _buildFeatureStrip()),
-              SliverToBoxAdapter(child: _buildSaleSection()),
-              SliverToBoxAdapter(child: _buildCategoryBanners()),
-              SliverToBoxAdapter(
-                  child: _buildSectionHeader(
-                      'All Products', 'Eckintosh essentials for every season')),
-              SliverToBoxAdapter(child: _buildCategoryTabs()),
-              SliverPadding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                sliver: SliverGrid(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, i) => ProductCard(
-                      product: filteredProducts[i],
-                      onTap: () => _openProduct(context, filteredProducts[i]),
+        return Scaffold(
+          backgroundColor: AppTheme.background,
+          body: Stack(
+            children: [
+              if (showInitialLoader)
+                _buildLoadingState()
+              else if (showFatalError)
+                _buildErrorState(context)
+              else
+                CustomScrollView(
+                  controller: _scrollController,
+                  slivers: [
+                    const SliverToBoxAdapter(child: SizedBox(height: 140)),
+                    SliverToBoxAdapter(child: _buildHeroBanner()),
+                    SliverToBoxAdapter(child: _buildFeatureStrip()),
+                    if (catalogState.message != null)
+                      SliverToBoxAdapter(
+                        child: _buildCatalogStatusBanner(catalogState.message!),
+                      ),
+                    SliverToBoxAdapter(
+                      child: _buildSaleSection(catalogState.saleProducts),
                     ),
-                    childCount: filteredProducts.length > 4
-                        ? 4
-                        : filteredProducts.length,
-                  ),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                    childAspectRatio: 0.62,
-                  ),
+                    SliverToBoxAdapter(
+                      child: _buildCategoryBanners(
+                        catalogState.categories,
+                        catalogState.products,
+                      ),
+                    ),
+                    SliverToBoxAdapter(
+                      child: _buildSectionHeader(
+                        'All Products',
+                        'Eckintosh essentials for every season',
+                      ),
+                    ),
+                    SliverToBoxAdapter(
+                      child: _buildCategoryTabs(categories, selectedCategory),
+                    ),
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      sliver: SliverGrid(
+                        delegate: SliverChildBuilderDelegate(
+                          (context, i) => ProductCard(
+                            product: filteredProducts[i],
+                            onTap: () =>
+                                _openProduct(context, filteredProducts[i]),
+                          ),
+                          childCount: filteredProducts.length > 4
+                              ? 4
+                              : filteredProducts.length,
+                        ),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                          childAspectRatio: 0.62,
+                        ),
+                      ),
+                    ),
+                    const SliverToBoxAdapter(child: SizedBox(height: 110)),
+                  ],
                 ),
-              ),
-              const SliverToBoxAdapter(child: SizedBox(height: 110)),
+              _buildFloatingHeader(catalogState.products),
             ],
           ),
-          _buildFloatingHeader(),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildFloatingHeader() {
+  Widget _buildFloatingHeader(List<Product> products) {
     final topPadding = MediaQuery.of(context).padding.top;
     return AnimatedPositioned(
       duration: const Duration(milliseconds: 300),
@@ -130,7 +167,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           children: [
             Expanded(
               child: GestureDetector(
-                onTap: () => _showSearch(context),
+                onTap: () => _showSearch(context, products),
                 child: Container(
                   height: 48,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -361,8 +398,34 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildSaleSection() {
-    final saleProducts = ProductData.getSaleProducts();
+  Widget _buildCatalogStatusBanner(String message) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppTheme.accent.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.cloud_off_outlined, color: AppTheme.primary),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              message,
+              style: GoogleFonts.kumbhSans(
+                fontSize: 12,
+                color: AppTheme.textDark,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSaleSection(List<Product> saleProducts) {
     if (saleProducts.isEmpty) return const SizedBox();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
