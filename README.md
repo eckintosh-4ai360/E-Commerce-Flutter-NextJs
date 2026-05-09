@@ -18,12 +18,17 @@ From `backend/`:
 ```bash
 npm install
 npm run prisma:generate
-npm run db:init
+npm run db:push
 npm run db:seed
 npm run dev -- --hostname 0.0.0.0
 ```
 
 The backend runs on `http://localhost:3000`.
+
+Environment variables:
+
+- `DATABASE_URL`: pooled Neon connection string for the running app
+- `DIRECT_URL`: unpooled Neon connection string for Prisma schema commands
 
 Available endpoints:
 
