@@ -293,8 +293,9 @@ class CartScreen extends StatelessWidget {
 }
 
 class _CartItemCard extends StatelessWidget {
-  final CartItem item;
   const _CartItemCard({required this.item});
+
+  final CartItem item;
 
   @override
   Widget build(BuildContext context) {
@@ -310,8 +311,7 @@ class _CartItemCard extends StatelessWidget {
           color: AppTheme.error.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
         ),
-        child:
-            const Icon(Icons.delete_outline, color: AppTheme.error, size: 28),
+        child: const Icon(Icons.delete_outline, color: AppTheme.error, size: 28),
       ),
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
@@ -355,21 +355,28 @@ class _CartItemCard extends StatelessWidget {
                   Text(
                     item.product.name,
                     style: GoogleFonts.kumbhSans(
-                        fontSize: 14, fontWeight: FontWeight.w600),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                   if (item.selectedColor != null)
-                    Text(item.selectedColor!,
-                        style: GoogleFonts.kumbhSans(
-                            fontSize: 12, color: AppTheme.textMed)),
+                    Text(
+                      item.selectedColor!,
+                      style: GoogleFonts.kumbhSans(
+                        fontSize: 12,
+                        color: AppTheme.textMed,
+                      ),
+                    ),
                   const SizedBox(height: 8),
                   Text(
-                    '₵${item.product.price.toStringAsFixed(0)}',
+                    'GHS ${item.product.price.toStringAsFixed(0)}',
                     style: GoogleFonts.kumbhSans(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: AppTheme.primary),
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.primary,
+                    ),
                   ),
                 ],
               ),
@@ -378,19 +385,23 @@ class _CartItemCard extends StatelessWidget {
               children: [
                 _qtyBtn(context, Icons.add, () {
                   context.read<CartBloc>().add(
-                      UpdateCartQuantity(item.product.id, item.quantity + 1));
+                        UpdateCartQuantity(item.product.id, item.quantity + 1),
+                      );
                 }),
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Text(
                     '${item.quantity}',
                     style: GoogleFonts.kumbhSans(
-                        fontSize: 16, fontWeight: FontWeight.w700),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
                 _qtyBtn(context, Icons.remove, () {
                   context.read<CartBloc>().add(
-                      UpdateCartQuantity(item.product.id, item.quantity - 1));
+                        UpdateCartQuantity(item.product.id, item.quantity - 1),
+                      );
                 }),
               ],
             ),
@@ -421,8 +432,10 @@ class _CartItemCard extends StatelessWidget {
       width: 80,
       height: 90,
       color: AppTheme.cardBg,
-      child: const Icon(Icons.image_not_supported_outlined,
-          color: AppTheme.textLight),
+      child: const Icon(
+        Icons.image_not_supported_outlined,
+        color: AppTheme.textLight,
+      ),
     );
   }
 }
