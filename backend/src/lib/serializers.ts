@@ -12,6 +12,13 @@ function parseList(value: string) {
   }
 }
 
+function getImageUrl(imagePath: string, origin: string) {
+  if (imagePath.startsWith('/')) {
+    return new URL(imagePath, origin).toString();
+  }
+  return imagePath; // Return 'assets/...' or 'http...' as is
+}
+
 export function serialiseProduct(product: Product, origin: string) {
   return {
     id: product.id,
