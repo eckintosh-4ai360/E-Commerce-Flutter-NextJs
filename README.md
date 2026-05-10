@@ -1,4 +1,4 @@
-# Esiarkomall
+# Eckintoshmall
 
 Flutter storefront with a Next.js backend for catalog data, order creation, and order tracking.
 
