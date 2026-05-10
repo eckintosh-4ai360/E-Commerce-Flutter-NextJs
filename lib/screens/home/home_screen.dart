@@ -65,8 +65,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         final selectedCategory =
             categories.contains(_selectedCategory) ? _selectedCategory : 'All';
         final filteredProducts = catalogState.byCategory(selectedCategory);
-        final showInitialLoader = catalogState.status == CatalogStatus.loading &&
-            catalogState.products.isEmpty;
+        final showInitialLoader =
+            catalogState.status == CatalogStatus.loading &&
+                catalogState.products.isEmpty;
         final showFatalError = catalogState.status == CatalogStatus.failure &&
             catalogState.products.isEmpty;
 
