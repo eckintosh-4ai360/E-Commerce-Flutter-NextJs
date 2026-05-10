@@ -9,7 +9,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.esiarkomall"
+    namespace = "com.example.Eckintoshmall"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
