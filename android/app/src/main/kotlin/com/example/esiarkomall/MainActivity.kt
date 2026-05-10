@@ -1,4 +1,4 @@
-package com.example.esiarkomall
+package com.example.Eckintoshmall
 
 import io.flutter.embedding.android.FlutterActivity
 
