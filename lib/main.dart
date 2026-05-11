@@ -50,6 +50,7 @@ class EckintoshApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
+        BlocProvider(create: (_) => AuthCubit()),
         BlocProvider(create: (_) => CatalogCubit()..loadCatalog()),
         BlocProvider(create: (_) => CartBloc()),
         BlocProvider(create: (_) => WishlistBloc()),
