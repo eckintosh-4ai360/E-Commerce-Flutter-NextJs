@@ -46,9 +46,25 @@ class _CheckoutSheetState extends State<CheckoutSheet> {
     super.dispose();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _syncAuthFields(context.read<AuthCubit>().state.user);
+  }
+
   Future<void> _submitOrder() async {
+    final authCubit = context.read<AuthCubit>();
+    final authState = authCubit.state;
+    final signedInUser = authState.user;
     final customerName = _nameController.text.trim();
     final customerPhone = _phoneController.text.trim();
+
+    if (!authState.isAuthenticated || signedInUser == null) {
+      setState(() {
+        _errorMessage = 'Sign in with Google to continue to checkout.';
+      });
+      return;
+    }
 
     if (customerName.isEmpty || customerPhone.isEmpty) {
       setState(() {
@@ -63,12 +79,17 @@ class _CheckoutSheetState extends State<CheckoutSheet> {
     });
 
     try {
+      final idToken = await authCubit.getIdToken(forceRefresh: true);
+      if (idToken == null || idToken.isEmpty) {
+        throw Exception(
+            'We could not verify your Google session. Please sign in again.');
+      }
+
       final order = await _orderService.createOrder(
+        idToken: idToken,
         customerName: customerName,
         customerPhone: customerPhone,
-        customerEmail: _emailController.text.trim().isEmpty
-            ? null
-            : _emailController.text.trim(),
+        customerEmail: signedInUser.email,
         deliveryAddress: _addressController.text.trim().isEmpty
             ? null
             : _addressController.text.trim(),
