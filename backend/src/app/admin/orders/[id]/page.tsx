@@ -110,6 +110,37 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
         </span>
       </div>
 
+      {updateMessage && (
+        <div style={{
+          marginBottom: '20px',
+          padding: '14px 16px',
+          borderRadius: '10px',
+          border: '1px solid',
+          borderColor:
+            updateMessage.tone === 'success'
+              ? 'rgba(74,222,128,0.35)'
+              : updateMessage.tone === 'error'
+                  ? 'rgba(248,113,113,0.35)'
+                  : 'rgba(250,204,21,0.35)',
+          backgroundColor:
+            updateMessage.tone === 'success'
+              ? 'rgba(74,222,128,0.08)'
+              : updateMessage.tone === 'error'
+                  ? 'rgba(248,113,113,0.08)'
+                  : 'rgba(250,204,21,0.08)',
+          color:
+            updateMessage.tone === 'success'
+              ? '#4ade80'
+              : updateMessage.tone === 'error'
+                  ? '#f87171'
+                  : '#facc15',
+          fontSize: '13px',
+          fontWeight: 600,
+        }}>
+          {updateMessage.text}
+        </div>
+      )}
+
       {/* Progress stepper (not shown for CANCELLED) */}
       {order.status !== 'CANCELLED' && (
         <div style={{ backgroundColor: '#111', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.07)', padding: '24px', marginBottom: '24px' }}>
