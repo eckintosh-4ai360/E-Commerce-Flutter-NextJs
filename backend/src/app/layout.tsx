@@ -4,7 +4,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Esiarkomall Backend',
+  title: 'Eckintoshmall Backend',
   description: 'Next.js API for catalog and order workflows.',
 };
 
