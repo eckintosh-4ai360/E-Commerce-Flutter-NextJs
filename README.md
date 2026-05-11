@@ -36,9 +36,9 @@ A high-end, **full-stack e-commerce platform** designed for a seamless shopping 
 
 ## Screenshots
 
-|              Splash Screen               |              Home Feed               |             Product Details              |
-| :--------------------------------------: | :----------------------------------: | :--------------------------------------: |
-| ![Splash](assets/screenshots/splash.png) | ![Home](assets/screenshots/home.png) | ![Detail](assets/screenshots/detail.png) |
+|                 Splash Screen                  |                Home Page                 |              Product Details              |                                           | profile |
+| :--------------------------------------------: | :--------------------------------------: | :---------------------------------------: | :---------------------------------------: | ------- |
+| ![Splash](assets/screenshots/splashscreen.JPG) | ![Home](assets/screenshots/homepage.JPG) | ![Detail](assets/screenshots/catalog.JPG) | ![Detail](assets/screenshots/profile.JPG) |
 
 ---
 
