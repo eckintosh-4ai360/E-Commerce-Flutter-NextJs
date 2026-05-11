@@ -134,17 +134,29 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         background: Stack(
           children: [
             Positioned.fill(
-              child: p.images.first.startsWith('assets')
-                  ? Image.asset(
-                      p.images.first,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _buildErrorImage(),
-                    )
-                  : Image.network(
-                      p.images.first,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _buildErrorImage(),
-                    ),
+              child: p.images.isEmpty
+                  ? _buildErrorImage()
+                  : p.images.first.startsWith('assets/')
+                      ? Image.asset(
+                          p.images.first,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => _buildErrorImage(),
+                        )
+                      : CachedNetworkImage(
+                          imageUrl: p.images.first,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) => Container(
+                            color: AppTheme.cardBg,
+                            child: const Center(
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: AppTheme.accent,
+                              ),
+                            ),
+                          ),
+                          errorWidget: (context, url, error) =>
+                              _buildErrorImage(),
+                        ),
             ),
             // gradient
             Positioned(
