@@ -60,32 +60,44 @@ class OrderService {
     String? deliveryAddress,
     String? notes,
   }) async {
-    final response = await _client
-        .post(
-          Uri.parse('${AppConfig.apiBaseUrl}/orders'),
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer $idToken',
-          },
-          body: jsonEncode({
-            'customerName': customerName,
-            'customerPhone': customerPhone,
-            'customerEmail': customerEmail,
-            'deliveryAddress': deliveryAddress,
-            'notes': notes,
-            'items': items
-                .map(
-                  (item) => {
-                    'productId': item.product.id,
-                    'quantity': item.quantity,
-                    'selectedColor': item.selectedColor,
-                    'selectedSize': item.selectedSize,
-                  },
-                )
-                .toList(),
-          }),
-        )
-        .timeout(const Duration(seconds: 10));
+    late final http.Response response;
+
+    try {
+      response = await _client
+          .post(
+            Uri.parse('${AppConfig.apiBaseUrl}/orders'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $idToken',
+            },
+            body: jsonEncode({
+              'customerName': customerName,
+              'customerPhone': customerPhone,
+              'customerEmail': customerEmail,
+              'deliveryAddress': deliveryAddress,
+              'notes': notes,
+              'items': items
+                  .map(
+                    (item) => {
+                      'productId': item.product.id,
+                      'quantity': item.quantity,
+                      'selectedColor': item.selectedColor,
+                      'selectedSize': item.selectedSize,
+                    },
+                  )
+                  .toList(),
+            }),
+          )
+          .timeout(const Duration(seconds: 10));
+    } on TimeoutException {
+      throw Exception(
+        'The checkout service took too long to respond. Make sure the backend is running at ${AppConfig.apiBaseUrl}.',
+      );
+    } on http.ClientException {
+      throw Exception(
+        'We could not reach the checkout service at ${AppConfig.apiBaseUrl}. If you are running the web app locally, make sure the backend is running and CORS allows the Authorization header.',
+      );
+    }
 
     final payload = jsonDecode(response.body) as Map<String, dynamic>;
     if (response.statusCode < 200 || response.statusCode >= 300) {
