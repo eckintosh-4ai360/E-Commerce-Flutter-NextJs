@@ -272,7 +272,7 @@ class AccountScreen extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          'Copyright 2026 © Esiarkomall. All rights reserved.',
+          'Copyright 2026 © Eckintoshmall. All rights reserved.',
           style: GoogleFonts.kumbhSans(fontSize: 10, color: AppTheme.textLight),
         ),
       ],
