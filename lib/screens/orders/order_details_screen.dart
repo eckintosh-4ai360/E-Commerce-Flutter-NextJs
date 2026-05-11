@@ -1,28 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
+
+import '../../models/app_order.dart';
 import '../../theme/app_theme.dart';
 
 class OrderDetailsScreen extends StatelessWidget {
-  final String orderId;
-  final String status;
-  final Color statusColor;
-  final String date;
-
   const OrderDetailsScreen({
     super.key,
-    required this.orderId,
-    required this.status,
-    required this.statusColor,
-    required this.date,
+    required this.order,
   });
+
+  final AppOrder order;
 
   @override
   Widget build(BuildContext context) {
+    final formatter = DateFormat('MMM d, yyyy - h:mm a');
+
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
-        title: Text('Order Details',
-            style: GoogleFonts.kumbhSans(fontWeight: FontWeight.w600)),
+        title: Text(
+          'Order Details',
+          style: GoogleFonts.kumbhSans(fontWeight: FontWeight.w600),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
@@ -32,43 +33,48 @@ class OrderDetailsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header Card
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: AppTheme.surface,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.03),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
+            _buildSectionCard(
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Order #$orderId',
-                        style: GoogleFonts.kumbhSans(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 18,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Order #${order.trackingCode}',
+                              style: GoogleFonts.kumbhSans(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 18,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              order.id,
+                              style: GoogleFonts.kumbhSans(
+                                color: AppTheme.textLight,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 6),
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
-                          color: statusColor.withValues(alpha: 0.1),
+                          color: _statusColor(order.status).withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
-                          status,
+                          order.displayStatus,
                           style: GoogleFonts.kumbhSans(
-                            color: statusColor,
+                            color: _statusColor(order.status),
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
                           ),
@@ -76,62 +82,20 @@ class OrderDetailsScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      const Icon(Icons.calendar_today_outlined,
-                          size: 16, color: AppTheme.textMed),
-                      const SizedBox(width: 8),
-                      Text(
-                        date,
-                        style: GoogleFonts.kumbhSans(
-                            color: AppTheme.textMed, fontSize: 14),
-                      ),
-                    ],
-                  ),
+                  const SizedBox(height: 16),
+                  _buildInfoRow('Placed', formatter.format(order.createdAt.toLocal())),
+                  const SizedBox(height: 10),
+                  _buildInfoRow('Customer', order.customerName),
+                  const SizedBox(height: 10),
+                  _buildInfoRow('Phone', order.customerPhone),
+                  if (order.customerEmail != null && order.customerEmail!.isNotEmpty) ...[
+                    const SizedBox(height: 10),
+                    _buildInfoRow('Email', order.customerEmail!),
+                  ],
                 ],
               ),
             ),
             const SizedBox(height: 24),
-
-            // Tracking / Timeline
-            Text(
-              'Order Status',
-              style: GoogleFonts.kumbhSans(
-                fontWeight: FontWeight.w700,
-                fontSize: 16,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: AppTheme.surface,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.03),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  _buildTimelineStep(
-                      'Order Placed', 'May 10, 2026 - 10:00 AM', true, true),
-                  _buildTimelineStep('Processing', 'May 10, 2026 - 11:30 AM',
-                      status != 'Cancelled', status != 'Cancelled'),
-                  _buildTimelineStep('Shipped', 'May 11, 2026 - 09:00 AM',
-                      status == 'Delivered', status == 'Delivered'),
-                  _buildTimelineStep('Delivered', 'May 12, 2026 - 02:00 PM',
-                      status == 'Delivered', false),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Items List
             Text(
               'Items',
               style: GoogleFonts.kumbhSans(
