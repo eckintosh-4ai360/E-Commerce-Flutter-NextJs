@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'Content-Type',
+  // Checkout sends Firebase ID tokens through the Authorization header.
+  'Access-Control-Allow-Headers': 'Authorization, Content-Type',
   'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
 };
 
