@@ -299,6 +299,8 @@ class _CartItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final imagePath = item.product.primaryImage;
+
     return Dismissible(
       key: Key('cart_${item.product.id}'),
       direction: DismissDirection.endToStart,
