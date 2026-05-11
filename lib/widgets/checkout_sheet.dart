@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../blocs/auth/auth_cubit.dart';
+import '../models/app_auth_user.dart';
 import '../models/app_order.dart';
 import '../models/cart_item.dart';
 import '../services/order_service.dart';
@@ -30,6 +33,8 @@ class _CheckoutSheetState extends State<CheckoutSheet> {
 
   bool _isSubmitting = false;
   String? _errorMessage;
+  String? _lastAuthedEmail;
+  String? _lastAuthedName;
 
   @override
   void dispose() {
