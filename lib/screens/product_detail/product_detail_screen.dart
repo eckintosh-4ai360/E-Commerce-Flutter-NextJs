@@ -80,6 +80,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   Widget _buildSliverAppBar(BuildContext context, Product p) {
+    final imagePath = p.primaryImage;
+
     return SliverAppBar(
       expandedHeight: 380,
       pinned: true,
