@@ -65,7 +65,7 @@ export default function AdminDashboard() {
       <div style={{ marginBottom: '36px' }}>
         <h1 style={{ margin: 0, fontSize: '26px', fontWeight: 700, color: '#f5f5f5' }}>Dashboard</h1>
         <p style={{ margin: '6px 0 0', fontSize: '14px', color: '#555' }}>
-          Overview of your Esiarko Mall storefront
+          Overview of your Eckintosh Mall storefront
         </p>
       </div>
 
