@@ -15,9 +15,20 @@ type RouteContext = {
 
 export async function GET(request: Request, context: RouteContext) {
   const { id } = await context.params;
+  const normalizedId = id.trim().replace(/^#/, '');
   const prisma = getPrisma();
-  const order = await prisma.order.findUnique({
-    where: { id },
+  const order = await prisma.order.findFirst({
+    where: {
+      OR: [
+        { id: normalizedId },
+        {
+          id: {
+            endsWith: normalizedId.toLowerCase(),
+            mode: 'insensitive',
+          },
+        },
+      ],
+    },
     include: {
       items: {
         include: {
