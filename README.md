@@ -91,7 +91,7 @@ flutter run --dart-define=API_BASE_URL=http://your-ip-address:3000/api
 
 ---
 
-## 📅 Future Roadmap
+## Future Roadmap
 
 - [ ] **AI Recommendations**: Personalizing the shopping feed based on user behavior.
 - [ ] **Multi-Vendor Support**: Allowing third-party sellers to list products.
@@ -100,6 +100,6 @@ flutter run --dart-define=API_BASE_URL=http://your-ip-address:3000/api
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
