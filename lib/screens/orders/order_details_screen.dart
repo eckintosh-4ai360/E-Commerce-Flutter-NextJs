@@ -104,137 +104,127 @@ class OrderDetailsScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: 2,
-              itemBuilder: (context, index) {
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppTheme.surface,
-                    borderRadius: BorderRadius.circular(12),
-                    border:
-                        Border.all(color: Colors.grey.withValues(alpha: 0.1)),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 70,
-                        height: 70,
-                        decoration: BoxDecoration(
-                          color: AppTheme.cardBg,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(Icons.checkroom,
-                            color: AppTheme.primary, size: 30),
+            ...order.items.map(
+              (item) => Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppTheme.surface,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 70,
+                      height: 70,
+                      decoration: BoxDecoration(
+                        color: AppTheme.cardBg,
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              index == 0
-                                  ? 'Premium Cotton T-Shirt'
-                                  : 'Classic Denim Jeans',
-                              style: GoogleFonts.kumbhSans(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 15,
+                      child: item.imageUrl == null
+                          ? const Icon(
+                              Icons.shopping_bag_outlined,
+                              color: AppTheme.primary,
+                              size: 30,
+                            )
+                          : ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.network(
+                                item.imageUrl!,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => const Icon(
+                                  Icons.shopping_bag_outlined,
+                                  color: AppTheme.primary,
+                                  size: 30,
+                                ),
                               ),
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Qty: 1  |  Color: Black',
-                              style: GoogleFonts.kumbhSans(
-                                color: AppTheme.textMed,
-                                fontSize: 13,
-                              ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.productName,
+                            style: GoogleFonts.kumbhSans(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 15,
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              index == 0 ? 'GH₵ 250.00' : 'GH₵ 350.00',
-                              style: GoogleFonts.kumbhSans(
-                                fontWeight: FontWeight.w700,
-                                color: AppTheme.primary,
-                                fontSize: 14,
-                              ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            _itemSubtitle(item),
+                            style: GoogleFonts.kumbhSans(
+                              color: AppTheme.textMed,
+                              fontSize: 13,
                             ),
-                          ],
-                        ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'GHS ${item.totalPrice.toStringAsFixed(2)}',
+                            style: GoogleFonts.kumbhSans(
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.primary,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                );
-              },
+                    ),
+                  ],
+                ),
+              ),
             ),
-            const SizedBox(height: 24),
-
-            // Delivery Address
+            const SizedBox(height: 12),
             Text(
-              'Delivery Address',
+              'Delivery',
               style: GoogleFonts.kumbhSans(
                 fontWeight: FontWeight.w700,
                 fontSize: 16,
               ),
             ),
             const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: AppTheme.surface,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.03),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
+            _buildSectionCard(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: AppTheme.primary.withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.location_on,
-                        color: AppTheme.primary, size: 20),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'John Doe',
-                          style: GoogleFonts.kumbhSans(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 15,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '123 Oxford Street, Osu\nAccra, Ghana\n+233 55 123 4567',
-                          style: GoogleFonts.kumbhSans(
-                            color: AppTheme.textMed,
-                            fontSize: 14,
-                            height: 1.5,
-                          ),
-                        ),
-                      ],
+                  Text(
+                    order.deliveryAddress?.trim().isNotEmpty == true
+                        ? order.deliveryAddress!
+                        : 'No delivery address was provided for this order.',
+                    style: GoogleFonts.kumbhSans(
+                      color: order.deliveryAddress?.trim().isNotEmpty == true
+                          ? AppTheme.textDark
+                          : AppTheme.textMed,
+                      fontSize: 14,
+                      height: 1.5,
                     ),
                   ),
+                  if (order.notes != null && order.notes!.trim().isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    Text(
+                      'Order Notes',
+                      style: GoogleFonts.kumbhSans(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      order.notes!,
+                      style: GoogleFonts.kumbhSans(
+                        color: AppTheme.textMed,
+                        fontSize: 13,
+                        height: 1.5,
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
             const SizedBox(height: 24),
-
-            // Order Summary
             Text(
               'Order Summary',
               style: GoogleFonts.kumbhSans(
@@ -243,54 +233,21 @@ class OrderDetailsScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: AppTheme.surface,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.03),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
+            _buildSectionCard(
               child: Column(
                 children: [
-                  _buildSummaryRow('Subtotal', 'GH₵ 600.00'),
+                  _buildSummaryRow('Subtotal', order.subtotal),
                   const SizedBox(height: 12),
-                  _buildSummaryRow('Shipping', 'GH₵ 20.00'),
-                  const SizedBox(height: 12),
-                  _buildSummaryRow('Tax', 'GH₵ 30.00'),
+                  _buildSummaryRow('Shipping', order.shippingFee),
                   const Padding(
                     padding: EdgeInsets.symmetric(vertical: 16),
                     child: Divider(height: 1),
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Total',
-                        style: GoogleFonts.kumbhSans(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 16,
-                        ),
-                      ),
-                      Text(
-                        'GH₵ 650.00',
-                        style: GoogleFonts.kumbhSans(
-                          fontWeight: FontWeight.w800,
-                          color: AppTheme.primary,
-                          fontSize: 18,
-                        ),
-                      ),
-                    ],
-                  ),
+                  _buildSummaryRow('Total', order.total, emphasize: true),
                 ],
               ),
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 32),
           ],
         ),
       ),
