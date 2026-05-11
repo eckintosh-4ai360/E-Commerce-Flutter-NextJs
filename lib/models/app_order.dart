@@ -84,6 +84,29 @@ class AppOrder extends Equatable {
   final String? notes;
   final List<AppOrderItem> items;
 
+  String get trackingCode {
+    final compactId = id.trim();
+    if (compactId.isEmpty) {
+      return '';
+    }
+
+    final start = compactId.length > 10 ? compactId.length - 10 : 0;
+    return compactId.substring(start).toUpperCase();
+  }
+
+  String get displayStatus {
+    return status
+        .toLowerCase()
+        .split('_')
+        .map((part) {
+          if (part.isEmpty) {
+            return part;
+          }
+          return '${part[0].toUpperCase()}${part.substring(1)}';
+        })
+        .join(' ');
+  }
+
   factory AppOrder.fromJson(Map<String, dynamic> json) {
     return AppOrder(
       id: json['id'] as String,
