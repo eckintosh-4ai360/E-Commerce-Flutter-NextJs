@@ -186,10 +186,18 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Order ${order.id}',
+                'Order #${order.trackingCode}',
                 style: GoogleFonts.kumbhSans(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                order.id,
+                style: GoogleFonts.kumbhSans(
+                  fontSize: 12,
+                  color: AppTheme.textLight,
                 ),
               ),
               const SizedBox(height: 10),
