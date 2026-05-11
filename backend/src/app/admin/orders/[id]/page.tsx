@@ -31,11 +31,41 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
 
   const updateStatus = async (status: string) => {
     setUpdating(true);
-    await fetch(`/api/admin/orders/${id}`, {
+    setUpdateMessage(null);
+    const response = await fetch(`/api/admin/orders/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status }),
     });
+    const payload = await response.json();
+
+    if (!response.ok) {
+      setUpdateMessage({
+        tone: 'error',
+        text: payload.error ?? 'We could not update the order status.',
+      });
+      setUpdating(false);
+      return;
+    }
+
+    const emailNotification = payload.emailNotification;
+    if (emailNotification) {
+      setUpdateMessage({
+        tone:
+          emailNotification.status === 'sent'
+            ? 'success'
+            : emailNotification.status === 'failed'
+                ? 'error'
+                : 'warning',
+        text: emailNotification.message,
+      });
+    } else {
+      setUpdateMessage({
+        tone: 'success',
+        text: 'Order status updated.',
+      });
+    }
+
     const d = await fetch(`/api/admin/orders/${id}`).then((r) => r.json());
     setOrder(d.order);
     setUpdating(false);
