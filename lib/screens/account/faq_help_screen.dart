@@ -67,7 +67,7 @@ class FaqHelpScreen extends StatelessWidget {
           const SizedBox(height: 16),
           _buildContactCard(Icons.phone, 'Call Us', '+233 59 859 9687'),
           const SizedBox(height: 12),
-          _buildContactCard(Icons.email, 'Email Us', 'info@esiarkomall.com'),
+          _buildContactCard(Icons.email, 'Email Us', 'info@Eckintoshmall.com'),
         ],
       ),
     );
