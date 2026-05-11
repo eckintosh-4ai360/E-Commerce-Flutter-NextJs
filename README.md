@@ -4,7 +4,7 @@ A high-end, **full-stack e-commerce platform** designed for a seamless shopping 
 
 ---
 
-## ✨ Features
+## Features
 
 - **Premium UI/UX**: Crafted with the **Kumbh Sans** typeface and fluid **Lottie** animations for a luxury feel.
 - **Dynamic Catalog**: Real-time product synchronization powered by **Next.js** and **Prisma**.
@@ -16,15 +16,17 @@ A high-end, **full-stack e-commerce platform** designed for a seamless shopping 
 
 ---
 
-## 🛠 Tech Stack
+## Tech Stack
 
 ### **Frontend (Mobile & Web)**
+
 - **Framework**: Flutter (Dart)
 - **State Management**: BLoC (Business Logic Component)
 - **Styling**: Custom Theme System, Google Fonts (Kumbh Sans)
 - **Animations**: Lottie, Animate_do, Flutter Staggered Animations
 
 ### **Backend (API & Database)**
+
 - **Framework**: Next.js (App Router)
 - **ORM**: Prisma
 - **Database**: PostgreSQL (Hosted on Neon)
