@@ -333,7 +333,8 @@ class OrderDetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTimelineStep(String title, String subtitle, bool isCompleted, bool isLast) {
+  Widget _buildTimelineStep(
+      String title, String subtitle, bool isCompleted, bool isLast) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -345,7 +346,9 @@ class OrderDetailsScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 color: isCompleted ? AppTheme.primary : AppTheme.cardBg,
                 shape: BoxShape.circle,
-                border: isCompleted ? null : Border.all(color: Colors.grey.withValues(alpha: 0.3)),
+                border: isCompleted
+                    ? null
+                    : Border.all(color: Colors.grey.withValues(alpha: 0.3)),
               ),
               child: isCompleted
                   ? const Icon(Icons.check, color: Colors.white, size: 14)
@@ -355,7 +358,9 @@ class OrderDetailsScreen extends StatelessWidget {
               Container(
                 width: 2,
                 height: 40,
-                color: isCompleted ? AppTheme.primary : Colors.grey.withValues(alpha: 0.2),
+                color: isCompleted
+                    ? AppTheme.primary
+                    : Colors.grey.withValues(alpha: 0.2),
               ),
           ],
         ),
