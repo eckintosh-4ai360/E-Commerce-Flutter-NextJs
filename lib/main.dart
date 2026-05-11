@@ -77,3 +77,15 @@ class EckintoshApp extends StatelessWidget {
     );
   }
 }
+
+Future<void> _initializeFirebaseIfSupported() async {
+  if (!(kIsWeb ||
+      defaultTargetPlatform == TargetPlatform.android ||
+      defaultTargetPlatform == TargetPlatform.iOS)) {
+    return;
+  }
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+}
