@@ -1,3 +1,4 @@
+import { sendOrderStatusUpdateEmail } from '@/lib/order-status-email';
 import { errorResponse, jsonResponse, optionsResponse } from '@/lib/http';
 import { getPrisma } from '@/lib/prisma';
 
