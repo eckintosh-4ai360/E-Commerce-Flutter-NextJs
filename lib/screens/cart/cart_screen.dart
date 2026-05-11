@@ -280,7 +280,7 @@ class CartScreen extends StatelessWidget {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          'Order ${order.id} placed successfully. Tracking is now available in the app.',
+          'Order #${order.trackingCode} placed successfully. It is now available in My Orders and Track Order.',
           style: GoogleFonts.kumbhSans(),
         ),
         backgroundColor: AppTheme.success,
