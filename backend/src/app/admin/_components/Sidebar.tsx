@@ -80,7 +80,7 @@ export default function AdminSidebar() {
           <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#4ade80' }} />
           API Live on port 3000
         </div>
-        Esiarkomall Backend v1.0
+        Eckintoshmall Backend v1.0
       </div>
     </aside>
   );
