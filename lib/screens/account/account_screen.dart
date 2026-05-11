@@ -88,60 +88,130 @@ class AccountScreen extends StatelessWidget {
   }
 
   Widget _buildProfileHeader() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppTheme.primary,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              color: AppTheme.accent.withValues(alpha: 0.2),
-              shape: BoxShape.circle,
-              border: Border.all(color: AppTheme.accent, width: 2),
-            ),
-            child: const Icon(Icons.person, size: 32, color: AppTheme.accent),
+    return BlocBuilder<AuthCubit, AuthState>(
+      builder: (context, authState) {
+        final user = authState.user;
+
+        return Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: AppTheme.primary,
+            borderRadius: BorderRadius.circular(16),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Welcome!',
-                    style: GoogleFonts.kumbhSans(
+          child: Row(
+            children: [
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: AppTheme.accent.withValues(alpha: 0.2),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppTheme.accent, width: 2),
+                ),
+                child: ClipOval(
+                  child: user?.photoUrl != null
+                      ? Image.network(
+                          user!.photoUrl!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => _buildAvatarFallback(),
+                        )
+                      : _buildAvatarFallback(
+                          initials: user?.initials,
+                        ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      user?.bestDisplayName ?? 'Welcome!',
+                      style: GoogleFonts.kumbhSans(
                         color: Colors.white,
                         fontSize: 20,
-                        fontWeight: FontWeight.w700)),
-                const SizedBox(height: 4),
-                Text('Sign in for a personalised experience',
-                    style: GoogleFonts.kumbhSans(
-                        color: Colors.white.withValues(alpha: 0.7),
-                        fontSize: 11)),
-                const SizedBox(height: 10),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: AppTheme.accent,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    'SIGN IN',
-                    style: GoogleFonts.kumbhSans(
-                        color: AppTheme.primary,
-                        fontSize: 11,
                         fontWeight: FontWeight.w700,
-                        letterSpacing: 1),
-                  ),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      user?.email ??
+                          'Sign in for personalised checkout and tracking emails',
+                      style: GoogleFonts.kumbhSans(
+                        color: Colors.white.withValues(alpha: 0.78),
+                        fontSize: 11,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    _buildAuthAction(context, authState),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
+        );
+      },
+    );
+  }
+
+  Widget _buildAvatarFallback({String? initials}) {
+    if (initials != null && initials.isNotEmpty) {
+      return Center(
+        child: Text(
+          initials,
+          style: GoogleFonts.kumbhSans(
+            fontSize: 22,
+            fontWeight: FontWeight.w700,
+            color: AppTheme.accent,
+          ),
+        ),
+      );
+    }
+
+    return const Icon(Icons.person, size: 32, color: AppTheme.accent);
+  }
+
+  Widget _buildAuthAction(BuildContext context, AuthState authState) {
+    if (!authState.isSupported) {
+      return Text(
+        'Google sign-in is available on Android, iOS, and web.',
+        style: GoogleFonts.kumbhSans(
+          color: Colors.white.withValues(alpha: 0.7),
+          fontSize: 11,
+        ),
+      );
+    }
+
+    final isSignedIn = authState.isAuthenticated;
+    return GestureDetector(
+      onTap: authState.isBusy
+          ? null
+          : () {
+              if (isSignedIn) {
+                context.read<AuthCubit>().signOut();
+              } else {
+                context.read<AuthCubit>().signInWithGoogle();
+              }
+            },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSignedIn ? Colors.white : AppTheme.accent,
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Text(
+          authState.isBusy
+              ? 'PLEASE WAIT'
+              : isSignedIn
+                  ? 'SIGN OUT'
+                  : 'SIGN IN WITH GOOGLE',
+          style: GoogleFonts.kumbhSans(
+            color: isSignedIn ? AppTheme.primary : AppTheme.primary,
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1,
+          ),
+        ),
       ),
     );
   }
