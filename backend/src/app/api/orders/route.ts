@@ -4,6 +4,7 @@ import {
   jsonResponse,
   optionsResponse,
 } from '@/lib/http';
+import { verifyAuthenticatedCustomer } from '@/lib/firebase-admin';
 import { getPrisma } from '@/lib/prisma';
 import {
   flatShippingFee,
