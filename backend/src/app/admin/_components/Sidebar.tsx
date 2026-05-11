@@ -39,7 +39,7 @@ export default function AdminSidebar() {
             fontSize: '18px', fontWeight: 700, color: '#000',
           }}>E</div>
           <div>
-            <div style={{ fontWeight: 700, fontSize: '15px', color: '#f5f5f5' }}>Esiarko</div>
+            <div style={{ fontWeight: 700, fontSize: '15px', color: '#f5f5f5' }}>Eckintosh</div>
             <div style={{ fontSize: '11px', color: '#a0a0a0' }}>Admin CMS</div>
           </div>
         </div>
