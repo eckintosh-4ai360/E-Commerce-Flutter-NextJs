@@ -12,6 +12,45 @@ class OrderService {
 
   final http.Client _client;
 
+  Future<List<AppOrder>> listOrders({
+    String? customerEmail,
+    String? customerPhone,
+  }) async {
+    final uri = Uri.parse('${AppConfig.apiBaseUrl}/orders').replace(
+      queryParameters: {
+        if (customerEmail != null && customerEmail.trim().isNotEmpty)
+          'email': customerEmail.trim(),
+        if (customerPhone != null && customerPhone.trim().isNotEmpty)
+          'phone': customerPhone.trim(),
+      },
+    );
+
+    late final http.Response response;
+
+    try {
+      response = await _client.get(uri).timeout(const Duration(seconds: 10));
+    } on TimeoutException {
+      throw Exception(
+        'The orders service took too long to respond. Make sure the backend is running at ${AppConfig.apiBaseUrl}.',
+      );
+    } on http.ClientException {
+      throw Exception(
+        'We could not reach the orders service at ${AppConfig.apiBaseUrl}.',
+      );
+    }
+
+    final payload = jsonDecode(response.body) as Map<String, dynamic>;
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception(
+        payload['error'] as String? ?? 'We could not load your orders.',
+      );
+    }
+
+    return (payload['orders'] as List<dynamic>? ?? const [])
+        .map((item) => AppOrder.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
   Future<AppOrder> createOrder({
     required String idToken,
     required String customerName,
