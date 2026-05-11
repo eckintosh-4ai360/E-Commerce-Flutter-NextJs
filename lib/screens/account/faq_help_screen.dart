@@ -10,7 +10,8 @@ class FaqHelpScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
-        title: Text('FAQ & Help Center', style: GoogleFonts.kumbhSans(fontWeight: FontWeight.w600)),
+        title: Text('FAQ & Help Center',
+            style: GoogleFonts.kumbhSans(fontWeight: FontWeight.w600)),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
