@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import AdminSidebar from './_components/Sidebar';
 
 export const metadata = {
-  title: 'Esiarko Admin CMS',
+  title: 'Eckintosh Admin CMS',
   description: 'Manage products, orders, and store data.',
 };
 
