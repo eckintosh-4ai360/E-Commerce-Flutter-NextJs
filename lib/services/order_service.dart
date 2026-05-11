@@ -110,9 +110,22 @@ class OrderService {
   }
 
   Future<AppOrder> trackOrder(String orderId) async {
-    final response = await _client
-        .get(Uri.parse('${AppConfig.apiBaseUrl}/orders/$orderId'))
-        .timeout(const Duration(seconds: 10));
+    late final http.Response response;
+
+    try {
+      response = await _client
+          .get(Uri.parse('${AppConfig.apiBaseUrl}/orders/$orderId'))
+          .timeout(const Duration(seconds: 10));
+    } on TimeoutException {
+      throw Exception(
+        'The order tracking service took too long to respond. Make sure the backend is running at ${AppConfig.apiBaseUrl}.',
+      );
+    } on http.ClientException {
+      throw Exception(
+        'We could not reach the order tracking service at ${AppConfig.apiBaseUrl}.',
+      );
+    }
+
     final payload = jsonDecode(response.body) as Map<String, dynamic>;
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
