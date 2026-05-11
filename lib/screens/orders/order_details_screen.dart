@@ -151,7 +151,8 @@ class OrderDetailsScreen extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: AppTheme.surface,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
+                    border:
+                        Border.all(color: Colors.grey.withValues(alpha: 0.1)),
                   ),
                   child: Row(
                     children: [
@@ -162,7 +163,8 @@ class OrderDetailsScreen extends StatelessWidget {
                           color: AppTheme.cardBg,
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const Icon(Icons.checkroom, color: AppTheme.primary, size: 30),
+                        child: const Icon(Icons.checkroom,
+                            color: AppTheme.primary, size: 30),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
@@ -170,7 +172,9 @@ class OrderDetailsScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              index == 0 ? 'Premium Cotton T-Shirt' : 'Classic Denim Jeans',
+                              index == 0
+                                  ? 'Premium Cotton T-Shirt'
+                                  : 'Classic Denim Jeans',
                               style: GoogleFonts.kumbhSans(
                                 fontWeight: FontWeight.w600,
                                 fontSize: 15,
@@ -234,7 +238,8 @@ class OrderDetailsScreen extends StatelessWidget {
                       color: AppTheme.primary.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.location_on, color: AppTheme.primary, size: 20),
+                    child: const Icon(Icons.location_on,
+                        color: AppTheme.primary, size: 20),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
