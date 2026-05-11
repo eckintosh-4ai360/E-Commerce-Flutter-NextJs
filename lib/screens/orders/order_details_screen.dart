@@ -21,7 +21,8 @@ class OrderDetailsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
-        title: Text('Order Details', style: GoogleFonts.kumbhSans(fontWeight: FontWeight.w600)),
+        title: Text('Order Details',
+            style: GoogleFonts.kumbhSans(fontWeight: FontWeight.w600)),
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
@@ -58,7 +59,8 @@ class OrderDetailsScreen extends StatelessWidget {
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
                           color: statusColor.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(20),
@@ -77,11 +79,13 @@ class OrderDetailsScreen extends StatelessWidget {
                   const SizedBox(height: 12),
                   Row(
                     children: [
-                      Icon(Icons.calendar_today_outlined, size: 16, color: AppTheme.textMed),
+                      const Icon(Icons.calendar_today_outlined,
+                          size: 16, color: AppTheme.textMed),
                       const SizedBox(width: 8),
                       Text(
                         date,
-                        style: GoogleFonts.kumbhSans(color: AppTheme.textMed, fontSize: 14),
+                        style: GoogleFonts.kumbhSans(
+                            color: AppTheme.textMed, fontSize: 14),
                       ),
                     ],
                   ),
@@ -114,10 +118,14 @@ class OrderDetailsScreen extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  _buildTimelineStep('Order Placed', 'May 10, 2026 - 10:00 AM', true, true),
-                  _buildTimelineStep('Processing', 'May 10, 2026 - 11:30 AM', status != 'Cancelled', status != 'Cancelled'),
-                  _buildTimelineStep('Shipped', 'May 11, 2026 - 09:00 AM', status == 'Delivered', status == 'Delivered'),
-                  _buildTimelineStep('Delivered', 'May 12, 2026 - 02:00 PM', status == 'Delivered', false),
+                  _buildTimelineStep(
+                      'Order Placed', 'May 10, 2026 - 10:00 AM', true, true),
+                  _buildTimelineStep('Processing', 'May 10, 2026 - 11:30 AM',
+                      status != 'Cancelled', status != 'Cancelled'),
+                  _buildTimelineStep('Shipped', 'May 11, 2026 - 09:00 AM',
+                      status == 'Delivered', status == 'Delivered'),
+                  _buildTimelineStep('Delivered', 'May 12, 2026 - 02:00 PM',
+                      status == 'Delivered', false),
                 ],
               ),
             ),
