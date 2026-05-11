@@ -24,7 +24,10 @@ class OrderService {
     final response = await _client
         .post(
           Uri.parse('${AppConfig.apiBaseUrl}/orders'),
-          headers: const {'Content-Type': 'application/json'},
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $idToken',
+          },
           body: jsonEncode({
             'customerName': customerName,
             'customerPhone': customerPhone,
