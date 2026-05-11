@@ -156,7 +156,7 @@ export async function POST(request: Request) {
   const order = await prisma.order.create({
     data: {
       customerName,
-      customerEmail: payload.customerEmail?.trim(),
+      customerEmail: authenticatedCustomer.email,
       customerPhone,
       deliveryAddress: payload.deliveryAddress?.trim(),
       notes: payload.notes?.trim(),
