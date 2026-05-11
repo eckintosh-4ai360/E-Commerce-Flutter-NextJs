@@ -256,7 +256,7 @@ class AccountScreen extends StatelessWidget {
     return Column(
       children: [
         Image.network(
-          'https://esiarkomall.com/wp-content/uploads/2025/08/Esiarkomall-logo-black-on-white.png',
+          'https://Eckintoshmall.com/wp-content/uploads/2025/08/Eckintoshmall-logo-black-on-white.png',
           height: 48,
           errorBuilder: (_, __, ___) => Text(
             'ECKINTOSH',
