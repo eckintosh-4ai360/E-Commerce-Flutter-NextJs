@@ -254,85 +254,101 @@ class OrderDetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTimelineStep(
-      String title, String subtitle, bool isCompleted, bool isLast) {
+  Widget _buildSectionCard({required Widget child}) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Column(
-          children: [
-            Container(
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                color: isCompleted ? AppTheme.primary : AppTheme.cardBg,
-                shape: BoxShape.circle,
-                border: isCompleted
-                    ? null
-                    : Border.all(color: Colors.grey.withValues(alpha: 0.3)),
-              ),
-              child: isCompleted
-                  ? const Icon(Icons.check, color: Colors.white, size: 14)
-                  : null,
+        SizedBox(
+          width: 72,
+          child: Text(
+            label,
+            style: GoogleFonts.kumbhSans(
+              color: AppTheme.textMed,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
             ),
-            if (!isLast)
-              Container(
-                width: 2,
-                height: 40,
-                color: isCompleted
-                    ? AppTheme.primary
-                    : Colors.grey.withValues(alpha: 0.2),
-              ),
-          ],
+          ),
         ),
-        const SizedBox(width: 16),
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: GoogleFonts.kumbhSans(
-                  fontWeight: FontWeight.w600,
-                  color: isCompleted ? AppTheme.textDark : AppTheme.textMed,
-                  fontSize: 15,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                subtitle,
-                style: GoogleFonts.kumbhSans(
-                  color: AppTheme.textLight,
-                  fontSize: 13,
-                ),
-              ),
-              if (!isLast) const SizedBox(height: 20),
-            ],
+          child: Text(
+            value,
+            style: GoogleFonts.kumbhSans(
+              color: AppTheme.textDark,
+              fontSize: 13,
+            ),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildSummaryRow(String title, String amount) {
+  Widget _buildSummaryRow(
+    String title,
+    double amount, {
+    bool emphasize = false,
+  }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           title,
           style: GoogleFonts.kumbhSans(
-            color: AppTheme.textMed,
-            fontSize: 14,
+            color: emphasize ? AppTheme.textDark : AppTheme.textMed,
+            fontWeight: emphasize ? FontWeight.w700 : FontWeight.w500,
           ),
         ),
         Text(
-          amount,
+          'GHS ${amount.toStringAsFixed(2)}',
           style: GoogleFonts.kumbhSans(
-            fontWeight: FontWeight.w600,
-            fontSize: 14,
+            color: AppTheme.primary,
+            fontWeight: FontWeight.w700,
+            fontSize: emphasize ? 18 : 14,
           ),
         ),
       ],
     );
+  }
+
+  String _itemSubtitle(AppOrderItem item) {
+    final details = <String>['Qty ${item.quantity}'];
+    if (item.selectedColor != null && item.selectedColor!.trim().isNotEmpty) {
+      details.add(item.selectedColor!.trim());
+    }
+    if (item.selectedSize != null && item.selectedSize!.trim().isNotEmpty) {
+      details.add(item.selectedSize!.trim());
+    }
+    return details.join(' | ');
+  }
+
+  Color _statusColor(String status) {
+    switch (status.toUpperCase()) {
+      case 'DELIVERED':
+        return AppTheme.success;
+      case 'PROCESSING':
+      case 'SHIPPED':
+        return AppTheme.accent;
+      case 'CANCELLED':
+        return AppTheme.error;
+      default:
+        return AppTheme.primary;
+    }
   }
 }
