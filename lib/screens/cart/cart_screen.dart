@@ -313,7 +313,8 @@ class _CartItemCard extends StatelessWidget {
           color: AppTheme.error.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
         ),
-        child: const Icon(Icons.delete_outline, color: AppTheme.error, size: 28),
+        child:
+            const Icon(Icons.delete_outline, color: AppTheme.error, size: 28),
       ),
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
