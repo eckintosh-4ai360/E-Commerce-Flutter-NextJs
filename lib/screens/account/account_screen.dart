@@ -18,53 +18,69 @@ class AccountScreen extends StatelessWidget {
       backgroundColor: AppTheme.cardBg,
       body: SafeArea(
         child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 110),
-        child: Column(
-          children: [
-            _buildProfileHeader(),
-            const SizedBox(height: 28),
-            _buildOrderTracking(context),
-            const SizedBox(height: 20),
-            _buildMenuSection(context, 'Shopping', [
-              (Icons.receipt_long_outlined, 'My Orders', const OrdersScreen()),
-              (
-                Icons.local_shipping_outlined,
-                'Track Order',
-                const OrderTrackingScreen()
-              ),
-              (Icons.replay, 'Returns & Refunds', const ReturnsRefundsScreen()),
-            ]),
-            const SizedBox(height: 16),
-            _buildMenuSection(context, 'Account', [
-              (Icons.person_outline, 'Edit Profile', const EditProfileScreen()),
-              (
-                Icons.location_on_outlined,
-                'Delivery Addresses',
-                const DeliveryAddressesScreen()
-              ),
-              (
-                Icons.payment_outlined,
-                'Payment Methods',
-                const PaymentMethodsScreen()
-              ),
-            ]),
-            const SizedBox(height: 16),
-            _buildMenuSection(context, 'Support', [
-              (Icons.phone_outlined, 'Call: +233 59 859 9687', null),
-              (Icons.email_outlined, 'info@esiarkomall.com', null),
-              (Icons.help_outline, 'FAQ & Help Center', const FaqHelpScreen()),
-            ]),
-            const SizedBox(height: 16),
-            _buildMenuSection(context, 'Follow Us', [
-              (Icons.camera_alt_outlined, 'Instagram @esiarkomall', null),
-              (Icons.facebook_outlined, 'Facebook: Esiarkomall', null),
-              (Icons.alternate_email, 'Twitter @esiarko_mall', null),
-            ]),
-            const SizedBox(height: 32),
-            _buildFooter(),
-          ],
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 110),
+          child: Column(
+            children: [
+              _buildProfileHeader(),
+              const SizedBox(height: 28),
+              _buildOrderTracking(context),
+              const SizedBox(height: 20),
+              _buildMenuSection(context, 'Shopping', [
+                (
+                  Icons.receipt_long_outlined,
+                  'My Orders',
+                  const OrdersScreen()
+                ),
+                (
+                  Icons.local_shipping_outlined,
+                  'Track Order',
+                  const OrderTrackingScreen()
+                ),
+                (
+                  Icons.replay,
+                  'Returns & Refunds',
+                  const ReturnsRefundsScreen()
+                ),
+              ]),
+              const SizedBox(height: 16),
+              _buildMenuSection(context, 'Account', [
+                (
+                  Icons.person_outline,
+                  'Edit Profile',
+                  const EditProfileScreen()
+                ),
+                (
+                  Icons.location_on_outlined,
+                  'Delivery Addresses',
+                  const DeliveryAddressesScreen()
+                ),
+                (
+                  Icons.payment_outlined,
+                  'Payment Methods',
+                  const PaymentMethodsScreen()
+                ),
+              ]),
+              const SizedBox(height: 16),
+              _buildMenuSection(context, 'Support', [
+                (Icons.phone_outlined, 'Call: +233 59 859 9687', null),
+                (Icons.email_outlined, 'info@Eckintoshmall.com', null),
+                (
+                  Icons.help_outline,
+                  'FAQ & Help Center',
+                  const FaqHelpScreen()
+                ),
+              ]),
+              const SizedBox(height: 16),
+              _buildMenuSection(context, 'Follow Us', [
+                (Icons.camera_alt_outlined, 'Instagram @Eckintoshmall', null),
+                (Icons.facebook_outlined, 'Facebook: Eckintoshmall', null),
+                (Icons.alternate_email, 'Twitter @Eckintosh_mall', null),
+              ]),
+              const SizedBox(height: 32),
+              _buildFooter(),
+            ],
+          ),
         ),
-      ),
       ),
     );
   }
