@@ -57,8 +57,24 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  let authenticatedCustomer;
+  try {
+    authenticatedCustomer = await verifyAuthenticatedCustomer(request);
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : 'You must be signed in with Google to place an order.';
+
+    return errorResponse(
+      message,
+      message.startsWith('Firebase Admin is not configured') ? 503 : 401,
+    );
+  }
+
   const payload = (await request.json()) as CreateOrderPayload;
-  const customerName = payload.customerName?.trim();
+  const customerName =
+    payload.customerName?.trim() || authenticatedCustomer.name || 'Guest';
   const customerPhone = payload.customerPhone?.trim();
   const items = payload.items ?? [];
 
