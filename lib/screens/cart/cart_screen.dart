@@ -334,21 +334,23 @@ class _CartItemCard extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: item.product.images.first.startsWith('assets')
-                  ? Image.asset(
-                      item.product.images.first,
-                      width: 80,
-                      height: 90,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _buildErrorImage(),
-                    )
-                  : Image.network(
-                      item.product.images.first,
-                      width: 80,
-                      height: 90,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _buildErrorImage(),
-                    ),
+              child: imagePath == null
+                  ? _buildErrorImage()
+                  : imagePath.startsWith('assets')
+                      ? Image.asset(
+                          imagePath,
+                          width: 80,
+                          height: 90,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => _buildErrorImage(),
+                        )
+                      : Image.network(
+                          imagePath,
+                          width: 80,
+                          height: 90,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => _buildErrorImage(),
+                        ),
             ),
             const SizedBox(width: 12),
             Expanded(
