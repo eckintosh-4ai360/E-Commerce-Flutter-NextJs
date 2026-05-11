@@ -47,33 +47,35 @@ class ProductCard extends StatelessWidget {
   }
 
   Widget _buildImage(BuildContext context) {
+    if (product.images.isEmpty) return _buildErrorImage();
+
+    final imagePath = product.images.first;
+    final isAsset = imagePath.startsWith('assets/');
+
     return Stack(
       children: [
         ClipRRect(
           borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
           child: SizedBox.expand(
-            child: product.images.first.startsWith('assets')
+            child: isAsset
                 ? Image.asset(
-                    product.images.first,
+                    imagePath,
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => _buildErrorImage(),
                   )
-                : Image.network(
-                    product.images.first,
+                : CachedNetworkImage(
+                    imageUrl: imagePath,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => _buildErrorImage(),
-                    loadingBuilder: (_, child, progress) {
-                      if (progress == null) return child;
-                      return Container(
-                        color: AppTheme.cardBg,
-                        child: const Center(
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: AppTheme.accent,
-                          ),
+                    placeholder: (context, url) => Container(
+                      color: AppTheme.cardBg,
+                      child: const Center(
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppTheme.accent,
                         ),
-                      );
-                    },
+                      ),
+                    ),
+                    errorWidget: (context, url, error) => _buildErrorImage(),
                   ),
           ),
         ),
