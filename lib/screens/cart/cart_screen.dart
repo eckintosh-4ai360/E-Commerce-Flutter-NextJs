@@ -105,7 +105,7 @@ class CartScreen extends StatelessWidget {
           const SizedBox(height: 28),
           ElevatedButton(
             onPressed: () =>
-                context.read<NavigationBloc>().add(const NavigateTo(0)),
+                context.read<NavigationBloc>().add(const NavigateTo(1)),
             child: const Text('SHOP NOW'),
           ),
         ],
