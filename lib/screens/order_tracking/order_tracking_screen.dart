@@ -79,7 +79,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Enter your order ID to get updates on your delivery status.',
+              'Enter your full order ID or the short tracking code to get updates on your delivery status.',
               style: GoogleFonts.kumbhSans(
                 color: AppTheme.textMed,
                 fontSize: 14,
@@ -89,7 +89,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
             TextField(
               controller: _controller,
               decoration: InputDecoration(
-                hintText: 'Order ID',
+                hintText: 'Order ID or tracking code',
                 hintStyle: GoogleFonts.kumbhSans(color: AppTheme.textLight),
                 prefixIcon: const Icon(Icons.search, color: AppTheme.textLight),
                 filled: true,
