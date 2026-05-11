@@ -213,7 +213,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
-                      order.status,
+                      order.displayStatus,
                       style: GoogleFonts.kumbhSans(
                         color: AppTheme.primary,
                         fontWeight: FontWeight.w700,
