@@ -47,9 +47,9 @@ class ProductCard extends StatelessWidget {
   }
 
   Widget _buildImage(BuildContext context) {
-    if (product.images.isEmpty) return _buildErrorImage();
+    final imagePath = product.primaryImage;
+    if (imagePath == null) return _buildErrorImage();
 
-    final imagePath = product.images.first;
     final isAsset = imagePath.startsWith('assets/');
 
     return Stack(
