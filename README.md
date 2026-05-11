@@ -34,22 +34,24 @@ A high-end, **full-stack e-commerce platform** designed for a seamless shopping 
 
 ---
 
-## 📸 Screenshots
+## Screenshots
 
-|                  Splash Screen                  |                  Home Feed                  |                  Product Details                  |
-| :---------------------------------------------: | :-----------------------------------------: | :-----------------------------------------------: |
+|              Splash Screen               |              Home Feed               |             Product Details              |
+| :--------------------------------------: | :----------------------------------: | :--------------------------------------: |
 | ![Splash](assets/screenshots/splash.png) | ![Home](assets/screenshots/home.png) | ![Detail](assets/screenshots/detail.png) |
 
 ---
 
-## 🚀 Installation & Setup
+## Installation & Setup
 
 ### **1. Prerequisites**
+
 - **Flutter SDK** (Latest stable version)
 - **Node.js** (v18 or higher)
 - **PostgreSQL** database (Local or Cloud like Neon.tech)
 
 ### **2. Backend & Database Setup**
+
 Navigate to the `backend` directory and follow these steps:
 
 ```bash
@@ -69,9 +71,11 @@ npx prisma db seed
 # Start the development server
 npm run dev -- --hostname 0.0.0.0
 ```
-*The backend will run on `http://localhost:3000`.*
+
+_The backend will run on `http://localhost:3000`._
 
 ### **3. Flutter Application**
+
 From the project root directory:
 
 ```bash
