@@ -181,6 +181,17 @@ class Product extends Equatable {
     return null;
   }
 
+  String? get primaryImage {
+    for (final image in images) {
+      if (image.trim().isNotEmpty) {
+        return image;
+      }
+    }
+    return null;
+  }
+
+  bool get hasPrimaryImage => primaryImage != null;
+
   @override
   List<Object?> get props => [id, name, price, originalPrice, images, category];
 }
