@@ -38,15 +38,15 @@ class Product extends Equatable {
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
+    final images = _extractImages(json);
+
     return Product(
       id: (json['id'] as num).toInt(),
       name: json['name'] as String,
       description: json['description'] as String? ?? '',
       price: (json['price'] as num).toDouble(),
       originalPrice: (json['originalPrice'] as num?)?.toDouble(),
-      images: (json['images'] as List<dynamic>? ?? const [])
-          .map((image) => AppConfig.resolveMediaUrl(image.toString()))
-          .toList(),
+      images: images,
       category: json['category'] as String? ?? 'General',
       tags: (json['tags'] as List<dynamic>? ?? const [])
           .map((tag) => tag.toString())
