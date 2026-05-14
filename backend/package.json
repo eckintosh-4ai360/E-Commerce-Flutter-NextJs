@@ -31,6 +31,11 @@
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
     "prisma": "^6.8.2",
+    "tsx": "^4.23.15",
     "typescript": "^5.9.3"
+  },
+  "overrides": {
+    "@grpc/grpc-js": "^1.14.6",
+    "deepmerge-ts": "^8.0.0"
   }
 }
