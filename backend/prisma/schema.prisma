@@ -137,5 +137,37 @@ model OrderItem {
   selectedColor String?
   selectedSize  String?
   order         Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product       Product  @relation(fields: [productId], references: [id])
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+// Status timeline shown on tracking pages.
+model OrderEvent {
+  id        String      @id @default(cuid())
+  orderId   String
+  status    OrderStatus
+  note      String?
+  createdAt DateTime    @default(now())
+  order     Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId, createdAt])
+}
+
+model ReturnRequest {
+  id          String       @id @default(cuid())
+  orderId     String
+  customerUid String
+  reason      String
+  details     String?
+  status      ReturnStatus @default(REQUESTED)
+  adminNote   String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  order       Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([customerUid, createdAt])
+  @@index([status, createdAt])
+  @@index([orderId])
 }
