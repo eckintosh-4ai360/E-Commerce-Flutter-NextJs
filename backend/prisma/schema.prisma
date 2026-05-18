@@ -16,41 +16,115 @@ enum OrderStatus {
   CANCELLED
 }
 
+enum PaymentMethod {
+  CASH_ON_DELIVERY
+  MOBILE_MONEY
+}
+
+enum ReturnStatus {
+  REQUESTED
+  APPROVED
+  REJECTED
+  REFUNDED
+}
+
 model Product {
-  id           Int         @id
-  name         String
-  description  String
-  price        Float
+  id            Int            @id
+  name          String
+  description   String
+  price         Float
   originalPrice Float?
-  imagePath    String
-  category     String
-  tags         String      @default("[]")
-  rating       Float       @default(4.5)
-  reviewCount  Int         @default(0)
-  inStock      Boolean     @default(true)
-  sizes        String      @default("[]")
-  colors       String      @default("[]")
-  isNew        Boolean     @default(false)
-  isBestSeller Boolean     @default(false)
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
-  orderItems   OrderItem[]
+  imagePath     String
+  category      String
+  tags          String         @default("[]")
+  rating        Float          @default(4.5)
+  reviewCount   Int            @default(0)
+  inStock       Boolean        @default(true)
+  sizes         String         @default("[]")
+  colors        String         @default("[]")
+  isNew         Boolean        @default(false)
+  isBestSeller  Boolean        @default(false)
+  // Products that already appear in orders are archived instead of deleted so
+  // order history keeps its references.
+  isArchived    Boolean        @default(false)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  orderItems    OrderItem[]
+  wishlistItems WishlistItem[]
+
+  @@index([isArchived, category])
+}
+
+// One row per Firebase user, created lazily on first authenticated request.
+model Customer {
+  uid                    String         @id
+  email                  String
+  name                   String?
+  phone                  String?
+  preferredPaymentMethod PaymentMethod  @default(CASH_ON_DELIVERY)
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
+  addresses              Address[]
+  wishlistItems          WishlistItem[]
+
+  @@index([email])
+}
+
+model Address {
+  id            String   @id @default(cuid())
+  customerUid   String
+  label         String
+  recipientName String
+  phone         String
+  street        String
+  city          String
+  region        String
+  isDefault     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  customer      Customer @relation(fields: [customerUid], references: [uid], onDelete: Cascade)
+
+  @@index([customerUid])
+}
+
+model WishlistItem {
+  customerUid String
+  productId   Int
+  createdAt   DateTime @default(now())
+  customer    Customer @relation(fields: [customerUid], references: [uid], onDelete: Cascade)
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([customerUid, productId])
 }
 
 model Order {
-  id              String      @id @default(cuid())
+  id              String          @id @default(cuid())
+  // Upper-cased last 10 characters of the id; what customers type to track.
+  trackingCode    String?         @unique
+  // Null only for orders placed before accounts were linked by uid.
+  customerUid     String?
   customerName    String
   customerEmail   String?
   customerPhone   String
   deliveryAddress String?
   notes           String?
+  paymentMethod   PaymentMethod   @default(CASH_ON_DELIVERY)
+  // Client-generated key that makes checkout retries return the same order.
+  clientRequestId String?         @unique
   subtotal        Float
   shippingFee     Float
   total           Float
-  status          OrderStatus @default(PENDING)
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
+  status          OrderStatus     @default(PENDING)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
   items           OrderItem[]
+  events          OrderEvent[]
+  returnRequests  ReturnRequest[]
+
+  @@index([customerUid, createdAt])
+  @@index([customerEmail])
+  @@index([status, createdAt])
+  @@index([createdAt])
 }
 
 model OrderItem {
