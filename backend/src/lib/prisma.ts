@@ -1,11 +1,14 @@
 import { PrismaClient } from '@prisma/client';
 
-let prisma: PrismaClient | null = null;
+// Reuse one client per process. In development, Next.js hot reloading
+// re-evaluates modules, so the client is parked on globalThis to avoid
+// opening a new connection pool on every edit.
+const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
 export function getPrisma() {
-  if (!prisma) {
-    prisma = new PrismaClient();
+  if (!globalForPrisma.prisma) {
+    globalForPrisma.prisma = new PrismaClient();
   }
 
-  return prisma;
+  return globalForPrisma.prisma;
 }
