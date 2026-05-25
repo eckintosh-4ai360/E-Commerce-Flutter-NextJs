@@ -1,37 +1,66 @@
 import type {
+  Address,
+  Customer,
   Order,
+  OrderEvent,
   OrderItem,
   Product,
+  ReturnRequest,
 } from '@prisma/client';
 
-function parseList(value: string) {
+import { getPublicBaseUrl } from './http';
+import { storeConfig } from './store-config';
+import type {
+  AddressView,
+  CustomerProfile,
+  OrderView,
+  ReturnRequestView,
+  StoreProduct,
+} from './types';
+
+export function parseList(value: string): string[] {
   try {
-    return JSON.parse(value) as string[];
-  } catch (_) {
-    return [] as string[];
+    const parsed: unknown = JSON.parse(value);
+    return Array.isArray(parsed)
+      ? parsed.filter((item): item is string => typeof item === 'string')
+      : [];
+  } catch {
+    return [];
   }
 }
 
-function getImageUrl(imagePath: string, origin: string) {
-  if (imagePath.startsWith('/')) {
-    return new URL(imagePath, origin).toString();
+/**
+ * Local images (`/products/...`) are made absolute only when PUBLIC_APP_URL is
+ * configured. Otherwise they stay relative and clients resolve them against
+ * the API host, so request headers can never inject a foreign host into
+ * cached responses.
+ */
+export function resolveImageUrl(imagePath: string, { absolute = true } = {}) {
+  const trimmed = imagePath.trim();
+  if (!absolute || !trimmed.startsWith('/')) {
+    return trimmed;
   }
-  return imagePath; // Return 'assets/...' or 'http...' as is
+
+  const baseUrl = getPublicBaseUrl();
+  return baseUrl ? new URL(trimmed, baseUrl).toString() : trimmed;
 }
 
-export function serialiseProduct(product: Product, origin: string) {
+export function serialiseProduct(
+  product: Product,
+  { absoluteImages = true } = {},
+): StoreProduct {
   return {
     id: product.id,
     name: product.name,
     description: product.description,
     price: product.price,
     originalPrice: product.originalPrice,
-    images: [getImageUrl(product.imagePath, origin)],
+    images: [resolveImageUrl(product.imagePath, { absolute: absoluteImages })],
     category: product.category,
     tags: parseList(product.tags),
     rating: product.rating,
     reviewCount: product.reviewCount,
-    inStock: product.inStock,
+    inStock: product.inStock && !product.isArchived,
     sizes: parseList(product.sizes),
     colors: parseList(product.colors),
     isNew: product.isNew,
