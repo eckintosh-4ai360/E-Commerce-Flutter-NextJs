@@ -68,28 +68,99 @@ export function serialiseProduct(
   };
 }
 
-type OrderWithItems = Order & {
-  items: Array<
-    OrderItem & {
-      product: Product;
-    }
-  >;
+export function trackingCodeFor(orderId: string) {
+  return orderId.slice(-10).toUpperCase();
+}
+
+export type OrderWithRelations = Order & {
+  items: Array<OrderItem & { product: Pick<Product, 'imagePath'> }>;
+  events?: OrderEvent[];
+  returnRequests?: ReturnRequest[];
 };
 
-export function serialiseOrder(order: OrderWithItems, origin: string) {
+export const orderInclude = {
+  items: { include: { product: { select: { imagePath: true } } } },
+  events: { orderBy: { createdAt: 'asc' as const } },
+  returnRequests: { orderBy: { createdAt: 'desc' as const } },
+};
+
+function firstName(name: string) {
+  return name.trim().split(/\s+/)[0] || 'Customer';
+}
+
+function maskPhone(phone: string) {
+  const digits = phone.replace(/\D/g, '');
+  return digits.length <= 3 ? '•••' : `••• ••• ${digits.slice(-3)}`;
+}
+
+export function deliveredAt(order: OrderWithRelations) {
+  if (order.status !== 'DELIVERED') {
+    return null;
+  }
+
+  const deliveredEvent = [...(order.events ?? [])]
+    .reverse()
+    .find((event) => event.status === 'DELIVERED');
+  return deliveredEvent?.createdAt ?? order.updatedAt;
+}
+
+export function isWithinReturnWindow(order: OrderWithRelations, now = new Date()) {
+  const delivered = deliveredAt(order);
+  if (!delivered) {
+    return false;
+  }
+  const windowMs = storeConfig.returnWindowDays * 24 * 60 * 60 * 1000;
+  return now.getTime() - delivered.getTime() <= windowMs;
+}
+
+export function hasOpenReturn(order: OrderWithRelations) {
+  return (order.returnRequests ?? []).some(
+    (request) => request.status === 'REQUESTED' || request.status === 'APPROVED',
+  );
+}
+
+export function serialiseReturnRequest(
+  request: ReturnRequest,
+): ReturnRequestView {
+  return {
+    id: request.id,
+    orderId: request.orderId,
+    trackingCode: trackingCodeFor(request.orderId),
+    reason: request.reason,
+    details: request.details,
+    status: request.status,
+    adminNote: request.adminNote,
+    createdAt: request.createdAt.toISOString(),
+    updatedAt: request.updatedAt.toISOString(),
+  };
+}
+
+export function serialiseOrder(
+  order: OrderWithRelations,
+  view: 'owner' | 'public' | 'admin',
+): OrderView {
+  const isPublic = view === 'public';
+  const events = (order.events ?? []).map((event) => ({
+    status: event.status,
+    note: isPublic ? null : event.note,
+    createdAt: event.createdAt.toISOString(),
+  }));
+
   return {
     id: order.id,
+    trackingCode: order.trackingCode ?? trackingCodeFor(order.id),
     status: order.status,
     createdAt: order.createdAt.toISOString(),
     updatedAt: order.updatedAt.toISOString(),
     subtotal: order.subtotal,
     shippingFee: order.shippingFee,
     total: order.total,
-    customerName: order.customerName,
-    customerEmail: order.customerEmail,
-    customerPhone: order.customerPhone,
-    deliveryAddress: order.deliveryAddress,
-    notes: order.notes,
+    paymentMethod: order.paymentMethod,
+    customerName: isPublic ? firstName(order.customerName) : order.customerName,
+    customerPhone: isPublic ? maskPhone(order.customerPhone) : order.customerPhone,
+    customerEmail: isPublic ? null : order.customerEmail,
+    deliveryAddress: isPublic ? null : order.deliveryAddress,
+    notes: isPublic ? null : order.notes,
     items: order.items.map((item) => ({
       id: item.id,
       productId: item.productId,
