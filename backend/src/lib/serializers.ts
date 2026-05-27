@@ -169,7 +169,45 @@ export function serialiseOrder(
       quantity: item.quantity,
       selectedColor: item.selectedColor,
       selectedSize: item.selectedSize,
-      imageUrl: getImageUrl(item.product.imagePath, origin),
+      imageUrl: resolveImageUrl(item.product.imagePath),
     })),
+    events:
+      events.length > 0
+        ? events
+        : [{ status: 'PENDING', note: null, createdAt: order.createdAt.toISOString() }],
+    isRedacted: isPublic,
+    canCancel: !isPublic && order.status === 'PENDING',
+    canRequestReturn:
+      !isPublic && isWithinReturnWindow(order) && !hasOpenReturn(order),
+    returnRequests: isPublic
+      ? []
+      : (order.returnRequests ?? []).map(serialiseReturnRequest),
+  };
+}
+
+export function serialiseAddress(address: Address): AddressView {
+  return {
+    id: address.id,
+    label: address.label,
+    recipientName: address.recipientName,
+    phone: address.phone,
+    street: address.street,
+    city: address.city,
+    region: address.region,
+    isDefault: address.isDefault,
+  };
+}
+
+export function formatAddress(address: Pick<Address, 'street' | 'city' | 'region'>) {
+  return `${address.street}, ${address.city}, ${address.region}`;
+}
+
+export function serialiseProfile(customer: Customer): CustomerProfile {
+  return {
+    uid: customer.uid,
+    email: customer.email,
+    name: customer.name,
+    phone: customer.phone,
+    preferredPaymentMethod: customer.preferredPaymentMethod,
   };
 }
