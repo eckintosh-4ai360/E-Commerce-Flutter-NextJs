@@ -1,17 +1,20 @@
+import { jsonResponse, preflight, route } from '@/lib/http';
 import { getPrisma } from '@/lib/prisma';
-import { jsonResponse, optionsResponse } from '@/lib/http';
 
-export async function GET() {
-  const prisma = getPrisma();
-  const productCount = await prisma.product.count();
+export const GET = route(async () => {
+  try {
+    await getPrisma().$queryRaw`SELECT 1`;
+    return jsonResponse(
+      { status: 'ok', checkedAt: new Date().toISOString() },
+      { headers: { 'Cache-Control': 'no-store' } },
+    );
+  } catch (error) {
+    console.error('[health] Database check failed', error);
+    return jsonResponse(
+      { status: 'degraded', checkedAt: new Date().toISOString() },
+      { status: 503, headers: { 'Cache-Control': 'no-store' } },
+    );
+  }
+});
 
-  return jsonResponse({
-    status: 'ok',
-    productCount,
-    checkedAt: new Date().toISOString(),
-  });
-}
-
-export function OPTIONS() {
-  return optionsResponse();
-}
+export const OPTIONS = preflight;
