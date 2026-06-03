@@ -1,40 +1,27 @@
+import { getProduct } from '@/lib/catalog';
+import { HttpError } from '@/lib/errors';
 import {
-  errorResponse,
-  getRequestOrigin,
   jsonResponse,
-  optionsResponse,
+  parseIntParam,
+  preflight,
+  publicCacheHeaders,
+  route,
 } from '@/lib/http';
-import { getPrisma } from '@/lib/prisma';
 import { serialiseProduct } from '@/lib/serializers';
 
-type RouteContext = {
-  params: Promise<{
-    id: string;
-  }>;
-};
+type Context = { params: Promise<{ id: string }> };
 
-export async function GET(request: Request, context: RouteContext) {
-  const { id } = await context.params;
-  const productId = Number(id);
-
-  if (Number.isNaN(productId)) {
-    return errorResponse('Product id must be a number.', 400);
-  }
-
-  const prisma = getPrisma();
-  const product = await prisma.product.findUnique({
-    where: { id: productId },
-  });
-
+export const GET = route<Context>(async (_request, { params }) => {
+  const { id } = await params;
+  const product = await getProduct(parseIntParam(id, 'product id'));
   if (!product) {
-    return errorResponse('Product not found.', 404);
+    throw new HttpError(404, 'Product not found.');
   }
 
-  return jsonResponse({
-    product: serialiseProduct(product, getRequestOrigin(request)),
-  });
-}
+  return jsonResponse(
+    { product: serialiseProduct(product) },
+    { headers: publicCacheHeaders },
+  );
+});
 
-export function OPTIONS() {
-  return optionsResponse();
-}
+export const OPTIONS = preflight;
