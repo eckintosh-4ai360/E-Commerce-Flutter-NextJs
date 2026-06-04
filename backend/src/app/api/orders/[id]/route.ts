@@ -1,52 +1,33 @@
-import {
-  errorResponse,
-  getRequestOrigin,
-  jsonResponse,
-  optionsResponse,
-} from '@/lib/http';
-import { getPrisma } from '@/lib/prisma';
+import { getAuthenticatedUser } from '@/lib/auth';
+import { HttpError } from '@/lib/errors';
+import { jsonResponse, preflight, privateNoStoreHeaders, route } from '@/lib/http';
+import { findOrderByReference, ownsOrder } from '@/lib/orders';
+import { rateLimitByIp } from '@/lib/rate-limit';
 import { serialiseOrder } from '@/lib/serializers';
 
-type RouteContext = {
-  params: Promise<{
-    id: string;
-  }>;
-};
+type Context = { params: Promise<{ id: string }> };
 
-export async function GET(request: Request, context: RouteContext) {
-  const { id } = await context.params;
-  const normalizedId = id.trim().replace(/^#/, '');
-  const prisma = getPrisma();
-  const order = await prisma.order.findFirst({
-    where: {
-      OR: [
-        { id: normalizedId },
-        {
-          id: {
-            endsWith: normalizedId.toLowerCase(),
-            mode: 'insensitive',
-          },
-        },
-      ],
-    },
-    include: {
-      items: {
-        include: {
-          product: true,
-        },
-      },
-    },
-  });
+/**
+ * Order tracking by tracking code or full order id. Anyone with the code sees
+ * status and items; contact details are only returned to the order's owner.
+ */
+export const GET = route<Context>(async (request, { params }) => {
+  rateLimitByIp(request, 'orders:track', { limit: 60, windowMs: 60_000 });
+  const { id } = await params;
 
+  const order = await findOrderByReference(id);
   if (!order) {
-    return errorResponse('Order not found.', 404);
+    throw new HttpError(404, 'We could not find an order with that tracking code.');
   }
 
-  return jsonResponse({
-    order: serialiseOrder(order, getRequestOrigin(request)),
-  });
-}
+  // An expired session should still see the public tracking view.
+  const user = await getAuthenticatedUser(request).catch(() => null);
+  const view = user && ownsOrder(user, order) ? 'owner' : 'public';
 
-export function OPTIONS() {
-  return optionsResponse();
-}
+  return jsonResponse(
+    { order: serialiseOrder(order, view) },
+    { headers: privateNoStoreHeaders },
+  );
+});
+
+export const OPTIONS = preflight;
