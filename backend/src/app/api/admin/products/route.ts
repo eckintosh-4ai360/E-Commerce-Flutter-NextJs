@@ -1,56 +1,65 @@
-import { errorResponse, jsonResponse, optionsResponse } from '@/lib/http';
+import { requireAdmin } from '@/lib/auth';
+import { isPrismaError } from '@/lib/errors';
+import { jsonResponse, privateNoStoreHeaders, readJson, route } from '@/lib/http';
 import { getPrisma } from '@/lib/prisma';
+import { revalidateStorefront } from '@/lib/revalidate';
+import { createProductSchema } from '@/lib/validation';
 
-export async function GET() {
-  const prisma = getPrisma();
-  const products = await prisma.product.findMany({
-    orderBy: { createdAt: 'desc' },
+export const GET = route(async (request) => {
+  await requireAdmin(request);
+  const products = await getPrisma().product.findMany({
+    orderBy: [{ isArchived: 'asc' }, { createdAt: 'desc' }],
+    include: { _count: { select: { orderItems: true } } },
   });
-  return jsonResponse({ products });
-}
 
-export async function POST(request: Request) {
+  return jsonResponse(
+    {
+      products: products.map(({ _count, ...product }) => ({
+        ...product,
+        orderCount: _count.orderItems,
+      })),
+    },
+    { headers: privateNoStoreHeaders },
+  );
+});
+
+export const POST = route(async (request) => {
+  await requireAdmin(request);
+  const input = await readJson(request, createProductSchema);
   const prisma = getPrisma();
-  const body = await request.json();
 
-  const {
-    name, description, price, originalPrice,
-    imagePath, category, tags, rating,
-    reviewCount, inStock, sizes, colors,
-    isNew, isBestSeller,
-  } = body;
+  const data = {
+    ...input,
+    originalPrice: input.originalPrice ?? null,
+    tags: JSON.stringify(input.tags),
+    sizes: JSON.stringify(input.sizes),
+    colors: JSON.stringify(input.colors),
+  };
 
-  if (!name || !description || !price || !imagePath || !category) {
-    return errorResponse('name, description, price, imagePath, category are required.', 400);
+  // Product ids are plain integers; retry if two admins create at once.
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const last = await prisma.product.findFirst({
+      orderBy: { id: 'desc' },
+      select: { id: true },
+    });
+    try {
+      const product = await prisma.product.create({
+        data: { ...data, id: (last?.id ?? 0) + 1 },
+      });
+      revalidateStorefront();
+      return jsonResponse(
+        { message: 'Product created.', product },
+        { status: 201, headers: privateNoStoreHeaders },
+      );
+    } catch (error) {
+      if (!isPrismaError(error, 'P2002')) {
+        throw error;
+      }
+    }
   }
 
-  // Auto-generate next id
-  const last = await prisma.product.findFirst({ orderBy: { id: 'desc' } });
-  const nextId = (last?.id ?? 0) + 1;
-
-  const product = await prisma.product.create({
-    data: {
-      id: nextId,
-      name: String(name).trim(),
-      description: String(description).trim(),
-      price: Number(price),
-      originalPrice: originalPrice ? Number(originalPrice) : null,
-      imagePath: String(imagePath).trim(),
-      category: String(category).trim(),
-      tags: JSON.stringify(Array.isArray(tags) ? tags : []),
-      rating: rating ? Number(rating) : 4.5,
-      reviewCount: reviewCount ? Number(reviewCount) : 0,
-      inStock: inStock !== undefined ? Boolean(inStock) : true,
-      sizes: JSON.stringify(Array.isArray(sizes) ? sizes : []),
-      colors: JSON.stringify(Array.isArray(colors) ? colors : []),
-      isNew: isNew !== undefined ? Boolean(isNew) : false,
-      isBestSeller: isBestSeller !== undefined ? Boolean(isBestSeller) : false,
-    },
-  });
-
-  return jsonResponse({ message: 'Product created.', product }, { status: 201 });
-}
-
-export function OPTIONS() {
-  return optionsResponse();
-}
+  return jsonResponse(
+    { error: 'Could not allocate a product id. Please try again.' },
+    { status: 503 },
+  );
+});
