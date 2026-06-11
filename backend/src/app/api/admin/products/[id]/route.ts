@@ -1,70 +1,108 @@
-import { errorResponse, jsonResponse, optionsResponse } from '@/lib/http';
+import type { Prisma } from '@prisma/client';
+
+import { requireAdmin } from '@/lib/auth';
+import { HttpError } from '@/lib/errors';
+import {
+  jsonResponse,
+  parseIntParam,
+  privateNoStoreHeaders,
+  readJson,
+  route,
+} from '@/lib/http';
 import { getPrisma } from '@/lib/prisma';
+import { revalidateStorefront } from '@/lib/revalidate';
+import {
+  assertOriginalPriceAbovePrice,
+  updateProductSchema,
+} from '@/lib/validation';
 
-export async function GET(
-  _request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const { id } = await params;
-  const prisma = getPrisma();
-  const product = await prisma.product.findUnique({ where: { id: Number(id) } });
-  if (!product) return errorResponse('Product not found.', 404);
-  return jsonResponse({ product });
-}
+type Context = { params: Promise<{ id: string }> };
 
-export async function PUT(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const { id } = await params;
-  const prisma = getPrisma();
-  const body = await request.json();
-
-  const existing = await prisma.product.findUnique({ where: { id: Number(id) } });
-  if (!existing) return errorResponse('Product not found.', 404);
-
-  const {
-    name, description, price, originalPrice,
-    imagePath, category, tags, rating,
-    reviewCount, inStock, sizes, colors,
-    isNew, isBestSeller,
-  } = body;
-
-  const product = await prisma.product.update({
-    where: { id: Number(id) },
-    data: {
-      ...(name !== undefined && { name: String(name).trim() }),
-      ...(description !== undefined && { description: String(description).trim() }),
-      ...(price !== undefined && { price: Number(price) }),
-      ...(originalPrice !== undefined && { originalPrice: originalPrice ? Number(originalPrice) : null }),
-      ...(imagePath !== undefined && { imagePath: String(imagePath).trim() }),
-      ...(category !== undefined && { category: String(category).trim() }),
-      ...(tags !== undefined && { tags: JSON.stringify(Array.isArray(tags) ? tags : []) }),
-      ...(rating !== undefined && { rating: Number(rating) }),
-      ...(reviewCount !== undefined && { reviewCount: Number(reviewCount) }),
-      ...(inStock !== undefined && { inStock: Boolean(inStock) }),
-      ...(sizes !== undefined && { sizes: JSON.stringify(Array.isArray(sizes) ? sizes : []) }),
-      ...(colors !== undefined && { colors: JSON.stringify(Array.isArray(colors) ? colors : []) }),
-      ...(isNew !== undefined && { isNew: Boolean(isNew) }),
-      ...(isBestSeller !== undefined && { isBestSeller: Boolean(isBestSeller) }),
-    },
+async function findProduct(id: string) {
+  const product = await getPrisma().product.findUnique({
+    where: { id: parseIntParam(id, 'product id') },
+    include: { _count: { select: { orderItems: true } } },
   });
-
-  return jsonResponse({ message: 'Product updated.', product });
+  if (!product) {
+    throw new HttpError(404, 'Product not found.');
+  }
+  return product;
 }
 
-export async function DELETE(
-  _request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const { id } = await params;
+export const GET = route<Context>(async (request, { params }) => {
+  await requireAdmin(request);
+  const { _count, ...product } = await findProduct((await params).id);
+  return jsonResponse(
+    { product: { ...product, orderCount: _count.orderItems } },
+    { headers: privateNoStoreHeaders },
+  );
+});
+
+export const PUT = route<Context>(async (request, { params }) => {
+  await requireAdmin(request);
+  const existing = await findProduct((await params).id);
+  const input = await readJson(request, updateProductSchema);
+
+  const price = input.price ?? existing.price;
+  const originalPrice =
+    input.originalPrice === undefined ? existing.originalPrice : input.originalPrice;
+  if (!assertOriginalPriceAbovePrice({ price, originalPrice })) {
+    throw new HttpError(
+      400,
+      'Original price must be higher than the selling price, or left empty.',
+      {},
+      { field: 'originalPrice' },
+    );
+  }
+
+  const { tags, sizes, colors, ...fields } = input;
+  const data: Prisma.ProductUpdateInput = {
+    ...fields,
+    ...(tags !== undefined ? { tags: JSON.stringify(tags) } : {}),
+    ...(sizes !== undefined ? { sizes: JSON.stringify(sizes) } : {}),
+    ...(colors !== undefined ? { colors: JSON.stringify(colors) } : {}),
+  };
+
+  const product = await getPrisma().product.update({
+    where: { id: existing.id },
+    data,
+  });
+  revalidateStorefront();
+  return jsonResponse(
+    { message: 'Product updated.', product },
+    { headers: privateNoStoreHeaders },
+  );
+});
+
+/**
+ * Deletes a product, or archives it when existing orders reference it so that
+ * order history stays intact. Archived products disappear from the store.
+ */
+export const DELETE = route<Context>(async (request, { params }) => {
+  await requireAdmin(request);
+  const existing = await findProduct((await params).id);
   const prisma = getPrisma();
-  const existing = await prisma.product.findUnique({ where: { id: Number(id) } });
-  if (!existing) return errorResponse('Product not found.', 404);
-  await prisma.product.delete({ where: { id: Number(id) } });
-  return jsonResponse({ message: 'Product deleted.' });
-}
 
-export function OPTIONS() {
-  return optionsResponse();
-}
+  if (existing._count.orderItems > 0) {
+    await prisma.product.update({
+      where: { id: existing.id },
+      data: { isArchived: true },
+    });
+    revalidateStorefront();
+    return jsonResponse(
+      {
+        archived: true,
+        message:
+          'This product appears in past orders, so it was archived instead of deleted. It is hidden from the store and can be restored from the product editor.',
+      },
+      { headers: privateNoStoreHeaders },
+    );
+  }
+
+  await prisma.product.delete({ where: { id: existing.id } });
+  revalidateStorefront();
+  return jsonResponse(
+    { archived: false, message: 'Product deleted.' },
+    { headers: privateNoStoreHeaders },
+  );
+});
