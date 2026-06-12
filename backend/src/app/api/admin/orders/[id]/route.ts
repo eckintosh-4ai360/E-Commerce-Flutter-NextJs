@@ -43,30 +43,15 @@ export const PATCH = route<Context>(async (request, { params }) => {
     });
   }
 
-  const order = await prisma.order.update({
-    where: { id },
-    data: { status },
-    include: {
-      items: {
-        include: {
-          product: true,
-        },
-      },
-    },
-  });
-
+  // Awaited so the admin sees whether the customer was notified.
   const emailNotification = await sendOrderStatusUpdateEmail({
     order,
-    previousStatus: existing.status,
+    previousStatus,
+    note,
   });
 
-  return jsonResponse({
-    message: 'Order status updated.',
-    status: order.status,
-    emailNotification,
-  });
-}
-
-export function OPTIONS() {
-  return optionsResponse();
-}
+  return jsonResponse(
+    { message: 'Order status updated.', status: order.status, emailNotification },
+    { headers: privateNoStoreHeaders },
+  );
+});
