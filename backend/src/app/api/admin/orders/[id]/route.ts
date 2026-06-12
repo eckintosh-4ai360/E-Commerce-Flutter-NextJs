@@ -1,67 +1,41 @@
-import { sendOrderStatusUpdateEmail } from '@/lib/order-status-email';
-import { errorResponse, jsonResponse, optionsResponse } from '@/lib/http';
+import { requireAdmin } from '@/lib/auth';
+import { sendOrderStatusUpdateEmail } from '@/lib/email';
+import { HttpError } from '@/lib/errors';
+import { jsonResponse, privateNoStoreHeaders, readJson, route } from '@/lib/http';
+import { updateOrderStatus } from '@/lib/orders';
 import { getPrisma } from '@/lib/prisma';
+import { orderInclude, serialiseOrder } from '@/lib/serializers';
+import { updateOrderStatusSchema } from '@/lib/validation';
 
-export async function GET(
-  _request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+type Context = { params: Promise<{ id: string }> };
+
+export const GET = route<Context>(async (request, { params }) => {
+  await requireAdmin(request);
   const { id } = await params;
-  const prisma = getPrisma();
-  const order = await prisma.order.findUnique({
+  const order = await getPrisma().order.findUnique({
     where: { id },
-    include: { items: { include: { product: true } } },
+    include: orderInclude,
   });
-  if (!order) return errorResponse('Order not found.', 404);
-
-  return jsonResponse({
-    order: {
-      id: order.id,
-      customerName: order.customerName,
-      customerEmail: order.customerEmail,
-      customerPhone: order.customerPhone,
-      deliveryAddress: order.deliveryAddress,
-      notes: order.notes,
-      subtotal: order.subtotal,
-      shippingFee: order.shippingFee,
-      total: order.total,
-      status: order.status,
-      createdAt: order.createdAt.toISOString(),
-      updatedAt: order.updatedAt.toISOString(),
-      items: order.items.map((item) => ({
-        id: item.id,
-        productId: item.productId,
-        productName: item.productName,
-        unitPrice: item.unitPrice,
-        quantity: item.quantity,
-        selectedColor: item.selectedColor,
-        selectedSize: item.selectedSize,
-        imagePath: item.product.imagePath,
-      })),
-    },
-  });
-}
-
-export async function PATCH(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const { id } = await params;
-  const prisma = getPrisma();
-  const body = await request.json();
-  const { status } = body;
-
-  const validStatuses = ['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'];
-  if (!status || !validStatuses.includes(status)) {
-    return errorResponse(`Status must be one of: ${validStatuses.join(', ')}`, 400);
+  if (!order) {
+    throw new HttpError(404, 'Order not found.');
   }
 
-  const existing = await prisma.order.findUnique({ where: { id } });
-  if (!existing) return errorResponse('Order not found.', 404);
-  if (existing.status === status) {
+  return jsonResponse(
+    { order: { ...serialiseOrder(order, 'admin'), customerUid: order.customerUid } },
+    { headers: privateNoStoreHeaders },
+  );
+});
+
+export const PATCH = route<Context>(async (request, { params }) => {
+  await requireAdmin(request);
+  const { id } = await params;
+  const { status, note } = await readJson(request, updateOrderStatusSchema);
+
+  const { order, previousStatus } = await updateOrderStatus(id, status, note);
+  if (!order) {
     return jsonResponse({
       message: 'Order status was already set to that value.',
-      status: existing.status,
+      status,
       emailNotification: {
         status: 'skipped',
         message: 'No email sent because the order status did not change.',
