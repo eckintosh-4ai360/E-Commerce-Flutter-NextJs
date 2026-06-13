@@ -1,68 +1,81 @@
-import { jsonResponse, optionsResponse } from '@/lib/http';
+import { requireAdmin } from '@/lib/auth';
+import { jsonResponse, privateNoStoreHeaders, route } from '@/lib/http';
 import { getPrisma } from '@/lib/prisma';
+import { trackingCodeFor } from '@/lib/serializers';
 
-export async function GET() {
+export const GET = route(async (request) => {
+  await requireAdmin(request);
   const prisma = getPrisma();
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
   const [
     totalProducts,
     totalOrders,
     ordersThisMonth,
-    revenueData,
-    pendingOrders,
-    recentOrders,
+    revenue,
+    revenueThisMonth,
     outOfStockCount,
+    openReturns,
+    statusCounts,
+    recentOrders,
   ] = await Promise.all([
-    prisma.product.count(),
+    prisma.product.count({ where: { isArchived: false } }),
     prisma.order.count(),
-    prisma.order.count({
-      where: {
-        createdAt: { gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) },
-      },
+    prisma.order.count({ where: { createdAt: { gte: monthStart } } }),
+    // Cancelled orders never produced revenue.
+    prisma.order.aggregate({
+      _sum: { total: true },
+      where: { status: { not: 'CANCELLED' } },
     }),
-    prisma.order.aggregate({ _sum: { total: true } }),
-    prisma.order.count({ where: { status: 'PENDING' } }),
+    prisma.order.aggregate({
+      _sum: { total: true },
+      where: { status: { not: 'CANCELLED' }, createdAt: { gte: monthStart } },
+    }),
+    prisma.product.count({ where: { inStock: false, isArchived: false } }),
+    prisma.returnRequest.count({ where: { status: { in: ['REQUESTED', 'APPROVED'] } } }),
+    prisma.order.groupBy({ by: ['status'], _count: { _all: true } }),
     prisma.order.findMany({
       orderBy: { createdAt: 'desc' },
-      take: 5,
-      include: { items: { include: { product: true } } },
+      take: 6,
+      select: {
+        id: true,
+        trackingCode: true,
+        customerName: true,
+        total: true,
+        status: true,
+        createdAt: true,
+        _count: { select: { items: true } },
+      },
     }),
-    prisma.product.count({ where: { inStock: false } }),
   ]);
 
-  const totalRevenue = revenueData._sum.total ?? 0;
+  const pendingOrders =
+    statusCounts.find((entry) => entry.status === 'PENDING')?._count._all ?? 0;
 
-  // Orders by status
-  const statusCounts = await prisma.order.groupBy({
-    by: ['status'],
-    _count: { id: true },
-  });
-
-  return jsonResponse({
-    stats: {
-      totalProducts,
-      totalOrders,
-      ordersThisMonth,
-      totalRevenue,
-      pendingOrders,
-      outOfStockCount,
+  return jsonResponse(
+    {
+      stats: {
+        totalProducts,
+        totalOrders,
+        ordersThisMonth,
+        totalRevenue: revenue._sum.total ?? 0,
+        revenueThisMonth: revenueThisMonth._sum.total ?? 0,
+        pendingOrders,
+        outOfStockCount,
+        openReturns,
+      },
+      statusBreakdown: statusCounts.map((entry) => ({
+        status: entry.status,
+        count: entry._count._all,
+      })),
+      recentOrders: recentOrders.map(({ _count, ...order }) => ({
+        ...order,
+        trackingCode: order.trackingCode ?? trackingCodeFor(order.id),
+        itemCount: _count.items,
+        createdAt: order.createdAt.toISOString(),
+      })),
     },
-    statusBreakdown: statusCounts.map((s) => ({
-      status: s.status,
-      count: s._count.id,
-    })),
-    recentOrders: recentOrders.map((o) => ({
-      id: o.id,
-      customerName: o.customerName,
-      customerPhone: o.customerPhone,
-      total: o.total,
-      status: o.status,
-      itemCount: o.items.length,
-      createdAt: o.createdAt.toISOString(),
-    })),
-  });
-}
-
-export function OPTIONS() {
-  return optionsResponse();
-}
+    { headers: privateNoStoreHeaders },
+  );
+});
