@@ -1,24 +1,20 @@
+import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
-import AdminSidebar from './_components/Sidebar';
 
-export const metadata = {
-  title: 'Eckintosh Admin CMS',
-  description: 'Manage products, orders, and store data.',
+import { AdminShell } from './_components/AdminShell';
+
+import './admin.css';
+
+export const metadata: Metadata = {
+  title: { default: 'Admin', template: '%s · Eckintosh Admin' },
+  description: 'Manage products, orders, returns and store data.',
+  robots: { index: false, follow: false },
 };
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#080808' }}>
-      <AdminSidebar />
-      <main style={{
-        marginLeft: '240px',
-        flex: 1,
-        minHeight: '100vh',
-        backgroundColor: '#080808',
-        overflow: 'auto',
-      }}>
-        {children}
-      </main>
+    <div className="admin-root">
+      <AdminShell>{children}</AdminShell>
     </div>
   );
 }
