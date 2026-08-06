@@ -1,106 +1,122 @@
-"use client";
-import { useEffect, useState } from 'react';
-import { Package, ShoppingBag, TrendingUp, AlertCircle, Clock, CheckCircle, Truck, XCircle } from 'lucide-react';
+'use client';
+
+import { AlertCircle, CheckCircle, Clock, Package, RotateCcw, ShoppingBag, TrendingUp, Wallet } from 'lucide-react';
 import Link from 'next/link';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 
-const STATUS_COLORS: Record<string, string> = {
-  PENDING: '#facc15',
-  PROCESSING: '#60a5fa',
-  SHIPPED: '#a78bfa',
-  DELIVERED: '#4ade80',
-  CANCELLED: '#f87171',
-};
-const STATUS_ICONS: Record<string, any> = {
-  PENDING: Clock,
-  PROCESSING: AlertCircle,
-  SHIPPED: Truck,
-  DELIVERED: CheckCircle,
-  CANCELLED: XCircle,
+import { useAuth } from '@/components/providers/AuthProvider';
+import { errorMessage } from '@/lib/client/api';
+import { formatMoney } from '@/lib/money';
+import { orderStatuses } from '@/lib/store-config';
+
+import { StatusBadge, statusColors, statusIcons } from './_components/status';
+
+type Stats = {
+  stats: {
+    totalProducts: number;
+    totalOrders: number;
+    ordersThisMonth: number;
+    totalRevenue: number;
+    revenueThisMonth: number;
+    pendingOrders: number;
+    outOfStockCount: number;
+    openReturns: number;
+  };
+  statusBreakdown: Array<{ status: string; count: number }>;
+  recentOrders: Array<{
+    id: string;
+    trackingCode: string;
+    customerName: string;
+    total: number;
+    status: string;
+    itemCount: number;
+    createdAt: string;
+  }>;
 };
 
-function StatCard({ icon: Icon, label, value, sub, color }: any) {
-  return (
-    <div style={{
-      backgroundColor: '#111', borderRadius: '14px',
-      border: '1px solid rgba(255,255,255,0.07)',
-      padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px',
-    }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div style={{
-          width: '44px', height: '44px', borderRadius: '10px',
-          backgroundColor: `${color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: color,
-        }}><Icon size={22} /></div>
-      </div>
+function Kpi({ icon, label, value, sub, color, href }: { icon: ReactNode; label: string; value: ReactNode; sub?: string; color: string; href?: string }) {
+  const body = (
+    <div className="admin-card kpi" style={{ height: '100%' }}>
+      <div className="kpi__icon" style={{ background: `${color}1f`, color }}>{icon}</div>
       <div>
-        <div style={{ fontSize: '28px', fontWeight: 700, color: '#f5f5f5', letterSpacing: '-0.5px' }}>{value}</div>
-        <div style={{ fontSize: '13px', color: '#a0a0a0', marginTop: '4px' }}>{label}</div>
-        {sub && <div style={{ fontSize: '12px', color: '#555', marginTop: '6px' }}>{sub}</div>}
+        <div className="kpi__value">{value}</div>
+        <div className="kpi__label">{label}</div>
+        {sub ? <div className="kpi__sub">{sub}</div> : null}
       </div>
     </div>
   );
+  return href ? <Link href={href} style={{ textDecoration: 'none' }}>{body}</Link> : body;
 }
 
 export default function AdminDashboard() {
-  const [data, setData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const { authedFetch } = useAuth();
+  const [data, setData] = useState<Stats | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetch('/api/admin/stats')
-      .then((r) => r.json())
-      .then((d) => { setData(d); setLoading(false); });
-  }, []);
+  const load = useCallback(() => {
+    setError(null);
+    authedFetch<Stats>('/api/admin/stats')
+      .then(setData)
+      .catch((caught) => setError(errorMessage(caught)));
+  }, [authedFetch]);
 
-  if (loading) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: '#a0a0a0' }}>
-      Loading dashboard…
-    </div>
-  );
+  useEffect(load, [load]);
+
+  if (error) {
+    return (
+      <div className="admin-page">
+        <div className="admin-alert admin-alert--error">{error}</div>
+        <button type="button" className="admin-btn" onClick={load}>Retry</button>
+      </div>
+    );
+  }
+
+  if (!data) {
+    return <div className="admin-center"><div className="admin-spinner" role="status" aria-label="Loading dashboard" /></div>;
+  }
 
   const { stats, statusBreakdown, recentOrders } = data;
+  const maxCount = Math.max(1, ...statusBreakdown.map((entry) => entry.count));
+  const countFor = (status: string) => statusBreakdown.find((entry) => entry.status === status)?.count ?? 0;
 
   return (
-    <div style={{ padding: '40px 48px', maxWidth: '1400px' }}>
-      {/* Header */}
-      <div style={{ marginBottom: '36px' }}>
-        <h1 style={{ margin: 0, fontSize: '26px', fontWeight: 700, color: '#f5f5f5' }}>Dashboard</h1>
-        <p style={{ margin: '6px 0 0', fontSize: '14px', color: '#555' }}>
-          Overview of your Eckintosh Mall storefront
-        </p>
+    <div className="admin-page">
+      <div className="admin-page-head">
+        <div>
+          <h1>Dashboard</h1>
+          <p>Overview of your Eckintosh Mall storefront</p>
+        </div>
       </div>
 
-      {/* KPI Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', marginBottom: '36px' }}>
-        <StatCard icon={TrendingUp} label="Total Revenue" value={`GH₵ ${stats.totalRevenue.toLocaleString()}`} color="#d4af37" />
-        <StatCard icon={ShoppingBag} label="Total Orders" value={stats.totalOrders} sub={`${stats.ordersThisMonth} this month`} color="#60a5fa" />
-        <StatCard icon={Package} label="Products" value={stats.totalProducts} sub={`${stats.outOfStockCount} out of stock`} color="#a78bfa" />
-        <StatCard icon={Clock} label="Pending Orders" value={stats.pendingOrders} sub="Awaiting action" color="#facc15" />
-        <StatCard icon={AlertCircle} label="Out of Stock" value={stats.outOfStockCount} sub="Need restocking" color="#f87171" />
-        <StatCard icon={CheckCircle} label="Delivered" value={statusBreakdown.find((s: any) => s.status === 'DELIVERED')?.count ?? 0} sub="Completed orders" color="#4ade80" />
+      <div className="admin-grid admin-grid--kpi">
+        <Kpi icon={<TrendingUp size={22} />} label="Revenue (excl. cancelled)" value={formatMoney(stats.totalRevenue, { decimals: 0 })} sub={`${formatMoney(stats.revenueThisMonth, { decimals: 0 })} this month`} color="#d4af37" />
+        <Kpi icon={<ShoppingBag size={22} />} label="Total orders" value={stats.totalOrders} sub={`${stats.ordersThisMonth} this month`} color="#60a5fa" href="/admin/orders" />
+        <Kpi icon={<Clock size={22} />} label="Pending orders" value={stats.pendingOrders} sub="Awaiting action" color="#facc15" href="/admin/orders?status=PENDING" />
+        <Kpi icon={<RotateCcw size={22} />} label="Open returns" value={stats.openReturns} sub="Requested or approved" color="#fb923c" href="/admin/returns" />
+        <Kpi icon={<Package size={22} />} label="Products" value={stats.totalProducts} sub={`${stats.outOfStockCount} out of stock`} color="#a78bfa" href="/admin/products" />
+        <Kpi icon={<AlertCircle size={22} />} label="Out of stock" value={stats.outOfStockCount} sub="Need restocking" color="#f87171" />
+        <Kpi icon={<CheckCircle size={22} />} label="Delivered" value={countFor('DELIVERED')} sub="Completed orders" color="#4ade80" />
+        <Kpi icon={<Wallet size={22} />} label="Average order" value={formatMoney(stats.totalOrders > 0 ? stats.totalRevenue / Math.max(1, stats.totalOrders - countFor('CANCELLED')) : 0, { decimals: 0 })} sub="Excluding cancelled" color="#22d3ee" />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-        {/* Order Status Breakdown */}
-        <div style={{ backgroundColor: '#111', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.07)', padding: '24px' }}>
-          <h2 style={{ margin: '0 0 20px', fontSize: '16px', fontWeight: 600, color: '#f5f5f5' }}>Orders by Status</h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'].map((s) => {
-              const entry = statusBreakdown.find((x: any) => x.status === s);
-              const count = entry?.count ?? 0;
-              const Icon = STATUS_ICONS[s];
-              const color = STATUS_COLORS[s];
-              const maxCount = Math.max(...statusBreakdown.map((x: any) => x.count), 1);
+      <div className="admin-grid admin-grid--2">
+        <div className="admin-card">
+          <h2>Orders by status</h2>
+          <div style={{ display: 'grid', gap: 12 }}>
+            {orderStatuses.map((status) => {
+              const count = countFor(status);
+              const Icon = statusIcons[status];
+              const color = statusColors[status];
               return (
-                <div key={s}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#a0a0a0' }}>
-                      <Icon size={14} color={color} />
-                      {s}
-                    </div>
-                    <span style={{ fontSize: '13px', fontWeight: 600, color }}>{count}</span>
+                <div key={status}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--a-text-2)' }}>
+                      <Icon size={14} color={color} /> {status}
+                    </span>
+                    <strong style={{ color }}>{count}</strong>
                   </div>
-                  <div style={{ height: '4px', backgroundColor: '#1a1a1a', borderRadius: '2px' }}>
-                    <div style={{ height: '100%', width: `${(count / maxCount) * 100}%`, backgroundColor: color, borderRadius: '2px', transition: 'width 0.6s ease' }} />
+                  <div style={{ height: 4, background: 'var(--a-surface-2)', borderRadius: 2 }}>
+                    <div style={{ height: '100%', width: `${(count / maxCount) * 100}%`, background: color, borderRadius: 2 }} />
                   </div>
                 </div>
               );
