@@ -124,35 +124,35 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Recent Orders */}
-        <div style={{ backgroundColor: '#111', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.07)', padding: '24px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: '#f5f5f5' }}>Recent Orders</h2>
-            <Link href="/admin/orders" style={{ fontSize: '12px', color: '#d4af37', textDecoration: 'none' }}>View all →</Link>
+        <div className="admin-card">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <h2 style={{ margin: 0 }}>Recent orders</h2>
+            <Link href="/admin/orders" style={{ fontSize: 12, color: 'var(--a-gold)', textDecoration: 'none' }}>View all →</Link>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {recentOrders.map((order: any) => {
-              const color = STATUS_COLORS[order.status] ?? '#a0a0a0';
-              return (
-                <Link key={order.id} href={`/admin/orders/${order.id}`} style={{
-                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                  padding: '12px', backgroundColor: '#161616', borderRadius: '8px',
-                  textDecoration: 'none', border: '1px solid rgba(255,255,255,0.04)',
-                }}>
+          {recentOrders.length === 0 ? (
+            <div className="admin-empty">No orders yet</div>
+          ) : (
+            <div style={{ display: 'grid', gap: 10 }}>
+              {recentOrders.map((order) => (
+                <Link
+                  key={order.id}
+                  href={`/admin/orders/${order.id}`}
+                  style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: 12, background: '#161616', borderRadius: 8, textDecoration: 'none', border: '1px solid rgba(255,255,255,0.04)' }}
+                >
                   <div>
-                    <div style={{ fontSize: '13px', fontWeight: 600, color: '#f5f5f5' }}>{order.customerName}</div>
-                    <div style={{ fontSize: '11px', color: '#555', marginTop: '2px' }}>
-                      {order.itemCount} item{order.itemCount !== 1 ? 's' : ''} · {new Date(order.createdAt).toLocaleDateString()}
+                    <div style={{ fontWeight: 600 }}>{order.customerName}</div>
+                    <div style={{ fontSize: 11, color: 'var(--a-text-3)', marginTop: 2 }}>
+                      #{order.trackingCode} · {order.itemCount} item{order.itemCount === 1 ? '' : 's'} · {new Date(order.createdAt).toLocaleDateString()}
                     </div>
                   </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '13px', fontWeight: 600, color: '#d4af37' }}>GH₵ {order.total}</div>
-                    <div style={{ fontSize: '11px', color, marginTop: '2px', fontWeight: 600 }}>{order.status}</div>
+                  <div style={{ textAlign: 'right', display: 'grid', gap: 4, justifyItems: 'end' }}>
+                    <strong style={{ color: 'var(--a-gold)' }}>{formatMoney(order.total)}</strong>
+                    <StatusBadge status={order.status} />
                   </div>
                 </Link>
-              );
-            })}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
