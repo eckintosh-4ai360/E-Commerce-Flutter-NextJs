@@ -1,6 +1,11 @@
-"use client";
-import { useEffect, useState, useCallback, useRef } from 'react';
-import { Plus, Pencil, Trash2, X, Check, Search, PackageX, Upload, ImageIcon } from 'lucide-react';
+'use client';
+
+import { ArchiveRestore, Check, ImageIcon, PackageX, Pencil, Plus, Search, Trash2, Upload, X } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState, type DragEvent, type ReactNode } from 'react';
+
+import { useAuth } from '@/components/providers/AuthProvider';
+import { errorMessage } from '@/lib/client/api';
+import { formatMoney } from '@/lib/money';
 
 type Product = {
   id: number;
@@ -18,57 +23,67 @@ type Product = {
   colors: string;
   isNew: boolean;
   isBestSeller: boolean;
+  isArchived: boolean;
+  orderCount: number;
 };
 
-const EMPTY_FORM = {
-  name: '', description: '', price: '', originalPrice: '',
-  imagePath: '', category: '', tags: '', rating: '4.5',
-  reviewCount: '0', inStock: true, sizes: '', colors: '',
-  isNew: false, isBestSeller: false,
+const emptyForm = {
+  name: '',
+  description: '',
+  price: '',
+  originalPrice: '',
+  imagePath: '',
+  category: '',
+  tags: '',
+  rating: '4.5',
+  reviewCount: '0',
+  inStock: true,
+  sizes: '',
+  colors: '',
+  isNew: false,
+  isBestSeller: false,
+  isArchived: false,
 };
 
-function Modal({ title, onClose, children }: any) {
+type FormState = typeof emptyForm;
+
+function parseList(value: string) {
+  try {
+    const parsed: unknown = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed.map(String) : [];
+  } catch {
+    return [];
+  }
+}
+
+function splitList(value: string) {
+  return value.split(',').map((item) => item.trim()).filter(Boolean);
+}
+
+function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => event.key === 'Escape' && onClose();
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
   return (
-    <div style={{
-      position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.8)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '24px',
-    }}>
-      <div style={{
-        backgroundColor: '#111', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)',
-        width: '100%', maxWidth: '640px', maxHeight: '90vh', overflowY: 'auto',
-      }}>
-        <div style={{
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          padding: '20px 24px', borderBottom: '1px solid rgba(255,255,255,0.08)',
-        }}>
-          <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 600, color: '#f5f5f5' }}>{title}</h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#a0a0a0', display: 'flex' }}>
+    <div className="admin-modal-backdrop" onClick={onClose}>
+      <div className="admin-modal" role="dialog" aria-modal="true" aria-label={title} onClick={(event) => event.stopPropagation()}>
+        <div className="admin-modal__head">
+          <h2>{title}</h2>
+          <button type="button" className="admin-icon-btn" onClick={onClose} aria-label="Close">
             <X size={20} />
           </button>
         </div>
-        <div style={{ padding: '24px' }}>{children}</div>
+        <div className="admin-modal__body">{children}</div>
       </div>
     </div>
   );
 }
 
-function Field({ label, children }: any) {
-  return (
-    <div style={{ marginBottom: '16px' }}>
-      <label style={{ display: 'block', fontSize: '12px', color: '#a0a0a0', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{label}</label>
-      {children}
-    </div>
-  );
-}
-
-const inputStyle: React.CSSProperties = {
-  width: '100%', padding: '10px 14px',
-  backgroundColor: '#1a1a1a', border: '1px solid rgba(255,255,255,0.1)',
-  borderRadius: '8px', color: '#f5f5f5', fontSize: '14px', outline: 'none',
-};
-
-// ─── Image Upload Zone ──────────────────────────────────────────────────────
 function ImageUploader({ value, onChange }: { value: string; onChange: (path: string) => void }) {
+  const { authedFetch } = useAuth();
   const fileRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
