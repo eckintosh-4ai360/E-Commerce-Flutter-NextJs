@@ -98,377 +98,358 @@ function ImageUploader({ value, onChange }: { value: string; onChange: (path: st
       setError('Image must be under 5 MB.');
       return;
     }
-
     setError('');
     setUploading(true);
-    const fd = new FormData();
-    fd.append('file', file);
-
+    const formData = new FormData();
+    formData.append('file', file);
     try {
-      const res = await fetch('/api/admin/upload', { method: 'POST', body: fd });
-      const data = await res.json();
-      if (res.ok) {
-        onChange(data.imagePath);
-      } else {
-        setError(data.error ?? 'Upload failed.');
-      }
-    } catch {
-      setError('Upload failed. Please try again.');
+      const data = await authedFetch<{ imagePath: string }>('/api/admin/upload', { method: 'POST', body: formData });
+      onChange(data.imagePath);
+    } catch (caught) {
+      setError(errorMessage(caught, 'Upload failed. Please try again.'));
     } finally {
       setUploading(false);
     }
   };
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
+  const onDrop = (event: DragEvent) => {
+    event.preventDefault();
     setDragging(false);
-    const file = e.dataTransfer.files[0];
-    if (file) uploadFile(file);
+    const file = event.dataTransfer.files[0];
+    if (file) void uploadFile(file);
   };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) uploadFile(file);
-  };
-
-  const previewUrl = value
-    ? (value.startsWith('http') ? value : `http://localhost:3000${value}`)
-    : null;
 
   return (
-    <div style={{ marginBottom: '16px' }}>
-      <label style={{ display: 'block', fontSize: '12px', color: '#a0a0a0', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-        Product Image
-      </label>
-
-      {/* Drop Zone */}
+    <div className="admin-field">
+      <span className="admin-label">Product image</span>
       <div
+        role="button"
+        tabIndex={0}
         onClick={() => !uploading && fileRef.current?.click()}
-        onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+        onKeyDown={(event) => (event.key === 'Enter' || event.key === ' ') && fileRef.current?.click()}
+        onDragOver={(event) => {
+          event.preventDefault();
+          setDragging(true);
+        }}
         onDragLeave={() => setDragging(false)}
-        onDrop={handleDrop}
+        onDrop={onDrop}
         style={{
           border: `2px dashed ${dragging ? '#d4af37' : 'rgba(255,255,255,0.12)'}`,
-          borderRadius: '12px',
-          backgroundColor: dragging ? 'rgba(212,175,55,0.06)' : '#1a1a1a',
-          cursor: uploading ? 'not-allowed' : 'pointer',
-          transition: 'all 0.2s ease',
-          overflow: 'hidden',
-          position: 'relative',
-          minHeight: '140px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+          borderRadius: 12,
+          background: dragging ? 'rgba(212,175,55,0.06)' : '#1a1a1a',
+          cursor: uploading ? 'progress' : 'pointer',
+          minHeight: 140,
+          display: 'grid',
+          placeItems: 'center',
+          padding: 12,
+          textAlign: 'center',
+          color: 'var(--a-text-3)',
         }}
       >
-        {previewUrl ? (
-          /* Preview */
-          <div style={{ position: 'relative', width: '100%', textAlign: 'center' }}>
-            <img
-              src={previewUrl}
-              alt="Product preview"
-              style={{ maxHeight: '180px', maxWidth: '100%', objectFit: 'contain', display: 'block', margin: '0 auto', padding: '12px' }}
-              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-            />
-            {/* Overlay on hover */}
-            <div style={{
-              position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)',
-              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-              opacity: 0, transition: 'opacity 0.2s',
-              gap: '6px',
-            }}
-              onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
-              onMouseLeave={(e) => (e.currentTarget.style.opacity = '0')}
-            >
-              <Upload size={24} color="#fff" />
-              <span style={{ color: '#fff', fontSize: '13px', fontWeight: 500 }}>Click to change image</span>
-            </div>
+        {uploading ? (
+          <div style={{ display: 'grid', justifyItems: 'center', gap: 10 }}>
+            <div className="admin-spinner" />
+            <span>Uploading…</span>
+          </div>
+        ) : value ? (
+          <div style={{ display: 'grid', justifyItems: 'center', gap: 8 }}>
+            <img src={value} alt="Product preview" style={{ maxHeight: 180, maxWidth: '100%', objectFit: 'contain' }} />
+            <span style={{ fontSize: 12 }}><Upload size={12} style={{ display: 'inline' }} /> Click or drop to replace</span>
           </div>
         ) : (
-          /* Empty state */
-          <div style={{ textAlign: 'center', padding: '28px 20px', color: '#555' }}>
-            {uploading ? (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
-                <div style={{ width: '32px', height: '32px', border: '3px solid #d4af37', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-                <span style={{ fontSize: '13px', color: '#a0a0a0' }}>Uploading…</span>
-              </div>
-            ) : (
-              <>
-                <ImageIcon size={36} style={{ marginBottom: '10px', opacity: 0.3 }} />
-                <div style={{ fontSize: '14px', fontWeight: 500, color: '#a0a0a0', marginBottom: '4px' }}>
-                  Drop image here or click to browse
-                </div>
-                <div style={{ fontSize: '12px' }}>JPG, PNG, WebP · Max 5 MB</div>
-              </>
-            )}
+          <div>
+            <ImageIcon size={36} style={{ opacity: 0.3, margin: '0 auto 10px' }} />
+            <div style={{ fontWeight: 500, color: 'var(--a-text-2)' }}>Drop image here or click to browse</div>
+            <div style={{ fontSize: 12 }}>JPG, PNG, WebP, GIF · Max 5 MB</div>
           </div>
         )}
-        <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFileChange} />
+        <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" style={{ display: 'none' }} onChange={(event) => {
+          const file = event.target.files?.[0];
+          if (file) void uploadFile(file);
+          event.target.value = '';
+        }} />
       </div>
-
-      {/* Path preview + manual override */}
-      {value && (
-        <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <code style={{ flex: 1, fontSize: '12px', color: '#d4af37', backgroundColor: '#1a1a1a', padding: '6px 10px', borderRadius: '6px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {value}
-          </code>
-          <button onClick={() => onChange('')} title="Clear image" style={{ background: 'rgba(248,113,113,0.1)', border: 'none', borderRadius: '6px', padding: '6px 8px', color: '#f87171', cursor: 'pointer', display: 'flex' }}>
-            <X size={14} />
-          </button>
-        </div>
-      )}
-
-      {error && (
-        <div style={{ marginTop: '8px', fontSize: '12px', color: '#f87171' }}>{error}</div>
-      )}
-
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <input
+        className="admin-input"
+        placeholder="…or paste an https:// image URL or /products/ path"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+      />
+      {error ? <span style={{ fontSize: 12, color: 'var(--a-red)' }}>{error}</span> : null}
     </div>
   );
 }
 
-// ─── Main Page ───────────────────────────────────────────────────────────────
 export default function ProductsPage() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { authedFetch } = useAuth();
+  const [products, setProducts] = useState<Product[] | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
+  const [showArchived, setShowArchived] = useState(false);
+  const [editing, setEditing] = useState<Product | null>(null);
   const [showModal, setShowModal] = useState(false);
-  const [editProduct, setEditProduct] = useState<Product | null>(null);
-  const [form, setForm] = useState({ ...EMPTY_FORM });
+  const [form, setForm] = useState<FormState>(emptyForm);
   const [saving, setSaving] = useState(false);
-  const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<Product | null>(null);
+  const [notice, setNotice] = useState<{ tone: 'success' | 'error'; text: string } | null>(null);
 
   const load = useCallback(() => {
-    setLoading(true);
-    fetch('/api/admin/products')
-      .then((r) => r.json())
-      .then((d) => { setProducts(d.products); setLoading(false); });
-  }, []);
+    return authedFetch<{ products: Product[] }>('/api/admin/products')
+      .then((data) => setProducts(data.products))
+      .catch((caught) => setLoadError(errorMessage(caught)));
+  }, [authedFetch]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    void load();
+  }, [load]);
 
   const openNew = () => {
-    setEditProduct(null);
-    setForm({ ...EMPTY_FORM });
+    setEditing(null);
+    setForm(emptyForm);
+    setFormError(null);
     setShowModal(true);
   };
 
-  const openEdit = (p: Product) => {
-    setEditProduct(p);
+  const openEdit = (product: Product) => {
+    setEditing(product);
+    setFormError(null);
     setForm({
-      name: p.name, description: p.description,
-      price: String(p.price), originalPrice: p.originalPrice ? String(p.originalPrice) : '',
-      imagePath: p.imagePath, category: p.category,
-      tags: (() => { try { return JSON.parse(p.tags).join(', '); } catch { return ''; } })(),
-      rating: String(p.rating), reviewCount: String(p.reviewCount),
-      inStock: p.inStock,
-      sizes: (() => { try { return JSON.parse(p.sizes).join(', '); } catch { return ''; } })(),
-      colors: (() => { try { return JSON.parse(p.colors).join(', '); } catch { return ''; } })(),
-      isNew: p.isNew, isBestSeller: p.isBestSeller,
+      name: product.name,
+      description: product.description,
+      price: String(product.price),
+      originalPrice: product.originalPrice ? String(product.originalPrice) : '',
+      imagePath: product.imagePath,
+      category: product.category,
+      tags: parseList(product.tags).join(', '),
+      rating: String(product.rating),
+      reviewCount: String(product.reviewCount),
+      inStock: product.inStock,
+      sizes: parseList(product.sizes).join(', '),
+      colors: parseList(product.colors).join(', '),
+      isNew: product.isNew,
+      isBestSeller: product.isBestSeller,
+      isArchived: product.isArchived,
     });
     setShowModal(true);
   };
 
-  const handleSave = async () => {
+  const save = async () => {
     setSaving(true);
+    setFormError(null);
     const payload = {
-      ...form,
+      name: form.name,
+      description: form.description,
       price: Number(form.price),
-      originalPrice: form.originalPrice ? Number(form.originalPrice) : null,
+      originalPrice: form.originalPrice.trim() ? Number(form.originalPrice) : null,
+      imagePath: form.imagePath,
+      category: form.category,
+      tags: splitList(form.tags),
+      sizes: splitList(form.sizes),
+      colors: splitList(form.colors),
       rating: Number(form.rating),
       reviewCount: Number(form.reviewCount),
-      tags: form.tags.split(',').map((s) => s.trim()).filter(Boolean),
-      sizes: form.sizes.split(',').map((s) => s.trim()).filter(Boolean),
-      colors: form.colors.split(',').map((s) => s.trim()).filter(Boolean),
+      inStock: form.inStock,
+      isNew: form.isNew,
+      isBestSeller: form.isBestSeller,
+      isArchived: form.isArchived,
     };
-
-    const url = editProduct ? `/api/admin/products/${editProduct.id}` : '/api/admin/products';
-    const method = editProduct ? 'PUT' : 'POST';
-    await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-    setSaving(false);
-    setShowModal(false);
-    load();
+    try {
+      await authedFetch(editing ? `/api/admin/products/${editing.id}` : '/api/admin/products', {
+        method: editing ? 'PUT' : 'POST',
+        body: payload,
+      });
+      setShowModal(false);
+      setNotice({ tone: 'success', text: editing ? `${payload.name} updated.` : `${payload.name} created.` });
+      await load();
+    } catch (caught) {
+      setFormError(errorMessage(caught, 'Could not save the product.'));
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleDelete = async (id: number) => {
-    await fetch(`/api/admin/products/${id}`, { method: 'DELETE' });
-    setDeleteId(null);
-    load();
+  const restore = async (product: Product) => {
+    try {
+      await authedFetch(`/api/admin/products/${product.id}`, { method: 'PUT', body: { isArchived: false } });
+      setNotice({ tone: 'success', text: `${product.name} restored to the store.` });
+      await load();
+    } catch (caught) {
+      setNotice({ tone: 'error', text: errorMessage(caught) });
+    }
   };
 
-  const filtered = products.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase()) ||
-    p.category.toLowerCase().includes(search.toLowerCase())
+  const confirmDelete = async () => {
+    if (!deleting) return;
+    try {
+      const result = await authedFetch<{ message: string }>(`/api/admin/products/${deleting.id}`, { method: 'DELETE' });
+      setNotice({ tone: 'success', text: result.message });
+      await load();
+    } catch (caught) {
+      setNotice({ tone: 'error', text: errorMessage(caught) });
+    } finally {
+      setDeleting(null);
+    }
+  };
+
+  const needle = search.toLowerCase();
+  const visible = (products ?? []).filter(
+    (product) =>
+      (showArchived || !product.isArchived) &&
+      (product.name.toLowerCase().includes(needle) || product.category.toLowerCase().includes(needle)),
   );
+  const activeCount = (products ?? []).filter((product) => !product.isArchived).length;
+  const set = <K extends keyof FormState>(key: K, value: FormState[K]) => setForm((current) => ({ ...current, [key]: value }));
 
   return (
-    <div style={{ padding: '40px 48px' }}>
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+    <div className="admin-page">
+      <div className="admin-page-head">
         <div>
-          <h1 style={{ margin: 0, fontSize: '26px', fontWeight: 700, color: '#f5f5f5' }}>Products</h1>
-          <p style={{ margin: '6px 0 0', fontSize: '14px', color: '#555' }}>
-            {products.length} product{products.length !== 1 ? 's' : ''} in your catalog
-          </p>
+          <h1>Products</h1>
+          <p>{activeCount} product{activeCount === 1 ? '' : 's'} in your catalog</p>
         </div>
-        <button onClick={openNew} style={{
-          display: 'flex', alignItems: 'center', gap: '8px',
-          padding: '10px 20px', backgroundColor: '#d4af37', color: '#000',
-          border: 'none', borderRadius: '8px', fontWeight: 600, fontSize: '14px', cursor: 'pointer',
-        }}>
-          <Plus size={16} /> Add Product
+        <button type="button" className="admin-btn admin-btn--primary" onClick={openNew}>
+          <Plus size={16} /> Add product
         </button>
       </div>
 
-      {/* Search */}
-      <div style={{ position: 'relative', marginBottom: '24px', maxWidth: '360px' }}>
-        <Search size={15} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#555' }} />
-        <input
-          placeholder="Search products..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{ ...inputStyle, paddingLeft: '36px' }}
-        />
+      {notice ? <div className={`admin-alert admin-alert--${notice.tone}`} role="status">{notice.text}</div> : null}
+      {loadError ? <div className="admin-alert admin-alert--error">{loadError}</div> : null}
+
+      <div className="admin-toolbar" style={{ alignItems: 'center' }}>
+        <div className="admin-search">
+          <Search size={15} />
+          <input className="admin-input" placeholder="Search products…" value={search} onChange={(event) => setSearch(event.target.value)} aria-label="Search products" />
+        </div>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--a-text-2)', cursor: 'pointer' }}>
+          <input type="checkbox" checked={showArchived} onChange={(event) => setShowArchived(event.target.checked)} /> Show archived
+        </label>
       </div>
 
-      {/* Table */}
-      {loading ? (
-        <div style={{ color: '#a0a0a0', textAlign: 'center', padding: '60px' }}>Loading products…</div>
+      {!products ? (
+        loadError ? null : <div className="admin-center" style={{ minHeight: 200 }}><div className="admin-spinner" /></div>
       ) : (
-        <div style={{ backgroundColor: '#111', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.07)', overflow: 'hidden' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <div className="admin-table-wrap">
+          <table className="admin-table">
             <thead>
-              <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-                {['', 'Product', 'Category', 'Price', 'Stock', 'Flags', 'Actions'].map((h) => (
-                  <th key={h} style={{ padding: '14px 16px', textAlign: 'left', fontSize: '11px', color: '#555', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>{h}</th>
-                ))}
-              </tr>
+              <tr>{['', 'Product', 'Category', 'Price', 'Stock', 'Flags', 'Actions'].map((heading) => <th key={heading}>{heading}</th>)}</tr>
             </thead>
             <tbody>
-              {filtered.map((p, i) => (
-                <tr key={p.id} style={{ borderBottom: i < filtered.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
-                  {/* Thumbnail */}
-                  <td style={{ padding: '10px 16px', width: '56px' }}>
-                    <div style={{ width: '44px', height: '44px', borderRadius: '8px', overflow: 'hidden', backgroundColor: '#1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {p.imagePath ? (
-                        <img
-                          src={p.imagePath.startsWith('http') ? p.imagePath : `http://localhost:3000${p.imagePath}`}
-                          alt={p.name}
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                        />
-                      ) : (
-                        <ImageIcon size={18} color="#333" />
-                      )}
+              {visible.map((product) => (
+                <tr key={product.id} className={product.isArchived ? 'is-muted' : undefined}>
+                  <td style={{ width: 60 }}>
+                    <div className="admin-thumb">
+                      {product.imagePath ? <img src={product.imagePath} alt="" /> : <ImageIcon size={18} color="#333" />}
                     </div>
                   </td>
-                  <td style={{ padding: '10px 16px' }}>
-                    <div style={{ fontSize: '14px', fontWeight: 600, color: '#f5f5f5' }}>{p.name}</div>
-                    <div style={{ fontSize: '12px', color: '#555', marginTop: '2px' }}>ID: {p.id}</div>
+                  <td>
+                    <div style={{ fontWeight: 600 }}>{product.name}</div>
+                    <div style={{ fontSize: 12, color: 'var(--a-text-3)' }}>ID {product.id} · {product.orderCount} order line{product.orderCount === 1 ? '' : 's'}</div>
                   </td>
-                  <td style={{ padding: '10px 16px' }}>
-                    <span style={{ padding: '3px 8px', backgroundColor: 'rgba(212,175,55,0.1)', color: '#d4af37', borderRadius: '4px', fontSize: '12px' }}>
-                      {p.category}
+                  <td><span className="admin-tag" style={{ background: 'rgba(212,175,55,0.1)', color: 'var(--a-gold)' }}>{product.category}</span></td>
+                  <td style={{ fontWeight: 600 }}>
+                    {formatMoney(product.price)}
+                    {product.originalPrice ? <div style={{ fontSize: 11, color: 'var(--a-text-3)', textDecoration: 'line-through', fontWeight: 400 }}>{formatMoney(product.originalPrice)}</div> : null}
+                  </td>
+                  <td>
+                    <span className="admin-tag" style={product.inStock ? { background: 'rgba(74,222,128,0.1)', color: 'var(--a-green)' } : { background: 'rgba(248,113,113,0.1)', color: 'var(--a-red)' }}>
+                      {product.inStock ? 'In stock' : 'Out of stock'}
                     </span>
                   </td>
-                  <td style={{ padding: '10px 16px', fontSize: '14px', color: '#f5f5f5', fontWeight: 600 }}>
-                    GH₵ {p.price}
-                    {p.originalPrice && <div style={{ fontSize: '11px', color: '#555', textDecoration: 'line-through' }}>GH₵ {p.originalPrice}</div>}
-                  </td>
-                  <td style={{ padding: '10px 16px' }}>
-                    <span style={{
-                      padding: '3px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 600,
-                      backgroundColor: p.inStock ? 'rgba(74,222,128,0.1)' : 'rgba(248,113,113,0.1)',
-                      color: p.inStock ? '#4ade80' : '#f87171',
-                    }}>
-                      {p.inStock ? 'In Stock' : 'Out of Stock'}
-                    </span>
-                  </td>
-                  <td style={{ padding: '10px 16px' }}>
-                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                      {p.isNew && <span style={{ padding: '2px 6px', backgroundColor: 'rgba(96,165,250,0.12)', color: '#60a5fa', borderRadius: '4px', fontSize: '11px' }}>New</span>}
-                      {p.isBestSeller && <span style={{ padding: '2px 6px', backgroundColor: 'rgba(212,175,55,0.12)', color: '#d4af37', borderRadius: '4px', fontSize: '11px' }}>Best Seller</span>}
+                  <td>
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      {product.isArchived ? <span className="admin-tag" style={{ background: 'rgba(255,255,255,0.08)', color: 'var(--a-text-2)' }}>Archived</span> : null}
+                      {product.isNew ? <span className="admin-tag" style={{ background: 'rgba(96,165,250,0.12)', color: 'var(--a-blue)' }}>New</span> : null}
+                      {product.isBestSeller ? <span className="admin-tag" style={{ background: 'rgba(212,175,55,0.12)', color: 'var(--a-gold)' }}>Best seller</span> : null}
                     </div>
                   </td>
-                  <td style={{ padding: '10px 16px' }}>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <button onClick={() => openEdit(p)} style={{ background: 'rgba(96,165,250,0.1)', border: 'none', borderRadius: '6px', padding: '6px 10px', color: '#60a5fa', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px' }}>
+                  <td>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button type="button" className="admin-btn admin-btn--info admin-btn--sm" onClick={() => openEdit(product)}>
                         <Pencil size={13} /> Edit
                       </button>
-                      <button onClick={() => setDeleteId(p.id)} style={{ background: 'rgba(248,113,113,0.1)', border: 'none', borderRadius: '6px', padding: '6px 10px', color: '#f87171', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px' }}>
-                        <Trash2 size={13} /> Delete
-                      </button>
+                      {product.isArchived ? (
+                        <button type="button" className="admin-btn admin-btn--sm" onClick={() => void restore(product)}>
+                          <ArchiveRestore size={13} /> Restore
+                        </button>
+                      ) : (
+                        <button type="button" className="admin-btn admin-btn--danger admin-btn--sm" onClick={() => setDeleting(product)}>
+                          <Trash2 size={13} /> Delete
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
               ))}
-              {filtered.length === 0 && (
-                <tr><td colSpan={7} style={{ padding: '60px', textAlign: 'center', color: '#555' }}>
-                  <PackageX size={32} style={{ display: 'block', margin: '0 auto 12px', opacity: 0.3 }} />
-                  No products found
-                </td></tr>
-              )}
+              {visible.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="admin-empty">
+                    <PackageX size={32} style={{ opacity: 0.3, margin: '0 auto 12px' }} />
+                    No products found
+                  </td>
+                </tr>
+              ) : null}
             </tbody>
           </table>
         </div>
       )}
 
-      {/* Add/Edit Modal */}
-      {showModal && (
-        <Modal title={editProduct ? 'Edit Product' : 'Add New Product'} onClose={() => setShowModal(false)}>
-          {/* Image Uploader */}
-          <ImageUploader
-            value={form.imagePath}
-            onChange={(path) => setForm({ ...form, imagePath: path })}
-          />
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 16px' }}>
-            <Field label="Product Name"><input style={inputStyle} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></Field>
-            <Field label="Category"><input style={inputStyle} value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} /></Field>
-            <Field label="Price (GH₵)"><input style={inputStyle} type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} /></Field>
-            <Field label="Original Price (optional)"><input style={inputStyle} type="number" value={form.originalPrice} onChange={(e) => setForm({ ...form, originalPrice: e.target.value })} /></Field>
-            <Field label="Rating (0-5)"><input style={inputStyle} type="number" step="0.1" value={form.rating} onChange={(e) => setForm({ ...form, rating: e.target.value })} /></Field>
-            <Field label="Review Count"><input style={inputStyle} type="number" value={form.reviewCount} onChange={(e) => setForm({ ...form, reviewCount: e.target.value })} /></Field>
+      {showModal ? (
+        <Modal title={editing ? 'Edit product' : 'Add new product'} onClose={() => setShowModal(false)}>
+          <ImageUploader value={form.imagePath} onChange={(path) => set('imagePath', path)} />
+          <div className="admin-form-grid">
+            <div className="admin-field"><label htmlFor="p-name">Product name</label><input id="p-name" className="admin-input" value={form.name} onChange={(e) => set('name', e.target.value)} /></div>
+            <div className="admin-field"><label htmlFor="p-category">Category</label><input id="p-category" className="admin-input" value={form.category} onChange={(e) => set('category', e.target.value)} /></div>
+            <div className="admin-field"><label htmlFor="p-price">Price (GH₵)</label><input id="p-price" className="admin-input" type="number" min="0" step="0.01" value={form.price} onChange={(e) => set('price', e.target.value)} /></div>
+            <div className="admin-field"><label htmlFor="p-original">Original price (optional)</label><input id="p-original" className="admin-input" type="number" min="0" step="0.01" value={form.originalPrice} onChange={(e) => set('originalPrice', e.target.value)} /></div>
+            <div className="admin-field"><label htmlFor="p-rating">Rating (0-5)</label><input id="p-rating" className="admin-input" type="number" min="0" max="5" step="0.1" value={form.rating} onChange={(e) => set('rating', e.target.value)} /></div>
+            <div className="admin-field"><label htmlFor="p-reviews">Review count</label><input id="p-reviews" className="admin-input" type="number" min="0" step="1" value={form.reviewCount} onChange={(e) => set('reviewCount', e.target.value)} /></div>
           </div>
-          <Field label="Description"><textarea style={{ ...inputStyle, minHeight: '80px', resize: 'vertical' }} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></Field>
-          <Field label="Tags (comma-separated)"><input style={inputStyle} placeholder="Fashion, Top, Summer" value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} /></Field>
-          <Field label="Colors (comma-separated)"><input style={inputStyle} placeholder="Black, White, Red" value={form.colors} onChange={(e) => setForm({ ...form, colors: e.target.value })} /></Field>
-          <Field label="Sizes (comma-separated)"><input style={inputStyle} placeholder="S, M, L, XL" value={form.sizes} onChange={(e) => setForm({ ...form, sizes: e.target.value })} /></Field>
+          <div className="admin-field"><label htmlFor="p-description">Description</label><textarea id="p-description" className="admin-textarea" value={form.description} onChange={(e) => set('description', e.target.value)} /></div>
+          <div className="admin-field"><label htmlFor="p-tags">Tags (comma-separated)</label><input id="p-tags" className="admin-input" placeholder="Fashion, Top, Summer" value={form.tags} onChange={(e) => set('tags', e.target.value)} /></div>
+          <div className="admin-field"><label htmlFor="p-colors">Colours (comma-separated)</label><input id="p-colors" className="admin-input" placeholder="Black, White, Red" value={form.colors} onChange={(e) => set('colors', e.target.value)} /></div>
+          <div className="admin-field"><label htmlFor="p-sizes">Sizes (comma-separated)</label><input id="p-sizes" className="admin-input" placeholder="S, M, L, XL" value={form.sizes} onChange={(e) => set('sizes', e.target.value)} /></div>
 
-          <div style={{ display: 'flex', gap: '20px', margin: '16px 0' }}>
-            {[
-              { key: 'inStock', label: 'In Stock' },
-              { key: 'isNew', label: 'Mark as New' },
-              { key: 'isBestSeller', label: 'Best Seller' },
-            ].map(({ key, label }) => (
-              <label key={key} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px', color: '#a0a0a0' }}>
-                <input type="checkbox" checked={(form as any)[key]} onChange={(e) => setForm({ ...form, [key]: e.target.checked })} />
+          <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', margin: '8px 0 18px' }}>
+            {([
+              ['inStock', 'In stock'],
+              ['isNew', 'Mark as new'],
+              ['isBestSeller', 'Best seller'],
+              ...(editing ? [['isArchived', 'Archived (hidden from store)']] : []),
+            ] as Array<[keyof FormState, string]>).map(([key, label]) => (
+              <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', color: 'var(--a-text-2)' }}>
+                <input type="checkbox" checked={Boolean(form[key])} onChange={(e) => set(key, e.target.checked as never)} />
                 {label}
               </label>
             ))}
           </div>
 
-          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '8px' }}>
-            <button onClick={() => setShowModal(false)} style={{ padding: '10px 20px', backgroundColor: '#1a1a1a', color: '#a0a0a0', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', cursor: 'pointer', fontWeight: 500 }}>Cancel</button>
-            <button onClick={handleSave} disabled={saving} style={{ padding: '10px 20px', backgroundColor: '#d4af37', color: '#000', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Check size={16} /> {saving ? 'Saving…' : 'Save Product'}
-            </button>
-          </div>
-        </Modal>
-      )}
+          {formError ? <div className="admin-alert admin-alert--error" role="alert">{formError}</div> : null}
 
-      {/* Delete Confirm */}
-      {deleteId !== null && (
-        <Modal title="Delete Product?" onClose={() => setDeleteId(null)}>
-          <p style={{ color: '#a0a0a0', marginTop: 0 }}>This action cannot be undone. The product will be permanently removed from your catalog and the Flutter app.</p>
-          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-            <button onClick={() => setDeleteId(null)} style={{ padding: '10px 20px', backgroundColor: '#1a1a1a', color: '#a0a0a0', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', cursor: 'pointer', fontWeight: 500 }}>Cancel</button>
-            <button onClick={() => handleDelete(deleteId)} style={{ padding: '10px 20px', backgroundColor: '#f87171', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Trash2 size={16} /> Delete Product
+          <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
+            <button type="button" className="admin-btn" onClick={() => setShowModal(false)}>Cancel</button>
+            <button type="button" className="admin-btn admin-btn--primary" onClick={() => void save()} disabled={saving}>
+              <Check size={16} /> {saving ? 'Saving…' : 'Save product'}
             </button>
           </div>
         </Modal>
-      )}
+      ) : null}
+
+      {deleting ? (
+        <Modal title="Delete product?" onClose={() => setDeleting(null)}>
+          <p style={{ color: 'var(--a-text-2)', marginTop: 0 }}>
+            {deleting.orderCount > 0
+              ? `${deleting.name} appears in ${deleting.orderCount} order line(s), so it will be archived: hidden from the store and the app, but kept for order history.`
+              : `${deleting.name} will be permanently removed from your catalog, the website and the app.`}
+          </p>
+          <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
+            <button type="button" className="admin-btn" onClick={() => setDeleting(null)}>Cancel</button>
+            <button type="button" className="admin-btn admin-btn--danger" onClick={() => void confirmDelete()}>
+              <Trash2 size={16} /> {deleting.orderCount > 0 ? 'Archive product' : 'Delete product'}
+            </button>
+          </div>
+        </Modal>
+      ) : null}
     </div>
   );
 }
