@@ -1,138 +1,184 @@
-"use client";
-import { useEffect, useState, useCallback } from 'react';
+'use client';
+
+import { ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import Link from 'next/link';
-import { Search, ChevronRight, Clock, CheckCircle, Truck, XCircle, AlertCircle } from 'lucide-react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
 
-const STATUS_COLORS: Record<string, string> = {
-  PENDING: '#facc15', PROCESSING: '#60a5fa', SHIPPED: '#a78bfa',
-  DELIVERED: '#4ade80', CANCELLED: '#f87171',
+import { useAuth } from '@/components/providers/AuthProvider';
+import { errorMessage } from '@/lib/client/api';
+import { formatMoney } from '@/lib/money';
+import { orderStatuses, paymentMethodLabel } from '@/lib/store-config';
+
+import { StatusBadge, statusColors } from '../_components/status';
+
+type OrderRow = {
+  id: string;
+  trackingCode: string;
+  customerName: string;
+  customerPhone: string;
+  customerEmail: string | null;
+  total: number;
+  status: string;
+  paymentMethod: string;
+  createdAt: string;
+  itemCount: number;
 };
-const STATUS_ICONS: Record<string, any> = {
-  PENDING: Clock, PROCESSING: AlertCircle, SHIPPED: Truck,
-  DELIVERED: CheckCircle, CANCELLED: XCircle,
-};
-const ALL_STATUSES = ['ALL', 'PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'];
 
-export default function OrdersPage() {
-  const [orders, setOrders] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('ALL');
+type OrdersResponse = { orders: OrderRow[]; total: number; page: number; pageSize: number };
 
-  const load = useCallback(() => {
-    setLoading(true);
-    const qs = statusFilter !== 'ALL' ? `?status=${statusFilter}` : '';
-    fetch(`/api/admin/orders${qs}`)
-      .then((r) => r.json())
-      .then((d) => { setOrders(d.orders); setLoading(false); });
-  }, [statusFilter]);
+function OrdersTable() {
+  const { authedFetch } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
+  const params = useSearchParams();
+  const status = params.get('status') ?? 'ALL';
+  const page = Math.max(1, Number(params.get('page') ?? 1) || 1);
+  const query = params.get('q') ?? '';
 
-  useEffect(() => { load(); }, [load]);
+  const [search, setSearch] = useState(query);
+  const [data, setData] = useState<OrdersResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const filtered = orders.filter((o) =>
-    o.customerName.toLowerCase().includes(search.toLowerCase()) ||
-    o.customerPhone.includes(search) ||
-    o.id.includes(search)
-  );
+  const navigate = (next: { status?: string; page?: number; q?: string }) => {
+    const queryString = new URLSearchParams();
+    const nextStatus = next.status ?? status;
+    const nextQuery = next.q ?? query;
+    const nextPage = next.page ?? 1;
+    if (nextStatus !== 'ALL') queryString.set('status', nextStatus);
+    if (nextQuery) queryString.set('q', nextQuery);
+    if (nextPage > 1) queryString.set('page', String(nextPage));
+    const qs = queryString.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  };
+
+  // Debounce typing so the server is queried once the admin pauses.
+  useEffect(() => {
+    if (search === query) return;
+    const timer = window.setTimeout(() => navigate({ q: search.trim(), page: 1 }), 350);
+    return () => window.clearTimeout(timer);
+  }, [search]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const qs = new URLSearchParams({ page: String(page), pageSize: '20' });
+    if (status !== 'ALL') qs.set('status', status);
+    if (query) qs.set('q', query);
+    setError(null);
+    authedFetch<OrdersResponse>(`/api/admin/orders?${qs}`, { signal: controller.signal })
+      .then(setData)
+      .catch((caught) => {
+        if ((caught as Error)?.name !== 'AbortError') setError(errorMessage(caught));
+      });
+    return () => controller.abort();
+  }, [authedFetch, page, status, query]);
+
+  const totalPages = data ? Math.max(1, Math.ceil(data.total / data.pageSize)) : 1;
 
   return (
-    <div style={{ padding: '40px 48px' }}>
-      <div style={{ marginBottom: '32px' }}>
-        <h1 style={{ margin: 0, fontSize: '26px', fontWeight: 700, color: '#f5f5f5' }}>Orders</h1>
-        <p style={{ margin: '6px 0 0', fontSize: '14px', color: '#555' }}>Track and manage all customer orders</p>
+    <div className="admin-page">
+      <div className="admin-page-head">
+        <div>
+          <h1>Orders</h1>
+          <p>Track and manage all customer orders</p>
+        </div>
       </div>
 
-      {/* Filters */}
-      <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
-        <div style={{ position: 'relative', flex: '1', minWidth: '200px', maxWidth: '320px' }}>
-          <Search size={15} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#555' }} />
+      <div className="admin-toolbar">
+        <div className="admin-search">
+          <Search size={15} />
           <input
-            placeholder="Search by name, phone, ID…"
+            className="admin-input"
+            placeholder="Search name, phone, email, tracking code…"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            style={{
-              width: '100%', padding: '10px 14px 10px 36px',
-              backgroundColor: '#111', border: '1px solid rgba(255,255,255,0.1)',
-              borderRadius: '8px', color: '#f5f5f5', fontSize: '14px', outline: 'none',
-            }}
+            onChange={(event) => setSearch(event.target.value)}
+            aria-label="Search orders"
           />
         </div>
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-          {ALL_STATUSES.map((s) => (
-            <button key={s} onClick={() => setStatusFilter(s)} style={{
-              padding: '8px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: 600, cursor: 'pointer',
-              border: '1px solid',
-              borderColor: statusFilter === s ? (STATUS_COLORS[s] ?? '#d4af37') : 'rgba(255,255,255,0.1)',
-              backgroundColor: statusFilter === s ? `${(STATUS_COLORS[s] ?? '#d4af37')}18` : 'transparent',
-              color: statusFilter === s ? (STATUS_COLORS[s] ?? '#d4af37') : '#a0a0a0',
-            }}>{s}</button>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          {['ALL', ...orderStatuses].map((value) => (
+            <button
+              key={value}
+              type="button"
+              className="admin-chip"
+              aria-pressed={status === value}
+              style={{ ['--chip-color' as string]: statusColors[value] ?? '#d4af37' }}
+              onClick={() => navigate({ status: value, page: 1 })}
+            >
+              {value}
+            </button>
           ))}
         </div>
       </div>
 
-      {/* Table */}
-      {loading ? (
-        <div style={{ color: '#a0a0a0', textAlign: 'center', padding: '60px' }}>Loading orders…</div>
+      {error ? <div className="admin-alert admin-alert--error">{error}</div> : null}
+
+      {!data ? (
+        <div className="admin-center" style={{ minHeight: 200 }}><div className="admin-spinner" /></div>
       ) : (
-        <div style={{ backgroundColor: '#111', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.07)', overflow: 'hidden' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-                {['Order ID', 'Customer', 'Items', 'Total', 'Status', 'Date', ''].map((h) => (
-                  <th key={h} style={{ padding: '14px 16px', textAlign: 'left', fontSize: '11px', color: '#555', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((order, i) => {
-                const color = STATUS_COLORS[order.status];
-                const Icon = STATUS_ICONS[order.status];
-                return (
-                  <tr key={order.id} style={{ borderBottom: i < filtered.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
-                    <td style={{ padding: '14px 16px', fontFamily: 'monospace', fontSize: '12px', color: '#a0a0a0' }}>
-                      #{order.id.slice(-8).toUpperCase()}
+        <>
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  {['Order', 'Customer', 'Items', 'Total', 'Payment', 'Status', 'Date', ''].map((heading) => (
+                    <th key={heading}>{heading}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {data.orders.map((order) => (
+                  <tr key={order.id}>
+                    <td className="admin-mono" style={{ color: 'var(--a-text-2)' }}>#{order.trackingCode}</td>
+                    <td>
+                      <div style={{ fontWeight: 600 }}>{order.customerName}</div>
+                      <div style={{ fontSize: 12, color: 'var(--a-text-3)' }}>{order.customerPhone}</div>
                     </td>
-                    <td style={{ padding: '14px 16px' }}>
-                      <div style={{ fontSize: '14px', fontWeight: 600, color: '#f5f5f5' }}>{order.customerName}</div>
-                      <div style={{ fontSize: '12px', color: '#555' }}>{order.customerPhone}</div>
+                    <td style={{ color: 'var(--a-text-2)' }}>
+                      {order.itemCount} line{order.itemCount === 1 ? '' : 's'}
                     </td>
-                    <td style={{ padding: '14px 16px', fontSize: '14px', color: '#a0a0a0' }}>
-                      {order.itemCount} item{order.itemCount !== 1 ? 's' : ''}
-                    </td>
-                    <td style={{ padding: '14px 16px', fontSize: '14px', fontWeight: 600, color: '#d4af37' }}>
-                      GH₵ {order.total}
-                    </td>
-                    <td style={{ padding: '14px 16px' }}>
-                      <span style={{
-                        display: 'inline-flex', alignItems: 'center', gap: '5px',
-                        padding: '4px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: 600,
-                        backgroundColor: `${color}18`, color,
-                      }}>
-                        <Icon size={12} /> {order.status}
-                      </span>
-                    </td>
-                    <td style={{ padding: '14px 16px', fontSize: '12px', color: '#555' }}>
-                      {new Date(order.createdAt).toLocaleDateString()}
-                    </td>
-                    <td style={{ padding: '14px 16px' }}>
-                      <Link href={`/admin/orders/${order.id}`} style={{
-                        display: 'inline-flex', alignItems: 'center', gap: '4px',
-                        fontSize: '12px', color: '#a0a0a0', textDecoration: 'none',
-                        padding: '6px 10px', borderRadius: '6px', backgroundColor: '#1a1a1a',
-                      }}>
+                    <td style={{ fontWeight: 600, color: 'var(--a-gold)' }}>{formatMoney(order.total)}</td>
+                    <td style={{ fontSize: 12, color: 'var(--a-text-2)' }}>{paymentMethodLabel(order.paymentMethod)}</td>
+                    <td><StatusBadge status={order.status} /></td>
+                    <td style={{ fontSize: 12, color: 'var(--a-text-3)' }}>{new Date(order.createdAt).toLocaleDateString()}</td>
+                    <td>
+                      <Link href={`/admin/orders/${order.id}`} className="admin-btn admin-btn--sm">
                         View <ChevronRight size={12} />
                       </Link>
                     </td>
                   </tr>
-                );
-              })}
-              {filtered.length === 0 && (
-                <tr><td colSpan={7} style={{ padding: '60px', textAlign: 'center', color: '#555' }}>No orders found</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                ))}
+                {data.orders.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="admin-empty">No orders found</td>
+                  </tr>
+                ) : null}
+              </tbody>
+            </table>
+          </div>
+          <div className="admin-pagination">
+            <span>
+              {data.total} order{data.total === 1 ? '' : 's'} · page {data.page} of {totalPages}
+            </span>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button type="button" className="admin-btn admin-btn--sm" disabled={page <= 1} onClick={() => navigate({ page: page - 1 })}>
+                <ChevronLeft size={14} /> Previous
+              </button>
+              <button type="button" className="admin-btn admin-btn--sm" disabled={page >= totalPages} onClick={() => navigate({ page: page + 1 })}>
+                Next <ChevronRight size={14} />
+              </button>
+            </div>
+          </div>
+        </>
       )}
     </div>
+  );
+}
+
+export default function OrdersPage() {
+  return (
+    <Suspense fallback={<div className="admin-center"><div className="admin-spinner" /></div>}>
+      <OrdersTable />
+    </Suspense>
   );
 }
