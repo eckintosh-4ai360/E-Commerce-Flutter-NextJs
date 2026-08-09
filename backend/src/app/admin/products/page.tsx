@@ -90,8 +90,8 @@ function ImageUploader({ value, onChange }: { value: string; onChange: (path: st
   const [error, setError] = useState('');
 
   const uploadFile = async (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      setError('Please select an image file (JPG, PNG, WebP, GIF).');
+    if (!['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.type)) {
+      setError('Please select a JPG, PNG, WebP or GIF image.');
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
