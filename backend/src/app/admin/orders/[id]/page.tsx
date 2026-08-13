@@ -177,39 +177,62 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
         </div>
       </div>
 
-      {/* Order Items */}
-      <div style={{ backgroundColor: '#111', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.07)', overflow: 'hidden' }}>
-        <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-          <h2 style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: '#a0a0a0', textTransform: 'uppercase', letterSpacing: '1px' }}>
-            Order Items ({order.items.length})
-          </h2>
-        </div>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-              {['Product', 'Color', 'Size', 'Unit Price', 'Qty', 'Subtotal'].map((h) => (
-                <th key={h} style={{ padding: '12px 20px', textAlign: 'left', fontSize: '11px', color: '#555', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>{h}</th>
+      <div className="admin-grid admin-grid--2">
+        <div className="admin-table-wrap">
+          <table className="admin-table" style={{ minWidth: 520 }}>
+            <thead>
+              <tr>{['Product', 'Options', 'Unit', 'Qty', 'Subtotal'].map((heading) => <th key={heading}>{heading}</th>)}</tr>
+            </thead>
+            <tbody>
+              {order.items.map((item) => (
+                <tr key={item.id}>
+                  <td>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <div className="admin-thumb">
+                        {item.imageUrl ? <img src={item.imageUrl} alt="" /> : null}
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: 600 }}>{item.productName}</div>
+                        <div style={{ fontSize: 11, color: 'var(--a-text-3)' }}>ID {item.productId}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td style={{ color: 'var(--a-text-2)', fontSize: 13 }}>{[item.selectedColor, item.selectedSize].filter(Boolean).join(' · ') || '—'}</td>
+                  <td>{formatMoney(item.unitPrice)}</td>
+                  <td>×{item.quantity}</td>
+                  <td style={{ fontWeight: 600, color: 'var(--a-gold)' }}>{formatMoney(item.unitPrice * item.quantity)}</td>
+                </tr>
               ))}
-            </tr>
-          </thead>
-          <tbody>
-            {order.items.map((item: any, i: number) => (
-              <tr key={item.id} style={{ borderBottom: i < order.items.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
-                <td style={{ padding: '14px 20px' }}>
-                  <div style={{ fontSize: '14px', fontWeight: 600, color: '#f5f5f5' }}>{item.productName}</div>
-                  <div style={{ fontSize: '11px', color: '#555' }}>ID: {item.productId}</div>
-                </td>
-                <td style={{ padding: '14px 20px', fontSize: '13px', color: '#a0a0a0' }}>{item.selectedColor || '—'}</td>
-                <td style={{ padding: '14px 20px', fontSize: '13px', color: '#a0a0a0' }}>{item.selectedSize || '—'}</td>
-                <td style={{ padding: '14px 20px', fontSize: '13px', color: '#f5f5f5' }}>GH₵ {item.unitPrice}</td>
-                <td style={{ padding: '14px 20px', fontSize: '13px', color: '#f5f5f5' }}>×{item.quantity}</td>
-                <td style={{ padding: '14px 20px', fontSize: '14px', fontWeight: 600, color: '#d4af37' }}>
-                  GH₵ {(item.unitPrice * item.quantity).toFixed(2)}
-                </td>
-              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div className="admin-card">
+          <h2>Timeline</h2>
+          <div style={{ display: 'grid', gap: 12 }}>
+            {[...order.events].reverse().map((event, index) => (
+              <div key={`${event.createdAt}-${index}`} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                <StatusBadge status={event.status} />
+                <div style={{ fontSize: 12, color: 'var(--a-text-2)' }}>
+                  {new Date(event.createdAt).toLocaleString()}
+                  {event.note ? <div style={{ color: 'var(--a-text)' }}>{event.note}</div> : null}
+                </div>
+              </div>
             ))}
-          </tbody>
-        </table>
+          </div>
+          {order.returnRequests.length > 0 ? (
+            <>
+              <h2 style={{ marginTop: 22 }}>Returns</h2>
+              {order.returnRequests.map((request) => (
+                <div key={request.id} style={{ display: 'flex', justifyContent: 'space-between', gap: 10, marginBottom: 8 }}>
+                  <span style={{ fontSize: 13 }}>{request.reason}</span>
+                  <StatusBadge status={request.status} />
+                </div>
+              ))}
+              <Link href="/admin/returns" style={{ fontSize: 12, color: 'var(--a-gold)' }}>Manage returns →</Link>
+            </>
+          ) : null}
+        </div>
       </div>
     </div>
   );
