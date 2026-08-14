@@ -2,10 +2,10 @@ name: eckintosh
 description: eckintosh - Beautiful Leather Bags & Accessories
 
 publish_to: "none"
-version: 1.0.0+1
+version: 1.1.0+2
 
 environment:
-  sdk: ">=3.0.0 <4.0.0"
+  sdk: ">=3.6.0 <4.0.0"
 
 dependencies:
   flutter:
