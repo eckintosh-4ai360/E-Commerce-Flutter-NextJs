@@ -4,6 +4,32 @@ class AppConfig {
   static const String _apiBaseUrlOverride =
       String.fromEnvironment('API_BASE_URL');
 
+  /// Public website, used for share links and "Shop on the web".
+  /// Defaults to the host serving the API, since the Next.js backend also
+  /// serves the storefront.
+  static const String _webBaseUrlOverride =
+      String.fromEnvironment('WEB_BASE_URL');
+
+  /// Web OAuth client id from Firebase Console, needed by Google sign-in on
+  /// Android to return an ID token when google-services.json lacks one.
+  static const String googleServerClientId =
+      String.fromEnvironment('GOOGLE_SERVER_CLIENT_ID');
+
+  static const String supportPhone = '+233 59 859 9687';
+  static const String supportPhoneUri = 'tel:+233598599687';
+  static const String supportEmail = 'info@eckintoshmall.com';
+  static const String instagramUrl = 'https://www.instagram.com/eckintoshmall';
+  static const String facebookUrl = 'https://www.facebook.com/eckintoshmall';
+  static const String twitterUrl = 'https://x.com/Eckintosh_mall';
+
+  static const double freeShippingThreshold = 300;
+  static const double flatShippingFee = 25;
+  static const int maxQuantityPerLine = 20;
+  static const int returnWindowDays = 14;
+
+  static double shippingFeeFor(double subtotal) =>
+      subtotal >= freeShippingThreshold ? 0 : flatShippingFee;
+
   static String get apiBaseUrl {
     if (_apiBaseUrlOverride.isNotEmpty) {
       return _apiBaseUrlOverride;
