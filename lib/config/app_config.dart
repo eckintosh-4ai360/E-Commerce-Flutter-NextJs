@@ -51,6 +51,12 @@ class AppConfig {
 
   static Uri get mediaBaseUri => apiBaseUri.resolve('/');
 
+  static Uri get webBaseUri => _webBaseUrlOverride.isNotEmpty
+      ? Uri.parse(_webBaseUrlOverride)
+      : mediaBaseUri;
+
+  static Uri webUri(String path) => webBaseUri.resolve(path);
+
   static String resolveMediaUrl(String value) {
     final trimmedValue = value.trim();
     if (trimmedValue.isEmpty || trimmedValue.startsWith('assets/')) {
