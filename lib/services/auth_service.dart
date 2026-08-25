@@ -59,11 +59,23 @@ class AuthService {
     UserCredential credential;
 
     if (kIsWeb) {
-      credential = await _firebaseAuth.signInWithPopup(GoogleAuthProvider());
+      final provider = GoogleAuthProvider()
+        ..setCustomParameters({'prompt': 'select_account'});
+      credential = await _firebaseAuth.signInWithPopup(provider);
     } else {
-      final googleUser = await GoogleSignIn.instance.authenticate();
-      final googleAuth = googleUser.authentication;
-      final idToken = googleAuth.idToken;
+      await _ensureGoogleSignIn();
+      final GoogleSignInAccount googleUser;
+      try {
+        googleUser = await GoogleSignIn.instance.authenticate();
+      } on GoogleSignInException catch (error) {
+        if (error.code == GoogleSignInExceptionCode.canceled) {
+          throw Exception('Sign-in was cancelled.');
+        }
+        throw Exception(
+          'Google sign-in failed (${error.code.name}). Check that this app\'s SHA-1 fingerprint is registered in Firebase.',
+        );
+      }
+      final idToken = googleUser.authentication.idToken;
       if (idToken == null || idToken.isEmpty) {
         throw Exception('Google sign-in did not return an ID token.');
       }
