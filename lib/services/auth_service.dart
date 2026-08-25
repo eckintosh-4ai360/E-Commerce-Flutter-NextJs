@@ -4,14 +4,21 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+import '../config/app_config.dart';
 import '../models/app_auth_user.dart';
 
 class AuthService {
   AuthService({
     FirebaseAuth? firebaseAuth,
-  }) : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance;
+  }) : _injectedAuth = firebaseAuth;
 
-  final FirebaseAuth _firebaseAuth;
+  final FirebaseAuth? _injectedAuth;
+
+  // Resolved lazily: Firebase is not initialised on unsupported platforms,
+  // and touching FirebaseAuth.instance there would throw.
+  FirebaseAuth get _firebaseAuth => _injectedAuth ?? FirebaseAuth.instance;
+
+  static Future<void>? _googleSignInReady;
 
   static bool get isSupportedPlatform {
     if (kIsWeb) {
@@ -22,7 +29,17 @@ class AuthService {
         defaultTargetPlatform == TargetPlatform.iOS;
   }
 
-  AppAuthUser? get currentUser => _mapUser(_firebaseAuth.currentUser);
+  /// google_sign_in 7 must be initialised exactly once before use.
+  static Future<void> _ensureGoogleSignIn() {
+    return _googleSignInReady ??= GoogleSignIn.instance.initialize(
+      serverClientId: AppConfig.googleServerClientId.isEmpty
+          ? null
+          : AppConfig.googleServerClientId,
+    );
+  }
+
+  AppAuthUser? get currentUser =>
+      isSupportedPlatform ? _mapUser(_firebaseAuth.currentUser) : null;
 
   Stream<AppAuthUser?> authStateChanges() {
     if (!isSupportedPlatform) {
