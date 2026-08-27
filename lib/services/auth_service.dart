@@ -100,6 +100,7 @@ class AuthService {
     }
 
     if (!kIsWeb) {
+      await _ensureGoogleSignIn();
       await GoogleSignIn.instance.signOut();
     }
 
