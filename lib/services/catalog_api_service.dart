@@ -26,7 +26,7 @@ class CatalogApiService {
   Future<CatalogApiResponse> fetchCatalog() async {
     final response = await _client
         .get(Uri.parse('${AppConfig.apiBaseUrl}/catalog'))
-        .timeout(const Duration(seconds: 6));
+        .timeout(const Duration(seconds: 15));
 
     if (response.statusCode != 200) {
       throw Exception('Catalog request failed with ${response.statusCode}');
