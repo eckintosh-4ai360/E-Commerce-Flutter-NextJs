@@ -1,6 +1,27 @@
 import 'package:equatable/equatable.dart';
 
 import '../config/app_config.dart';
+import 'return_request.dart';
+
+String titleCaseStatus(String status) {
+  return status
+      .toLowerCase()
+      .split('_')
+      .map((part) =>
+          part.isEmpty ? part : '${part[0].toUpperCase()}${part.substring(1)}')
+      .join(' ');
+}
+
+String paymentMethodLabel(String value) {
+  switch (value) {
+    case 'MOBILE_MONEY':
+      return 'Mobile Money on delivery';
+    case 'CASH_ON_DELIVERY':
+      return 'Cash on delivery';
+    default:
+      return titleCaseStatus(value);
+  }
+}
 
 class AppOrderItem extends Equatable {
   const AppOrderItem({
@@ -26,6 +47,7 @@ class AppOrderItem extends Equatable {
   double get totalPrice => unitPrice * quantity;
 
   factory AppOrderItem.fromJson(Map<String, dynamic> json) {
+    final image = json['imageUrl'] as String?;
     return AppOrderItem(
       id: json['id'] as String,
       productId: (json['productId'] as num).toInt(),
@@ -34,9 +56,9 @@ class AppOrderItem extends Equatable {
       quantity: (json['quantity'] as num).toInt(),
       selectedColor: json['selectedColor'] as String?,
       selectedSize: json['selectedSize'] as String?,
-      imageUrl: json['imageUrl'] == null
+      imageUrl: image == null || image.isEmpty
           ? null
-          : AppConfig.resolveMediaUrl(json['imageUrl'] as String),
+          : AppConfig.resolveMediaUrl(image),
     );
   }
 
