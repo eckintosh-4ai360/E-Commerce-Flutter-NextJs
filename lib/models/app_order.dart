@@ -75,6 +75,23 @@ class AppOrderItem extends Equatable {
       ];
 }
 
+class OrderEvent extends Equatable {
+  const OrderEvent({required this.status, required this.createdAt, this.note});
+
+  final String status;
+  final DateTime createdAt;
+  final String? note;
+
+  factory OrderEvent.fromJson(Map<String, dynamic> json) => OrderEvent(
+        status: json['status'] as String,
+        createdAt: DateTime.parse(json['createdAt'] as String),
+        note: json['note'] as String?,
+      );
+
+  @override
+  List<Object?> get props => [status, createdAt, note];
+}
+
 class AppOrder extends Equatable {
   const AppOrder({
     required this.id,
@@ -87,12 +104,20 @@ class AppOrder extends Equatable {
     required this.customerName,
     required this.customerPhone,
     required this.items,
+    String? trackingCode,
     this.customerEmail,
     this.deliveryAddress,
     this.notes,
-  });
+    this.paymentMethod = 'CASH_ON_DELIVERY',
+    this.events = const [],
+    this.isRedacted = false,
+    this.canCancel = false,
+    this.canRequestReturn = false,
+    this.returnRequests = const [],
+  }) : _trackingCode = trackingCode;
 
   final String id;
+  final String? _trackingCode;
   final String status;
   final DateTime createdAt;
   final DateTime updatedAt;
