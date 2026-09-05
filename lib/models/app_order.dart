@@ -129,47 +129,66 @@ class AppOrder extends Equatable {
   final String? customerEmail;
   final String? deliveryAddress;
   final String? notes;
+  final String paymentMethod;
   final List<AppOrderItem> items;
+  final List<OrderEvent> events;
+
+  /// True for public tracking lookups, where contact details are hidden.
+  final bool isRedacted;
+  final bool canCancel;
+  final bool canRequestReturn;
+  final List<ReturnRequest> returnRequests;
 
   String get trackingCode {
-    final compactId = id.trim();
-    if (compactId.isEmpty) {
-      return '';
+    final fromServer = _trackingCode?.trim();
+    if (fromServer != null && fromServer.isNotEmpty) {
+      return fromServer;
     }
-
+    final compactId = id.trim();
     final start = compactId.length > 10 ? compactId.length - 10 : 0;
     return compactId.substring(start).toUpperCase();
   }
 
-  String get displayStatus {
-    return status
-        .toLowerCase()
-        .split('_')
-        .map((part) {
-          if (part.isEmpty) {
-            return part;
-          }
-          return '${part[0].toUpperCase()}${part.substring(1)}';
-        })
-        .join(' ');
-  }
+  String get displayStatus => titleCaseStatus(status);
+
+  bool get isCancelled => status == 'CANCELLED';
 
   factory AppOrder.fromJson(Map<String, dynamic> json) {
+    final createdAt = DateTime.parse(json['createdAt'] as String);
+    final events = (json['events'] as List<dynamic>? ?? const [])
+        .whereType<Map<String, dynamic>>()
+        .map(OrderEvent.fromJson)
+        .toList();
+
     return AppOrder(
       id: json['id'] as String,
+      trackingCode: json['trackingCode'] as String?,
       status: json['status'] as String,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: DateTime.parse(json['updatedAt'] as String),
+      createdAt: createdAt,
+      updatedAt: DateTime.tryParse(json['updatedAt'] as String? ?? '') ??
+          createdAt,
       subtotal: (json['subtotal'] as num).toDouble(),
       shippingFee: (json['shippingFee'] as num).toDouble(),
       total: (json['total'] as num).toDouble(),
-      customerName: json['customerName'] as String,
-      customerPhone: json['customerPhone'] as String,
+      customerName: json['customerName'] as String? ?? '',
+      customerPhone: json['customerPhone'] as String? ?? '',
       customerEmail: json['customerEmail'] as String?,
       deliveryAddress: json['deliveryAddress'] as String?,
       notes: json['notes'] as String?,
+      paymentMethod: json['paymentMethod'] as String? ?? 'CASH_ON_DELIVERY',
       items: (json['items'] as List<dynamic>? ?? const [])
-          .map((item) => AppOrderItem.fromJson(item as Map<String, dynamic>))
+          .whereType<Map<String, dynamic>>()
+          .map(AppOrderItem.fromJson)
+          .toList(),
+      events: events.isEmpty
+          ? [OrderEvent(status: 'PENDING', createdAt: createdAt)]
+          : events,
+      isRedacted: json['isRedacted'] as bool? ?? false,
+      canCancel: json['canCancel'] as bool? ?? false,
+      canRequestReturn: json['canRequestReturn'] as bool? ?? false,
+      returnRequests: (json['returnRequests'] as List<dynamic>? ?? const [])
+          .whereType<Map<String, dynamic>>()
+          .map(ReturnRequest.fromJson)
           .toList(),
     );
   }
@@ -188,6 +207,12 @@ class AppOrder extends Equatable {
         customerEmail,
         deliveryAddress,
         notes,
+        paymentMethod,
         items,
+        events,
+        isRedacted,
+        canCancel,
+        canRequestReturn,
+        returnRequests,
       ];
 }
