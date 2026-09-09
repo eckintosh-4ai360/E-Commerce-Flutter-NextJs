@@ -12,6 +12,10 @@ abstract class WishlistEvent extends Equatable {
   List<Object?> get props => [];
 }
 
+class WishlistStarted extends WishlistEvent {
+  const WishlistStarted();
+}
+
 class ToggleWishlist extends WishlistEvent {
   final Product product;
   const ToggleWishlist(this.product);
