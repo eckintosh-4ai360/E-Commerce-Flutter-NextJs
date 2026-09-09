@@ -1,6 +1,9 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../models/product.dart';
+import '../../services/account_service.dart';
+import '../../services/local_store.dart';
 
 // Events
 abstract class WishlistEvent extends Equatable {
