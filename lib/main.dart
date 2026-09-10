@@ -10,22 +10,18 @@ import 'blocs/navigation/navigation_bloc.dart';
 import 'blocs/wishlist/wishlist_bloc.dart';
 import 'firebase_options.dart';
 import 'screens/splash_screen.dart';
+import 'services/account_service.dart';
+import 'services/api_client.dart';
+import 'services/auth_service.dart';
+import 'services/local_store.dart';
+import 'services/order_service.dart';
 import 'theme/app_theme.dart';
 
-// void main() {
-//   WidgetsFlutterBinding.ensureInitialized();
-//   SystemChrome.setSystemUIOverlayStyle(
-//     const SystemUiOverlayStyle(
-//       statusBarColor: Colors.transparent,
-//       statusBarIconBrightness: Brightness.dark,
-//     ),
-//   );
-//   runApp(const EckintoshApp());
-// }
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await _initializeFirebaseIfSupported();
+  final store = await LocalStore.open();
 
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
