@@ -30,44 +30,91 @@ Future<void> main() async {
     ),
   );
 
-  runApp(
-    DevicePreview(
-      enabled: !kReleaseMode,
-      builder: (context) => const EckintoshApp(),
-    ),
-  );
+  runApp(EckintoshApp(store: store));
 }
 
-class EckintoshApp extends StatelessWidget {
-  const EckintoshApp({super.key});
+class EckintoshApp extends StatefulWidget {
+  const EckintoshApp({super.key, required this.store});
+
+  final LocalStore store;
+
+  @override
+  State<EckintoshApp> createState() => _EckintoshAppState();
+}
+
+class _EckintoshAppState extends State<EckintoshApp> {
+  late final AuthService _authService = AuthService();
+  late final ApiClient _api = ApiClient(
+    tokenProvider: () => _authService.getIdToken(),
+  );
+  late final OrderService _orderService = OrderService(_api);
+  late final AccountService _accountService = AccountService(_api);
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
+    return MultiRepositoryProvider(
       providers: [
-        BlocProvider(create: (_) => AuthCubit()),
-        BlocProvider(create: (_) => CatalogCubit()..loadCatalog()),
-        BlocProvider(create: (_) => CartBloc()),
-        BlocProvider(create: (_) => WishlistBloc()),
-        BlocProvider(create: (_) => NavigationBloc()),
+        RepositoryProvider.value(value: _orderService),
+        RepositoryProvider.value(value: _accountService),
       ],
-      child: MaterialApp(
-        title: 'Eckintosh',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme,
-        builder: (context, child) {
-          return Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [AppTheme.gradientStart, AppTheme.gradientEnd],
-              ),
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider(create: (_) => AuthCubit(authService: _authService)),
+          BlocProvider(create: (_) => CatalogCubit()..loadCatalog()),
+          BlocProvider(
+            create: (_) =>
+                CartBloc(store: widget.store)..add(const CartStarted()),
+          ),
+          BlocProvider(
+            create: (_) => WishlistBloc(
+              store: widget.store,
+              accountService: _accountService,
+            )..add(const WishlistStarted()),
+          ),
+          BlocProvider(create: (_) => NavigationBloc()),
+        ],
+        child: MultiBlocListener(
+          listeners: [
+            // Keep the wishlist in sync with whoever is signed in.
+            BlocListener<AuthCubit, AuthState>(
+              listenWhen: (previous, current) =>
+                  previous.user?.uid != current.user?.uid ||
+                  (previous.status != current.status &&
+                      current.status == AuthStatus.ready),
+              listener: (context, state) => context
+                  .read<WishlistBloc>()
+                  .add(WishlistUserChanged(state.user?.uid)),
             ),
-            child: child,
-          );
-        },
-        home: const SplashScreen(),
+            // Refresh cart prices and stock once the live catalog loads.
+            BlocListener<CatalogCubit, CatalogState>(
+              listenWhen: (previous, current) =>
+                  current.status == CatalogStatus.success &&
+                  !current.isFallback &&
+                  previous.products != current.products,
+              listener: (context, state) => context
+                  .read<CartBloc>()
+                  .add(SyncCartWithCatalog(state.products)),
+            ),
+          ],
+          child: MaterialApp(
+            title: 'Eckintosh',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.lightTheme,
+            builder: (context, child) {
+              return Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [AppTheme.gradientStart, AppTheme.gradientEnd],
+                  ),
+                ),
+                child: child,
+              );
+            },
+            home: const SplashScreen(),
+          ),
+        ),
       ),
     );
   }
