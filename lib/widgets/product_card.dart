@@ -211,37 +211,44 @@ class ProductCard extends StatelessWidget {
               child: BlocBuilder<CartBloc, CartState>(
                 builder: (context, cartState) {
                   final inCart = cartState.containsProduct(product.id);
+                  final available = product.inStock;
                   return GestureDetector(
-                    onTap: () {
-                      if (!inCart) {
-                        context.read<CartBloc>().add(AddToCart(product));
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('${product.name} added to cart',
-                                style: GoogleFonts.kumbhSans()),
-                            backgroundColor: AppTheme.primary,
-                            duration: const Duration(seconds: 2),
-                            behavior: SnackBarBehavior.floating,
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8)),
-                          ),
-                        );
-                      }
-                    },
+                    onTap: !available
+                        ? null
+                        : () {
+                            if (inCart) {
+                              goToCartTab(context);
+                              return;
+                            }
+                            context.read<CartBloc>().add(AddToCart(product));
+                            showAppSnack(context, '${product.name} added to cart');
+                          },
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       decoration: BoxDecoration(
-                        color: inCart ? AppTheme.accent : AppTheme.primary,
+                        color: !available
+                            ? AppTheme.cardBg
+                            : inCart
+                                ? AppTheme.accent
+                                : AppTheme.primary,
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Center(
                         child: Text(
-                          inCart ? '✓ IN CART' : 'ADD TO CART',
+                          !available
+                              ? 'OUT OF STOCK'
+                              : inCart
+                                  ? 'IN CART'
+                                  : 'ADD TO CART',
                           style: GoogleFonts.kumbhSans(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
-                            color: inCart ? AppTheme.primary : Colors.white,
+                            color: !available
+                                ? AppTheme.textLight
+                                : inCart
+                                    ? AppTheme.primary
+                                    : Colors.white,
                             letterSpacing: 0.8,
                           ),
                         ),
