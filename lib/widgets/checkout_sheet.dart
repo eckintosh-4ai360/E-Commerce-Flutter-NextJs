@@ -417,36 +417,41 @@ class _CheckoutSheetState extends State<CheckoutSheet> {
     );
   }
 
-  void _syncAuthFields(AppAuthUser? user) {
-    if (!mounted) {
-      return;
-    }
+  Widget _sectionTitle(String text) => Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: Text(text,
+            style: GoogleFonts.kumbhSans(
+                fontSize: 15, fontWeight: FontWeight.w700)),
+      );
 
-    if (user == null) {
-      if (_lastAuthedEmail != null &&
-          _emailController.text.trim() == _lastAuthedEmail) {
-        _emailController.clear();
-      }
-      if (_lastAuthedName != null &&
-          _nameController.text.trim() == _lastAuthedName) {
-        _nameController.clear();
-      }
-      _lastAuthedEmail = null;
-      _lastAuthedName = null;
-      return;
-    }
+  Widget _itemRow(String label, String value) => Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text(label, style: GoogleFonts.kumbhSans(fontSize: 13)),
+            ),
+            Text(value,
+                style: GoogleFonts.kumbhSans(
+                    fontWeight: FontWeight.w600, fontSize: 13)),
+          ],
+        ),
+      );
 
-    final trimmedName = user.displayName?.trim();
-    if ((_nameController.text.trim().isEmpty ||
-            _nameController.text.trim() == (_lastAuthedName ?? '')) &&
-        trimmedName != null &&
-        trimmedName.isNotEmpty) {
-      _nameController.text = trimmedName;
-      _lastAuthedName = trimmedName;
-    }
-
-    _emailController.text = user.email;
-    _lastAuthedEmail = user.email;
+  Widget _addressOption(DeliveryAddress address) {
+    return RadioListTile<String?>(
+      contentPadding: EdgeInsets.zero,
+      value: address.id,
+      title: Text(
+        '${address.label}${address.isDefault ? ' · Default' : ''}',
+        style: GoogleFonts.kumbhSans(fontWeight: FontWeight.w600),
+      ),
+      subtitle: Text(
+        '${address.recipientName}, ${address.oneLine} · ${address.phone}',
+        style: GoogleFonts.kumbhSans(fontSize: 12),
+      ),
+    );
   }
 
   Widget _buildAuthCard(BuildContext context, AuthState authState) {
@@ -460,11 +465,8 @@ class _CheckoutSheetState extends State<CheckoutSheet> {
           border: Border.all(color: AppTheme.divider),
         ),
         child: Text(
-          'Google sign-in is available on Android, iOS, and web builds. Use one of those targets to complete checkout with email tracking updates.',
-          style: GoogleFonts.kumbhSans(
-            color: AppTheme.textMed,
-            fontSize: 13,
-          ),
+          'Google sign-in is available on Android, iOS and the web. Use one of those to complete checkout.',
+          style: GoogleFonts.kumbhSans(color: AppTheme.textMed, fontSize: 13),
         ),
       );
     }
@@ -491,9 +493,7 @@ class _CheckoutSheetState extends State<CheckoutSheet> {
                   ? Text(
                       signedInUser.initials,
                       style: GoogleFonts.kumbhSans(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
-                      ),
+                          color: Colors.white, fontWeight: FontWeight.w700),
                     )
                   : null,
             ),
@@ -514,17 +514,7 @@ class _CheckoutSheetState extends State<CheckoutSheet> {
                   Text(
                     signedInUser.email,
                     style: GoogleFonts.kumbhSans(
-                      fontSize: 12,
-                      color: AppTheme.textMed,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'We will send order status updates to this Google account.',
-                    style: GoogleFonts.kumbhSans(
-                      fontSize: 11,
-                      color: AppTheme.textMed,
-                    ),
+                        fontSize: 12, color: AppTheme.textMed),
                   ),
                 ],
               ),
