@@ -526,9 +526,7 @@ class _CheckoutSheetState extends State<CheckoutSheet> {
               child: Text(
                 'Switch',
                 style: GoogleFonts.kumbhSans(
-                  fontWeight: FontWeight.w700,
-                  color: AppTheme.primary,
-                ),
+                    fontWeight: FontWeight.w700, color: AppTheme.primary),
               ),
             ),
           ],
@@ -557,10 +555,7 @@ class _CheckoutSheetState extends State<CheckoutSheet> {
           const SizedBox(height: 6),
           Text(
             'Checkout uses your Google account email for order confirmations and tracking updates.',
-            style: GoogleFonts.kumbhSans(
-              fontSize: 12,
-              color: AppTheme.textMed,
-            ),
+            style: GoogleFonts.kumbhSans(fontSize: 12, color: AppTheme.textMed),
           ),
           const SizedBox(height: 14),
           SizedBox(
@@ -577,8 +572,7 @@ class _CheckoutSheetState extends State<CheckoutSheet> {
                     )
                   : const Icon(Icons.login),
               label: Text(
-                authState.isBusy ? 'SIGNING IN...' : 'CONTINUE WITH GOOGLE',
-              ),
+                  authState.isBusy ? 'SIGNING IN...' : 'CONTINUE WITH GOOGLE'),
             ),
           ),
         ],
@@ -591,13 +585,11 @@ class _CheckoutSheetState extends State<CheckoutSheet> {
     String label, {
     TextInputType keyboardType = TextInputType.text,
     int maxLines = 1,
-    bool readOnly = false,
   }) {
     return TextField(
       controller: controller,
       keyboardType: keyboardType,
       maxLines: maxLines,
-      readOnly: readOnly,
       decoration: InputDecoration(
         labelText: label,
         labelStyle: GoogleFonts.kumbhSans(color: AppTheme.textMed),
