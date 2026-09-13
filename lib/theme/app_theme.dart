@@ -29,7 +29,6 @@ class AppTheme {
         primary: primary,
         secondary: accent,
         surface: surface,
-        background: background,
         error: error,
       ),
       textTheme: GoogleFonts.kumbhSansTextTheme().copyWith(
