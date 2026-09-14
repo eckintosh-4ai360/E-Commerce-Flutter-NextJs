@@ -483,14 +483,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         children: [
           for (int index = 0; index < featuredCategories.length; index++) ...[
             if (index > 0) const SizedBox(width: 12),
-            SingleChildScrollView(
-              child: Expanded(
-                child: _buildCategoryBanner(
-                  featuredCategories[index],
-                  '${products.where((product) => product.category == featuredCategories[index]).length} Products',
-                  bannerColors[index % bannerColors.length],
-                  bannerIcons[index % bannerIcons.length],
-                ),
+            Expanded(
+              child: _buildCategoryBanner(
+                featuredCategories[index],
+                '${products.where((product) => product.category == featuredCategories[index]).length} Products',
+                bannerColors[index % bannerColors.length],
+                bannerIcons[index % bannerIcons.length],
               ),
             ),
           ],
@@ -537,19 +535,38 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildSectionHeader(String title, String subtitle) {
+  Widget _buildSectionHeader(String title, String subtitle,
+      {VoidCallback? onSeeAll}) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Text(title,
-              style: GoogleFonts.kumbhSans(
-                  fontSize: 26, fontWeight: FontWeight.w700)),
-          if (subtitle.isNotEmpty)
-            Text(subtitle,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title,
+                    style: GoogleFonts.kumbhSans(
+                        fontSize: 26, fontWeight: FontWeight.w700)),
+                if (subtitle.isNotEmpty)
+                  Text(subtitle,
+                      style: GoogleFonts.kumbhSans(
+                          fontSize: 12, color: AppTheme.textMed)),
+              ],
+            ),
+          ),
+          if (onSeeAll != null)
+            TextButton(
+              onPressed: onSeeAll,
+              child: Text(
+                'See all',
                 style: GoogleFonts.kumbhSans(
-                    fontSize: 12, color: AppTheme.textMed)),
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.primary,
+                ),
+              ),
+            ),
         ],
       ),
     );
