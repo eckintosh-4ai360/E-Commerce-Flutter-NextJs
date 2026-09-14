@@ -103,6 +103,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       child: _buildSectionHeader(
                         'All Products',
                         'Eckintosh essentials for every season',
+                        onSeeAll: () => context
+                            .read<NavigationBloc>()
+                            .add(const NavigateTo(1)),
                       ),
                     ),
                     SliverToBoxAdapter(
@@ -296,7 +299,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       ),
                       const SizedBox(height: 16),
                       GestureDetector(
-                        onTap: () {},
+                        onTap: () => context
+                            .read<NavigationBloc>()
+                            .add(const NavigateTo(1)),
                         child: Container(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 20, vertical: 10),
