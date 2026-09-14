@@ -613,20 +613,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  void _openProduct(BuildContext context, Product product) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => MultiBlocProvider(
-          providers: [
-            BlocProvider.value(value: context.read<CartBloc>()),
-            BlocProvider.value(value: context.read<WishlistBloc>()),
-          ],
-          child: ProductDetailScreen(product: product),
-        ),
-      ),
-    );
-  }
+  void _openProduct(BuildContext context, Product product) =>
+      openProduct(context, product);
 
   void _showSearch(BuildContext context, List<Product> products) {
     showSearch(
