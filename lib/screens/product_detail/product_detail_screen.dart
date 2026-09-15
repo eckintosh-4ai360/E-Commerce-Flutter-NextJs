@@ -452,7 +452,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     color: AppTheme.textDark),
               ),
             ),
-            _qtyBtn(Icons.add, () => setState(() => _quantity++)),
+            _qtyBtn(Icons.add, () {
+              if (_quantity < AppConfig.maxQuantityPerLine) {
+                setState(() => _quantity++);
+              }
+            }),
           ],
         ),
       ],
@@ -562,47 +566,46 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       ),
       child: BlocBuilder<CartBloc, CartState>(
         builder: (context, state) {
-          final inCart = state.containsProduct(p.id);
+          final line = state.itemFor(
+              CartItem.keyFor(p.id, _selectedColor, _selectedSize));
+          final inCart = line != null;
           return Row(
             children: [
               Expanded(
                 child: GestureDetector(
-                  onTap: () {
-                    context.read<CartBloc>().add(AddToCart(
-                          p,
-                          selectedColor: _selectedColor,
-                          selectedSize: _selectedSize,
-                        ));
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Added to cart!',
-                            style: GoogleFonts.kumbhSans()),
-                        backgroundColor: AppTheme.primary,
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8)),
-                        duration: const Duration(seconds: 2),
-                      ),
-                    );
-                  },
+                  onTap: p.inStock ? () => _addToCart(context, p, line) : null,
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     height: 54,
                     decoration: BoxDecoration(
-                      color: inCart ? AppTheme.cardBg : AppTheme.primary,
+                      color: !p.inStock
+                          ? AppTheme.cardBg
+                          : inCart
+                              ? AppTheme.cardBg
+                              : AppTheme.primary,
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: inCart ? AppTheme.divider : AppTheme.primary,
+                        color: inCart || !p.inStock
+                            ? AppTheme.divider
+                            : AppTheme.primary,
                       ),
                     ),
                     child: Center(
                       child: Text(
-                        inCart ? '✓ IN CART' : 'ADD TO CART',
+                        !p.inStock
+                            ? 'OUT OF STOCK'
+                            : inCart
+                                ? '${line.quantity} IN CART · ADD $_quantity MORE'
+                                : 'ADD $_quantity TO CART',
                         style: GoogleFonts.kumbhSans(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
                           letterSpacing: 1.2,
-                          color: inCart ? AppTheme.textDark : Colors.white,
+                          color: !p.inStock
+                              ? AppTheme.textLight
+                              : inCart
+                                  ? AppTheme.textDark
+                                  : Colors.white,
                         ),
                       ),
                     ),
