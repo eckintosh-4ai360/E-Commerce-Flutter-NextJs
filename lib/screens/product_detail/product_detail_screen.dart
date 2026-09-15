@@ -1,15 +1,32 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:eckintosh/screens/cart/cart_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:share_plus/share_plus.dart';
+
 import '../../blocs/cart/cart_bloc.dart';
-// import '../../blocs/cart/cart_event.dart';
-// import '../../blocs/cart/cart_state.dart';
+import '../../blocs/navigation/navigation_bloc.dart';
 import '../../blocs/wishlist/wishlist_bloc.dart';
+import '../../config/app_config.dart';
+import '../../models/cart_item.dart';
 import '../../models/product.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/common.dart';
+
+/// Opens a product page. Blocs are provided app-wide, so no re-wrapping is needed.
+void openProduct(BuildContext context, Product product) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(builder: (_) => ProductDetailScreen(product: product)),
+  );
+}
+
+/// Leaves any pushed screens and switches to the Cart tab.
+void goToCartTab(BuildContext context) {
+  final navigation = context.read<NavigationBloc>();
+  Navigator.of(context).popUntil((route) => route.isFirst);
+  navigation.add(const NavigateTo(3));
+}
 
 class ProductDetailScreen extends StatefulWidget {
   final Product product;
@@ -103,6 +120,23 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         ),
       ),
       actions: [
+        GestureDetector(
+          onTap: () => _share(p),
+          child: Container(
+            margin: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.9),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1), blurRadius: 8)
+              ],
+            ),
+            child: const Icon(Icons.share_outlined,
+                size: 18, color: AppTheme.primary),
+          ),
+        ),
         BlocBuilder<WishlistBloc, WishlistState>(
           builder: (context, state) {
             final isWishlisted = state.contains(p.id);
@@ -242,13 +276,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   Widget _buildRatingRow(Product p) {
     return Row(
       children: [
-        RatingBarIndicator(
-          rating: p.rating,
-          itemBuilder: (_, __) =>
-              const Icon(Icons.star, color: AppTheme.accent),
-          itemCount: 5,
-          itemSize: 16,
-        ),
+        RatingStars(rating: p.rating),
         const SizedBox(width: 8),
         Text(
           '${p.rating} (${p.reviewCount} reviews)',
