@@ -614,13 +614,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               ),
               const SizedBox(width: 12),
               GestureDetector(
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const CartScreen(),
-                    ),
-                  );
-                },
+                onTap: () => goToCartTab(context),
                 child: Container(
                   height: 54,
                   width: 54,
@@ -637,6 +631,59 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         },
       ),
     );
+  }
+
+  void _addToCart(BuildContext context, Product p, CartItem? existing) {
+    final current = existing?.quantity ?? 0;
+    if (current >= AppConfig.maxQuantityPerLine) {
+      showAppSnack(
+        context,
+        'You can order at most ${AppConfig.maxQuantityPerLine} of one item.',
+        error: true,
+      );
+      return;
+    }
+    context.read<CartBloc>().add(AddToCart(
+          p,
+          quantity: _quantity,
+          selectedColor: _selectedColor,
+          selectedSize: _selectedSize,
+        ));
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text('Added $_quantity × ${p.name} to cart',
+              style: GoogleFonts.kumbhSans()),
+          backgroundColor: AppTheme.primary,
+          behavior: SnackBarBehavior.floating,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          duration: const Duration(seconds: 3),
+          action: SnackBarAction(
+            label: 'VIEW CART',
+            textColor: AppTheme.accent,
+            onPressed: () => goToCartTab(context),
+          ),
+        ),
+      );
+    setState(() => _quantity = 1);
+  }
+
+  Future<void> _share(Product p) async {
+    final url = AppConfig.webUri('/product/${p.id}').toString();
+    try {
+      await SharePlus.instance.share(
+        ShareParams(
+          text: '${p.name} — ${formatPrice(p.price)} at Eckintosh Mall\n$url',
+          subject: p.name,
+        ),
+      );
+    } catch (_) {
+      if (mounted) {
+        showAppSnack(context, 'Could not open the share sheet.', error: true);
+      }
+    }
   }
 
   Widget _buildErrorImage() {
