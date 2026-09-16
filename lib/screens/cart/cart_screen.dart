@@ -1,121 +1,96 @@
-// ignore_for_file: prefer_const_declarations
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../blocs/cart/cart_bloc.dart';
 import '../../blocs/navigation/navigation_bloc.dart';
+import '../../config/app_config.dart';
 import '../../models/app_order.dart';
 import '../../models/cart_item.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/checkout_sheet.dart';
+import '../../widgets/common.dart';
+import '../orders/order_details_screen.dart';
+import '../product_detail/product_detail_screen.dart';
 
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppTheme.background,
-      appBar: AppBar(
-        title: const Text('My Cart'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        actions: [
-          BlocBuilder<CartBloc, CartState>(
-            builder: (context, state) {
-              if (state.items.isEmpty) {
-                return const SizedBox();
-              }
-
-              return TextButton(
-                onPressed: () => _showClearDialog(context),
-                child: Text(
-                  'Clear',
-                  style: GoogleFonts.kumbhSans(
-                    color: AppTheme.error,
-                    fontWeight: FontWeight.w600,
+    return BlocListener<CartBloc, CartState>(
+      listenWhen: (previous, current) =>
+          current.removedProducts.isNotEmpty &&
+          previous.removedProducts != current.removedProducts,
+      listener: (context, state) => showAppSnack(
+        context,
+        '${state.removedProducts.join(', ')} ${state.removedProducts.length == 1 ? 'is' : 'are'} no longer available and was removed from your cart.',
+        error: true,
+      ),
+      child: Scaffold(
+        backgroundColor: AppTheme.background,
+        appBar: AppBar(
+          title: const Text('My Cart'),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          actions: [
+            BlocBuilder<CartBloc, CartState>(
+              builder: (context, state) {
+                if (state.items.isEmpty) {
+                  return const SizedBox();
+                }
+                return TextButton(
+                  onPressed: () => _showClearDialog(context),
+                  child: Text(
+                    'Clear',
+                    style: GoogleFonts.kumbhSans(
+                      color: AppTheme.error,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
+                );
+              },
+            ),
+          ],
+        ),
+        body: BlocBuilder<CartBloc, CartState>(
+          builder: (context, state) {
+            if (state.items.isEmpty) {
+              return EmptyView(
+                icon: Icons.shopping_bag_outlined,
+                title: 'Your cart is empty',
+                message: 'Discover our beautiful collection',
+                action: ElevatedButton(
+                  onPressed: () =>
+                      context.read<NavigationBloc>().add(const NavigateTo(1)),
+                  child: const Text('SHOP NOW'),
                 ),
               );
-            },
-          ),
-        ],
-      ),
-      body: BlocBuilder<CartBloc, CartState>(
-        builder: (context, state) {
-          if (state.items.isEmpty) {
-            return _buildEmpty(context);
-          }
+            }
 
-          return Column(
-            children: [
-              Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: state.items.length,
-                  itemBuilder: (_, index) => _CartItemCard(
-                    item: state.items[index],
+            return Column(
+              children: [
+                Expanded(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: state.items.length,
+                    itemBuilder: (_, index) =>
+                        _CartItemCard(item: state.items[index]),
                   ),
                 ),
-              ),
-              _buildCheckoutBar(context, state),
-            ],
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildEmpty(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 100,
-            height: 100,
-            decoration: const BoxDecoration(
-              color: AppTheme.cardBg,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.shopping_bag_outlined,
-              size: 48,
-              color: AppTheme.textLight,
-            ),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            'Your cart is empty',
-            style: GoogleFonts.kumbhSans(
-              fontSize: 24,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Discover our beautiful collection',
-            style: GoogleFonts.kumbhSans(
-              color: AppTheme.textMed,
-              fontSize: 13,
-            ),
-          ),
-          const SizedBox(height: 28),
-          ElevatedButton(
-            onPressed: () =>
-                context.read<NavigationBloc>().add(const NavigateTo(1)),
-            child: const Text('SHOP NOW'),
-          ),
-        ],
+                _buildCheckoutBar(context, state),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
 
   Widget _buildCheckoutBar(BuildContext context, CartState state) {
-    final freeShippingThreshold = 300.0;
-    final remaining = freeShippingThreshold - state.totalPrice;
+    final remaining = AppConfig.freeShippingThreshold - state.subtotal;
+    final progress =
+        (state.subtotal / AppConfig.freeShippingThreshold).clamp(0.0, 1.0);
 
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
@@ -131,68 +106,58 @@ class CartScreen extends StatelessWidget {
       ),
       child: Column(
         children: [
-          if (remaining > 0)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.local_shipping_outlined,
-                    size: 16,
-                    color: AppTheme.textMed,
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      'Add GHS ${remaining.toStringAsFixed(0)} more for free shipping',
-                      style: GoogleFonts.kumbhSans(
-                        fontSize: 12,
-                        color: AppTheme.textMed,
-                      ),
-                    ),
-                  ),
-                ],
+          Row(
+            children: [
+              Icon(
+                remaining > 0 ? Icons.local_shipping_outlined : Icons.local_shipping,
+                size: 16,
+                color: remaining > 0 ? AppTheme.textMed : AppTheme.success,
               ),
-            )
-          else
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.local_shipping,
-                    size: 16,
-                    color: AppTheme.success,
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  remaining > 0
+                      ? 'Add ${formatPrice(remaining)} more for free shipping'
+                      : 'You qualify for free shipping.',
+                  style: GoogleFonts.kumbhSans(
+                    fontSize: 12,
+                    color: remaining > 0 ? AppTheme.textMed : AppTheme.success,
+                    fontWeight: remaining > 0 ? FontWeight.w400 : FontWeight.w600,
                   ),
-                  const SizedBox(width: 6),
-                  Text(
-                    'You qualify for free shipping.',
-                    style: GoogleFonts.kumbhSans(
-                      fontSize: 12,
-                      color: AppTheme.success,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
+                ),
               ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 5,
+              backgroundColor: AppTheme.cardBg,
+              color: AppTheme.accent,
             ),
+          ),
+          const SizedBox(height: 12),
+          _summaryRow('Subtotal (${state.totalItems} items)', formatMoney(state.subtotal)),
+          _summaryRow(
+            'Shipping',
+            state.shippingFee == 0 ? 'Free' : formatMoney(state.shippingFee),
+          ),
+          const Divider(height: 18),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Text('Total',
+                      style: GoogleFonts.kumbhSans(
+                          fontSize: 12, color: AppTheme.textMed)),
                   Text(
-                    'Total',
+                    formatMoney(state.total),
                     style: GoogleFonts.kumbhSans(
-                      fontSize: 12,
-                      color: AppTheme.textMed,
-                    ),
-                  ),
-                  Text(
-                    'GHS ${state.totalPrice.toStringAsFixed(2)}',
-                    style: GoogleFonts.kumbhSans(
-                      fontSize: 28,
+                      fontSize: 24,
                       fontWeight: FontWeight.w700,
                       color: AppTheme.primary,
                     ),
