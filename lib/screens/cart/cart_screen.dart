@@ -165,18 +165,42 @@ class CartScreen extends StatelessWidget {
                 ],
               ),
               ElevatedButton(
-                onPressed: () => _showCheckoutDialog(context, state),
+                onPressed: state.hasUnavailableItems
+                    ? null
+                    : () => _showCheckout(context),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primary,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 36,
-                    vertical: 16,
-                  ),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                 ),
                 child: const Text('CHECKOUT'),
               ),
             ],
           ),
+          if (state.hasUnavailableItems)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                'Remove out-of-stock items to continue.',
+                style: GoogleFonts.kumbhSans(color: AppTheme.error, fontSize: 12),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _summaryRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label,
+              style: GoogleFonts.kumbhSans(fontSize: 13, color: AppTheme.textMed)),
+          Text(value,
+              style: GoogleFonts.kumbhSans(
+                  fontSize: 13, fontWeight: FontWeight.w600)),
         ],
       ),
     );
@@ -185,7 +209,7 @@ class CartScreen extends StatelessWidget {
   void _showClearDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         title: Text(
           'Clear Cart',
@@ -197,7 +221,7 @@ class CartScreen extends StatelessWidget {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: Text(
               'Cancel',
               style: GoogleFonts.kumbhSans(color: AppTheme.textMed),
@@ -205,8 +229,8 @@ class CartScreen extends StatelessWidget {
           ),
           TextButton(
             onPressed: () {
-              context.read<CartBloc>().add(ClearCart());
-              Navigator.pop(context);
+              context.read<CartBloc>().add(const ClearCart());
+              Navigator.pop(dialogContext);
             },
             child: Text(
               'Clear',
