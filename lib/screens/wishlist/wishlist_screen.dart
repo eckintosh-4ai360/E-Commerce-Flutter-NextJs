@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../blocs/cart/cart_bloc.dart';
 import '../../blocs/navigation/navigation_bloc.dart';
 import '../../blocs/wishlist/wishlist_bloc.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/common.dart';
 import '../../widgets/product_card.dart';
 import '../product_detail/product_detail_screen.dart';
 
