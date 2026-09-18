@@ -20,65 +20,55 @@ class WishlistScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
-      body: BlocBuilder<WishlistBloc, WishlistState>(
+      body: BlocConsumer<WishlistBloc, WishlistState>(
+        listenWhen: (previous, current) =>
+            current.errorMessage != null &&
+            previous.errorMessage != current.errorMessage,
+        listener: (context, state) =>
+            showAppSnack(context, state.errorMessage!, error: true),
         builder: (context, state) {
           if (state.items.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 100,
-                    height: 100,
-                    decoration: const BoxDecoration(
-                      color: AppTheme.cardBg,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.favorite_border,
-                        size: 48, color: AppTheme.textLight),
-                  ),
-                  const SizedBox(height: 20),
-                  Text('No items in wishlist',
-                      style: GoogleFonts.kumbhSans(
-                          fontSize: 24, fontWeight: FontWeight.w600)),
-                  const SizedBox(height: 8),
-                  Text('Save your favourite pieces here',
-                      style: GoogleFonts.kumbhSans(
-                          color: AppTheme.textMed, fontSize: 13)),
-                  const SizedBox(height: 28),
-                  ElevatedButton(
-                    onPressed: () =>
-                        context.read<NavigationBloc>().add(const NavigateTo(0)),
-                    child: const Text('EXPLORE'),
-                  ),
-                ],
+            return EmptyView(
+              icon: Icons.favorite_border,
+              title: 'No items in wishlist',
+              message: 'Save your favourite pieces here',
+              action: ElevatedButton(
+                onPressed: () =>
+                    context.read<NavigationBloc>().add(const NavigateTo(0)),
+                child: const Text('EXPLORE'),
               ),
             );
           }
-          return GridView.builder(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 110),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: 0.62,
-            ),
-            itemCount: state.items.length,
-            itemBuilder: (context, i) => ProductCard(
-              product: state.items[i],
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => MultiBlocProvider(
-                    providers: [
-                      BlocProvider.value(value: context.read<CartBloc>()),
-                      BlocProvider.value(value: context.read<WishlistBloc>()),
-                    ],
-                    child: ProductDetailScreen(product: state.items[i]),
+
+          return Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+                child: Text(
+                  state.isSynced
+                      ? 'Synced with your account on the app and website.'
+                      : 'Saved on this device. Sign in from the Account tab to sync it with the website.',
+                  style: GoogleFonts.kumbhSans(
+                      fontSize: 12, color: AppTheme.textMed),
+                ),
+              ),
+              Expanded(
+                child: GridView.builder(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 110),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    childAspectRatio: 0.62,
+                  ),
+                  itemCount: state.items.length,
+                  itemBuilder: (context, i) => ProductCard(
+                    product: state.items[i],
+                    onTap: () => openProduct(context, state.items[i]),
                   ),
                 ),
               ),
-            ),
+            ],
           );
         },
       ),
