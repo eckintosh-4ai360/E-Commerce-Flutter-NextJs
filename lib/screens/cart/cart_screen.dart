@@ -245,37 +245,26 @@ class CartScreen extends StatelessWidget {
     );
   }
 
-  Future<void> _showCheckoutDialog(
-    BuildContext context,
-    CartState state,
-  ) async {
+  Future<void> _showCheckout(BuildContext context) async {
     final order = await showModalBottomSheet<AppOrder>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (_) => CheckoutSheet(
-        items: state.items,
-        cartTotal: state.totalPrice,
-      ),
+      builder: (_) => const CheckoutSheet(),
     );
 
     if (order == null || !context.mounted) {
       return;
     }
 
-    context.read<CartBloc>().add(ClearCart());
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Order #${order.trackingCode} placed successfully. It is now available in My Orders and Track Order.',
-          style: GoogleFonts.kumbhSans(),
-        ),
-        backgroundColor: AppTheme.success,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        duration: const Duration(seconds: 4),
+    context.read<CartBloc>().add(const ClearCart());
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => OrderDetailsScreen(order: order, justPlaced: true),
       ),
     );
   }
@@ -288,124 +277,128 @@ class _CartItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final imagePath = item.product.primaryImage;
+    final options = item.optionsLabel;
 
     return Dismissible(
-      key: Key('cart_${item.product.id}'),
+      key: ValueKey('cart_${item.lineKey}'),
       direction: DismissDirection.endToStart,
       onDismissed: (_) =>
-          context.read<CartBloc>().add(RemoveFromCart(item.product.id)),
+          context.read<CartBloc>().add(RemoveFromCart(item.lineKey)),
       background: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
+        margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
           color: AppTheme.error.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
         ),
-        child:
-            const Icon(Icons.delete_outline, color: AppTheme.error, size: 28),
+        child: const Icon(Icons.delete_outline, color: AppTheme.error, size: 28),
       ),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: AppTheme.surface,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: imagePath == null
-                  ? _buildErrorImage()
-                  : imagePath.startsWith('assets')
-                      ? Image.asset(
-                          imagePath,
-                          width: 80,
-                          height: 90,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => _buildErrorImage(),
-                        )
-                      : Image.network(
-                          imagePath,
-                          width: 80,
-                          height: 90,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => _buildErrorImage(),
-                        ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item.product.name,
-                    style: GoogleFonts.kumbhSans(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (item.selectedColor != null)
+      child: GestureDetector(
+        onTap: () => openProduct(context, item.product),
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppTheme.surface,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: ProductThumb(
+                  imageUrl: item.product.primaryImage,
+                  width: 80,
+                  height: 90,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Text(
-                      item.selectedColor!,
+                      item.product.name,
                       style: GoogleFonts.kumbhSans(
-                        fontSize: 12,
-                        color: AppTheme.textMed,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (options.isNotEmpty)
+                      Text(
+                        options,
+                        style: GoogleFonts.kumbhSans(
+                          fontSize: 12,
+                          color: AppTheme.textMed,
+                        ),
+                      ),
+                    if (!item.product.inStock)
+                      Text(
+                        'Out of stock',
+                        style: GoogleFonts.kumbhSans(
+                          fontSize: 12,
+                          color: AppTheme.error,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    const SizedBox(height: 8),
+                    Text(
+                      formatPrice(item.product.price),
+                      style: GoogleFonts.kumbhSans(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.primary,
                       ),
                     ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'GHS ${item.product.price.toStringAsFixed(0)}',
-                    style: GoogleFonts.kumbhSans(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: AppTheme.primary,
+                  ],
+                ),
+              ),
+              Column(
+                children: [
+                  _qtyBtn(
+                    Icons.add,
+                    item.quantity >= AppConfig.maxQuantityPerLine
+                        ? null
+                        : () => context.read<CartBloc>().add(
+                              UpdateCartQuantity(item.lineKey, item.quantity + 1),
+                            ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Text(
+                      '${item.quantity}',
+                      style: GoogleFonts.kumbhSans(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
+                  ),
+                  _qtyBtn(
+                    Icons.remove,
+                    () => context.read<CartBloc>().add(
+                          UpdateCartQuantity(item.lineKey, item.quantity - 1),
+                        ),
                   ),
                 ],
               ),
-            ),
-            Column(
-              children: [
-                _qtyBtn(context, Icons.add, () {
-                  context.read<CartBloc>().add(
-                        UpdateCartQuantity(item.product.id, item.quantity + 1),
-                      );
-                }),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Text(
-                    '${item.quantity}',
-                    style: GoogleFonts.kumbhSans(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-                _qtyBtn(context, Icons.remove, () {
-                  context.read<CartBloc>().add(
-                        UpdateCartQuantity(item.product.id, item.quantity - 1),
-                      );
-                }),
-              ],
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _qtyBtn(BuildContext context, IconData icon, VoidCallback onTap) {
+  Widget _qtyBtn(IconData icon, VoidCallback? onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -416,19 +409,9 @@ class _CartItemCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(6),
           border: Border.all(color: AppTheme.divider),
         ),
-        child: Icon(icon, size: 14, color: AppTheme.primary),
-      ),
-    );
-  }
-
-  Widget _buildErrorImage() {
-    return Container(
-      width: 80,
-      height: 90,
-      color: AppTheme.cardBg,
-      child: const Icon(
-        Icons.image_not_supported_outlined,
-        color: AppTheme.textLight,
+        child: Icon(icon,
+            size: 14,
+            color: onTap == null ? AppTheme.textLight : AppTheme.primary),
       ),
     );
   }
