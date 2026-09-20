@@ -1,354 +1,370 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
+import '../../blocs/cart/cart_bloc.dart';
+import '../../blocs/catalog/catalog_cubit.dart';
 import '../../models/app_order.dart';
+import '../../services/order_service.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/common.dart';
+import '../account/returns_refunds_screen.dart';
+import '../product_detail/product_detail_screen.dart';
 
-class OrderDetailsScreen extends StatelessWidget {
+/// Pops with the latest [AppOrder] when something changed (e.g. cancelled).
+class OrderDetailsScreen extends StatefulWidget {
   const OrderDetailsScreen({
     super.key,
     required this.order,
+    this.justPlaced = false,
   });
 
   final AppOrder order;
+  final bool justPlaced;
+
+  @override
+  State<OrderDetailsScreen> createState() => _OrderDetailsScreenState();
+}
+
+class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
+  late AppOrder _order = widget.order;
+  bool _changed = false;
+  bool _busy = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _refresh();
+  }
+
+  Future<void> _refresh() async {
+    try {
+      final latest =
+          await context.read<OrderService>().trackOrder(_order.id);
+      if (mounted && !latest.isRedacted) {
+        setState(() => _order = latest);
+      }
+    } catch (_) {
+      // Keep showing what we have; this is only a freshness check.
+    }
+  }
+
+  Future<void> _cancel() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text('Cancel this order?',
+            style: GoogleFonts.kumbhSans(fontWeight: FontWeight.w700)),
+        content: Text(
+          "We'll stop preparing it and email you a confirmation. This can't be undone.",
+          style: GoogleFonts.kumbhSans(),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Keep order'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text('Cancel order',
+                style: GoogleFonts.kumbhSans(
+                    color: AppTheme.error, fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _busy = true);
+    try {
+      final updated = await context.read<OrderService>().cancelOrder(_order.id);
+      if (!mounted) return;
+      setState(() {
+        _order = updated;
+        _changed = true;
+      });
+      showAppSnack(context, 'Your order has been cancelled.');
+    } catch (error) {
+      if (mounted) showAppSnack(context, friendlyError(error), error: true);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  void _buyAgain() {
+    final catalog = context.read<CatalogCubit>().state.products;
+    final byId = {for (final product in catalog) product.id: product};
+    var added = 0;
+    for (final item in _order.items) {
+      final product = byId[item.productId];
+      if (product != null && product.inStock) {
+        context.read<CartBloc>().add(AddToCart(
+              product,
+              quantity: item.quantity,
+              selectedColor: item.selectedColor,
+              selectedSize: item.selectedSize,
+            ));
+        added++;
+      }
+    }
+    if (added == 0) {
+      showAppSnack(context, 'These items are no longer available.', error: true);
+      return;
+    }
+    showAppSnack(
+      context,
+      added == _order.items.length
+          ? 'All items were added to your cart.'
+          : '$added of ${_order.items.length} items were added; the rest are unavailable.',
+    );
+    goToCartTab(context);
+  }
 
   @override
   Widget build(BuildContext context) {
-    final formatter = DateFormat('MMM d, yyyy - h:mm a');
+    final order = _order;
+    final formatter = DateFormat('MMM d, yyyy · h:mm a');
 
-    return Scaffold(
-      backgroundColor: AppTheme.background,
-      appBar: AppBar(
-        title: Text(
-          'Order Details',
-          style: GoogleFonts.kumbhSans(fontWeight: FontWeight.w600),
+    return PopScope<AppOrder>(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          Navigator.pop(context, _changed ? _order : null);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppTheme.background,
+        appBar: AppBar(
+          title: Text('Order Details',
+              style: GoogleFonts.kumbhSans(fontWeight: FontWeight.w600)),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
         ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSectionCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+        body: RefreshIndicator(
+          onRefresh: _refresh,
+          child: ListView(
+            padding: const EdgeInsets.all(20),
+            children: [
+              if (widget.justPlaced)
+                Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppTheme.success.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
                     children: [
+                      const Icon(Icons.check_circle, color: AppTheme.success),
+                      const SizedBox(width: 10),
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Order #${order.trackingCode}',
-                              style: GoogleFonts.kumbhSans(
-                                fontWeight: FontWeight.w700,
-                                fontSize: 18,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              order.id,
-                              style: GoogleFonts.kumbhSans(
-                                color: AppTheme.textLight,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: _statusColor(order.status).withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
                         child: Text(
-                          order.displayStatus,
+                          'Order placed! A confirmation is on its way to ${order.customerEmail ?? 'your email'}. Tracking code: ${order.trackingCode}',
                           style: GoogleFonts.kumbhSans(
-                            color: _statusColor(order.status),
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
+                              color: AppTheme.success,
+                              fontWeight: FontWeight.w600),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
-                  _buildInfoRow('Placed', formatter.format(order.createdAt.toLocal())),
-                  const SizedBox(height: 10),
-                  _buildInfoRow('Customer', order.customerName),
-                  const SizedBox(height: 10),
-                  _buildInfoRow('Phone', order.customerPhone),
-                  if (order.customerEmail != null && order.customerEmail!.isNotEmpty) ...[
-                    const SizedBox(height: 10),
-                    _buildInfoRow('Email', order.customerEmail!),
-                  ],
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Items',
-              style: GoogleFonts.kumbhSans(
-                fontWeight: FontWeight.w700,
-                fontSize: 16,
-              ),
-            ),
-            const SizedBox(height: 16),
-            ...order.items.map(
-              (item) => Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppTheme.surface,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
                 ),
-                child: Row(
+              SectionCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      width: 70,
-                      height: 70,
-                      decoration: BoxDecoration(
-                        color: AppTheme.cardBg,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: item.imageUrl == null
-                          ? const Icon(
-                              Icons.shopping_bag_outlined,
-                              color: AppTheme.primary,
-                              size: 30,
-                            )
-                          : ClipRRect(
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Order #${order.trackingCode}',
+                                  style: GoogleFonts.kumbhSans(
+                                      fontWeight: FontWeight.w700, fontSize: 18)),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Placed ${formatter.format(order.createdAt.toLocal())}',
+                                style: GoogleFonts.kumbhSans(
+                                    color: AppTheme.textMed, fontSize: 12),
+                              ),
+                            ],
+                          ),
+                        ),
+                        StatusChip(status: order.status),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+                    OrderProgress(status: order.status),
+                  ],
+                ),
+              ),
+              SectionCard(
+                title: 'Items (${order.items.length})',
+                child: Column(
+                  children: [
+                    for (final item in order.items)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Row(
+                          children: [
+                            ClipRRect(
                               borderRadius: BorderRadius.circular(8),
-                              child: Image.network(
-                                item.imageUrl!,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => const Icon(
-                                  Icons.shopping_bag_outlined,
-                                  color: AppTheme.primary,
-                                  size: 30,
-                                ),
+                              child: ProductThumb(
+                                  imageUrl: item.imageUrl, width: 54, height: 54),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(item.productName,
+                                      style: GoogleFonts.kumbhSans(
+                                          fontWeight: FontWeight.w600)),
+                                  Text(
+                                    [
+                                      'Qty ${item.quantity}',
+                                      if (item.selectedColor != null) item.selectedColor!,
+                                      if (item.selectedSize != null) 'Size ${item.selectedSize}',
+                                    ].join(' · '),
+                                    style: GoogleFonts.kumbhSans(
+                                        fontSize: 12, color: AppTheme.textMed),
+                                  ),
+                                ],
                               ),
                             ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            item.productName,
-                            style: GoogleFonts.kumbhSans(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 15,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            _itemSubtitle(item),
-                            style: GoogleFonts.kumbhSans(
-                              color: AppTheme.textMed,
-                              fontSize: 13,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'GHS ${item.totalPrice.toStringAsFixed(2)}',
-                            style: GoogleFonts.kumbhSans(
-                              fontWeight: FontWeight.w700,
-                              color: AppTheme.primary,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
+                            Text(formatMoney(item.totalPrice),
+                                style: GoogleFonts.kumbhSans(
+                                    fontWeight: FontWeight.w700)),
+                          ],
+                        ),
                       ),
-                    ),
+                    const Divider(height: 20),
+                    _summaryRow('Subtotal', formatMoney(order.subtotal)),
+                    _summaryRow('Shipping',
+                        order.shippingFee == 0 ? 'Free' : formatMoney(order.shippingFee)),
+                    _summaryRow('Total', formatMoney(order.total), bold: true),
                   ],
                 ),
               ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Delivery',
-              style: GoogleFonts.kumbhSans(
-                fontWeight: FontWeight.w700,
-                fontSize: 16,
-              ),
-            ),
-            const SizedBox(height: 16),
-            _buildSectionCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    order.deliveryAddress?.trim().isNotEmpty == true
-                        ? order.deliveryAddress!
-                        : 'No delivery address was provided for this order.',
-                    style: GoogleFonts.kumbhSans(
-                      color: order.deliveryAddress?.trim().isNotEmpty == true
-                          ? AppTheme.textDark
-                          : AppTheme.textMed,
-                      fontSize: 14,
-                      height: 1.5,
-                    ),
-                  ),
-                  if (order.notes != null && order.notes!.trim().isNotEmpty) ...[
-                    const SizedBox(height: 16),
-                    Text(
-                      'Order Notes',
-                      style: GoogleFonts.kumbhSans(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 14,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      order.notes!,
-                      style: GoogleFonts.kumbhSans(
-                        color: AppTheme.textMed,
-                        fontSize: 13,
-                        height: 1.5,
-                      ),
-                    ),
+              SectionCard(
+                title: 'Delivery',
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _detailRow(Icons.person_outline, order.customerName),
+                    if (order.deliveryAddress != null)
+                      _detailRow(Icons.location_on_outlined, order.deliveryAddress!),
+                    _detailRow(Icons.phone_outlined, order.customerPhone),
+                    if (order.customerEmail != null)
+                      _detailRow(Icons.email_outlined, order.customerEmail!),
+                    _detailRow(Icons.account_balance_wallet_outlined,
+                        paymentMethodLabel(order.paymentMethod)),
+                    if (order.notes != null && order.notes!.isNotEmpty)
+                      _detailRow(Icons.sticky_note_2_outlined, order.notes!),
                   ],
-                ],
+                ),
               ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Order Summary',
-              style: GoogleFonts.kumbhSans(
-                fontWeight: FontWeight.w700,
-                fontSize: 16,
+              SectionCard(
+                title: 'Timeline',
+                child: OrderTimeline(events: order.events),
               ),
-            ),
-            const SizedBox(height: 16),
-            _buildSectionCard(
-              child: Column(
-                children: [
-                  _buildSummaryRow('Subtotal', order.subtotal),
-                  const SizedBox(height: 12),
-                  _buildSummaryRow('Shipping', order.shippingFee),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 16),
-                    child: Divider(height: 1),
+              if (order.returnRequests.isNotEmpty)
+                SectionCard(
+                  title: 'Returns',
+                  child: Column(
+                    children: [
+                      for (final request in order.returnRequests)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  request.adminNote == null
+                                      ? request.reason
+                                      : '${request.reason} — ${request.adminNote}',
+                                  style: GoogleFonts.kumbhSans(fontSize: 13),
+                                ),
+                              ),
+                              StatusChip(status: request.status),
+                            ],
+                          ),
+                        ),
+                    ],
                   ),
-                  _buildSummaryRow('Total', order.total, emphasize: true),
-                ],
+                ),
+              if (order.canRequestReturn)
+                OutlinedButton.icon(
+                  onPressed: () async {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            ReturnsRefundsScreen(initialOrderId: order.id),
+                      ),
+                    );
+                    _changed = true;
+                    _refresh();
+                  },
+                  icon: const Icon(Icons.replay),
+                  label: const Text('REQUEST A RETURN'),
+                ),
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
+                onPressed: _buyAgain,
+                icon: const Icon(Icons.shopping_bag_outlined),
+                label: const Text('BUY AGAIN'),
               ),
-            ),
-            const SizedBox(height: 32),
-          ],
+              if (order.canCancel) ...[
+                const SizedBox(height: 10),
+                TextButton.icon(
+                  onPressed: _busy ? null : _cancel,
+                  icon: const Icon(Icons.cancel_outlined, color: AppTheme.error),
+                  label: Text(
+                    _busy ? 'CANCELLING...' : 'CANCEL ORDER',
+                    style: GoogleFonts.kumbhSans(
+                        color: AppTheme.error, fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 40),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildSectionCard({required Widget child}) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
+  Widget _summaryRow(String label, String value, {bool bold = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label,
+              style: GoogleFonts.kumbhSans(
+                  color: bold ? AppTheme.textDark : AppTheme.textMed,
+                  fontWeight: bold ? FontWeight.w700 : FontWeight.w500)),
+          Text(value,
+              style: GoogleFonts.kumbhSans(
+                  fontWeight: FontWeight.w700, fontSize: bold ? 17 : 14)),
         ],
       ),
-      child: child,
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 72,
-          child: Text(
-            label,
-            style: GoogleFonts.kumbhSans(
-              color: AppTheme.textMed,
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-        Expanded(
-          child: Text(
-            value,
-            style: GoogleFonts.kumbhSans(
-              color: AppTheme.textDark,
-              fontSize: 13,
-            ),
-          ),
-        ),
-      ],
+  Widget _detailRow(IconData icon, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18, color: AppTheme.textLight),
+          const SizedBox(width: 10),
+          Expanded(child: Text(value, style: GoogleFonts.kumbhSans(fontSize: 14))),
+        ],
+      ),
     );
-  }
-
-  Widget _buildSummaryRow(
-    String title,
-    double amount, {
-    bool emphasize = false,
-  }) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          title,
-          style: GoogleFonts.kumbhSans(
-            color: emphasize ? AppTheme.textDark : AppTheme.textMed,
-            fontWeight: emphasize ? FontWeight.w700 : FontWeight.w500,
-          ),
-        ),
-        Text(
-          'GHS ${amount.toStringAsFixed(2)}',
-          style: GoogleFonts.kumbhSans(
-            color: AppTheme.primary,
-            fontWeight: FontWeight.w700,
-            fontSize: emphasize ? 18 : 14,
-          ),
-        ),
-      ],
-    );
-  }
-
-  String _itemSubtitle(AppOrderItem item) {
-    final details = <String>['Qty ${item.quantity}'];
-    if (item.selectedColor != null && item.selectedColor!.trim().isNotEmpty) {
-      details.add(item.selectedColor!.trim());
-    }
-    if (item.selectedSize != null && item.selectedSize!.trim().isNotEmpty) {
-      details.add(item.selectedSize!.trim());
-    }
-    return details.join(' | ');
-  }
-
-  Color _statusColor(String status) {
-    switch (status.toUpperCase()) {
-      case 'DELIVERED':
-        return AppTheme.success;
-      case 'PROCESSING':
-      case 'SHIPPED':
-        return AppTheme.accent;
-      case 'CANCELLED':
-        return AppTheme.error;
-      default:
-        return AppTheme.primary;
-    }
   }
 }
