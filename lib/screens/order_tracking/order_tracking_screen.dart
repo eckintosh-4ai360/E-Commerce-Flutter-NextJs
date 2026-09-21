@@ -19,12 +19,19 @@ class OrderTrackingScreen extends StatefulWidget {
 }
 
 class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
-  final _controller = TextEditingController();
-  final _orderService = OrderService();
+  late final _controller = TextEditingController(text: widget.initialCode);
 
   AppOrder? _order;
   bool _isLoading = false;
   String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    if ((widget.initialCode ?? '').isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _trackOrder());
+    }
+  }
 
   @override
   void dispose() {
@@ -33,15 +40,16 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
   }
 
   Future<void> _trackOrder() async {
-    final orderId = _controller.text.trim();
-    if (orderId.isEmpty) {
+    final code = _controller.text.trim().replaceFirst('#', '');
+    if (code.isEmpty) {
       setState(() {
-        _errorMessage = 'Enter an order ID first.';
+        _errorMessage = 'Enter your tracking code first.';
         _order = null;
       });
       return;
     }
 
+    FocusScope.of(context).unfocus();
     setState(() {
       _isLoading = true;
       _errorMessage = null;
