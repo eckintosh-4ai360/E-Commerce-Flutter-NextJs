@@ -222,12 +222,7 @@ class AccountScreen extends StatelessWidget {
 
   Widget _buildOrderTracking(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const OrderTrackingScreen()),
-        );
-      },
+      onTap: () => _push(context, const OrderTrackingScreen()),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -249,7 +244,7 @@ class AccountScreen extends StatelessWidget {
                           fontWeight: FontWeight.w700,
                           fontSize: 14,
                           color: AppTheme.textDark)),
-                  Text('Enter your order ID to track delivery',
+                  Text('Enter your tracking code to follow your delivery',
                       style: GoogleFonts.kumbhSans(
                           fontSize: 12, color: AppTheme.textMed)),
                 ],
@@ -262,14 +257,13 @@ class AccountScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuSection(BuildContext context, String title,
-      List<(IconData, String, Widget?)> items) {
+  Widget _buildMenuSection(String title, List<_MenuItem> items) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: const EdgeInsets.only(bottom: 8),
-          child: Text(title,
+          child: Text(title.toUpperCase(),
               style: GoogleFonts.kumbhSans(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
