@@ -1,86 +1,91 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import '../../blocs/auth/auth_cubit.dart';
+import '../../config/app_config.dart';
 import '../../theme/app_theme.dart';
-import '../orders/orders_screen.dart';
+import '../../widgets/common.dart';
 import '../order_tracking/order_tracking_screen.dart';
-import 'returns_refunds_screen.dart';
-import 'edit_profile_screen.dart';
+import '../orders/orders_screen.dart';
 import 'delivery_addresses_screen.dart';
-import 'payment_methods_screen.dart';
+import 'edit_profile_screen.dart';
 import 'faq_help_screen.dart';
+import 'payment_methods_screen.dart';
+import 'returns_refunds_screen.dart';
+
+typedef _MenuItem = (IconData icon, String label, VoidCallback onTap);
 
 class AccountScreen extends StatelessWidget {
   const AccountScreen({super.key});
 
+  void _push(BuildContext context, Widget screen) {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppTheme.cardBg,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 110),
-          child: Column(
-            children: [
-              _buildProfileHeader(),
-              const SizedBox(height: 28),
-              _buildOrderTracking(context),
-              const SizedBox(height: 20),
-              _buildMenuSection(context, 'Shopping', [
-                (
-                  Icons.receipt_long_outlined,
-                  'My Orders',
-                  const OrdersScreen()
-                ),
-                (
-                  Icons.local_shipping_outlined,
-                  'Track Order',
-                  const OrderTrackingScreen()
-                ),
-                (
-                  Icons.replay,
-                  'Returns & Refunds',
-                  const ReturnsRefundsScreen()
-                ),
-              ]),
-              const SizedBox(height: 16),
-              _buildMenuSection(context, 'Account', [
-                (
-                  Icons.person_outline,
-                  'Edit Profile',
-                  const EditProfileScreen()
-                ),
-                (
-                  Icons.location_on_outlined,
-                  'Delivery Addresses',
-                  const DeliveryAddressesScreen()
-                ),
-                (
-                  Icons.payment_outlined,
-                  'Payment Methods',
-                  const PaymentMethodsScreen()
-                ),
-              ]),
-              const SizedBox(height: 16),
-              _buildMenuSection(context, 'Support', [
-                (Icons.phone_outlined, 'Call: +233 59 859 9687', null),
-                (Icons.email_outlined, 'info@Eckintoshmall.com', null),
-                (
-                  Icons.help_outline,
-                  'FAQ & Help Center',
-                  const FaqHelpScreen()
-                ),
-              ]),
-              const SizedBox(height: 16),
-              _buildMenuSection(context, 'Follow Us', [
-                (Icons.camera_alt_outlined, 'Instagram @Eckintoshmall', null),
-                (Icons.facebook_outlined, 'Facebook: Eckintoshmall', null),
-                (Icons.alternate_email, 'Twitter @Eckintosh_mall', null),
-              ]),
-              const SizedBox(height: 32),
-              _buildFooter(),
-            ],
+    return BlocListener<AuthCubit, AuthState>(
+      listenWhen: (previous, current) =>
+          current.errorMessage != null &&
+          previous.errorMessage != current.errorMessage,
+      listener: (context, state) =>
+          showAppSnack(context, state.errorMessage!, error: true),
+      child: Scaffold(
+        backgroundColor: AppTheme.cardBg,
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 110),
+            child: Column(
+              children: [
+                _buildProfileHeader(),
+                const SizedBox(height: 28),
+                _buildOrderTracking(context),
+                const SizedBox(height: 20),
+                _buildMenuSection('Shopping', [
+                  (Icons.receipt_long_outlined, 'My Orders',
+                      () => _push(context, const OrdersScreen())),
+                  (Icons.local_shipping_outlined, 'Track Order',
+                      () => _push(context, const OrderTrackingScreen())),
+                  (Icons.replay, 'Returns & Refunds',
+                      () => _push(context, const ReturnsRefundsScreen())),
+                ]),
+                const SizedBox(height: 16),
+                _buildMenuSection('Account', [
+                  (Icons.person_outline, 'Edit Profile',
+                      () => _push(context, const EditProfileScreen())),
+                  (Icons.location_on_outlined, 'Delivery Addresses',
+                      () => _push(context, const DeliveryAddressesScreen())),
+                  (Icons.payment_outlined, 'Payment Methods',
+                      () => _push(context, const PaymentMethodsScreen())),
+                ]),
+                const SizedBox(height: 16),
+                _buildMenuSection('Support', [
+                  (Icons.phone_outlined, 'Call: ${AppConfig.supportPhone}',
+                      () => openExternal(context, AppConfig.supportPhoneUri)),
+                  (Icons.email_outlined, AppConfig.supportEmail,
+                      () => openExternal(context, 'mailto:${AppConfig.supportEmail}')),
+                  (Icons.help_outline, 'FAQ & Help Center',
+                      () => _push(context, const FaqHelpScreen())),
+                ]),
+                const SizedBox(height: 16),
+                _buildMenuSection('Shop anywhere', [
+                  (Icons.language, 'Shop on the website',
+                      () => openExternal(context, AppConfig.webBaseUri.toString())),
+                ]),
+                const SizedBox(height: 16),
+                _buildMenuSection('Follow Us', [
+                  (Icons.camera_alt_outlined, 'Instagram @Eckintoshmall',
+                      () => openExternal(context, AppConfig.instagramUrl)),
+                  (Icons.facebook_outlined, 'Facebook: Eckintoshmall',
+                      () => openExternal(context, AppConfig.facebookUrl)),
+                  (Icons.alternate_email, 'X @Eckintosh_mall',
+                      () => openExternal(context, AppConfig.twitterUrl)),
+                ]),
+                const SizedBox(height: 32),
+                _buildFooter(),
+              ],
+            ),
           ),
         ),
       ),
@@ -113,11 +118,10 @@ class AccountScreen extends StatelessWidget {
                       ? Image.network(
                           user!.photoUrl!,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => _buildAvatarFallback(),
+                          errorBuilder: (_, __, ___) =>
+                              _buildAvatarFallback(initials: user.initials),
                         )
-                      : _buildAvatarFallback(
-                          initials: user?.initials,
-                        ),
+                      : _buildAvatarFallback(initials: user?.initials),
                 ),
               ),
               const SizedBox(width: 16),
@@ -206,7 +210,7 @@ class AccountScreen extends StatelessWidget {
                   ? 'SIGN OUT'
                   : 'SIGN IN WITH GOOGLE',
           style: GoogleFonts.kumbhSans(
-            color: isSignedIn ? AppTheme.primary : AppTheme.primary,
+            color: AppTheme.primary,
             fontSize: 11,
             fontWeight: FontWeight.w700,
             letterSpacing: 1,
