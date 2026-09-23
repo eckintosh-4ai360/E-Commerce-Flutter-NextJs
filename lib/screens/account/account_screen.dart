@@ -282,40 +282,28 @@ class AccountScreen extends StatelessWidget {
             ],
           ),
           child: Column(
-            children: items.asMap().entries.map((entry) {
-              final i = entry.key;
-              final item = entry.value;
-              return Column(
-                children: [
-                  ListTile(
-                    leading: Container(
-                      width: 38,
-                      height: 38,
-                      decoration: BoxDecoration(
-                        color: AppTheme.cardBg,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Icon(item.$1, size: 18, color: AppTheme.primary),
+            children: [
+              for (var i = 0; i < items.length; i++) ...[
+                ListTile(
+                  leading: Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      color: AppTheme.cardBg,
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    title: Text(item.$2,
-                        style: GoogleFonts.kumbhSans(
-                            fontSize: 13, fontWeight: FontWeight.w500)),
-                    trailing: const Icon(Icons.chevron_right,
-                        size: 18, color: AppTheme.textLight),
-                    onTap: () {
-                      if (item.$3 != null) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => item.$3!),
-                        );
-                      }
-                    },
+                    child: Icon(items[i].$1, size: 18, color: AppTheme.primary),
                   ),
-                  if (i < items.length - 1)
-                    const Divider(indent: 66, height: 1),
-                ],
-              );
-            }).toList(),
+                  title: Text(items[i].$2,
+                      style: GoogleFonts.kumbhSans(
+                          fontSize: 13, fontWeight: FontWeight.w500)),
+                  trailing: const Icon(Icons.chevron_right,
+                      size: 18, color: AppTheme.textLight),
+                  onTap: items[i].$3,
+                ),
+                if (i < items.length - 1) const Divider(indent: 66, height: 1),
+              ],
+            ],
           ),
         ),
       ],
@@ -325,24 +313,20 @@ class AccountScreen extends StatelessWidget {
   Widget _buildFooter() {
     return Column(
       children: [
-        Image.network(
-          'https://Eckintoshmall.com/wp-content/uploads/2025/08/Eckintoshmall-logo-black-on-white.png',
-          height: 48,
-          errorBuilder: (_, __, ___) => Text(
-            'ECKINTOSH',
-            style: GoogleFonts.kumbhSans(
-                fontSize: 22, fontWeight: FontWeight.w700, letterSpacing: 3),
-          ),
+        Text(
+          'ECKINTOSH',
+          style: GoogleFonts.kumbhSans(
+              fontSize: 22, fontWeight: FontWeight.w700, letterSpacing: 3),
         ),
         const SizedBox(height: 8),
         Text(
-          'Crafted in rich colors, delivered across Accra.',
+          'Crafted in rich colours, delivered across Ghana.',
           style: GoogleFonts.kumbhSans(fontSize: 12, color: AppTheme.textMed),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 8),
         Text(
-          'Copyright 2026 © Eckintoshmall. All rights reserved.',
+          'Copyright ${DateTime.now().year} © Eckintoshmall. All rights reserved.',
           style: GoogleFonts.kumbhSans(fontSize: 10, color: AppTheme.textLight),
         ),
       ],
