@@ -16,91 +16,148 @@ class EditProfileScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
-        title: Text('Edit Profile', style: GoogleFonts.kumbhSans(fontWeight: FontWeight.w600)),
+        title: Text('Edit Profile',
+            style: GoogleFonts.kumbhSans(fontWeight: FontWeight.w600)),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            Center(
-              child: Stack(
-                children: [
-                  Container(
-                    width: 100,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      color: AppTheme.surface,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: AppTheme.accentLight, width: 3),
-                    ),
-                    child: const Icon(Icons.person, size: 50, color: AppTheme.textLight),
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: const BoxDecoration(
-                        color: AppTheme.primary,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.camera_alt, color: Colors.white, size: 16),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 32),
-            _buildTextField('Full Name', 'John Doe'),
-            const SizedBox(height: 16),
-            _buildTextField('Email Address', 'john.doe@example.com'),
-            const SizedBox(height: 16),
-            _buildTextField('Phone Number', '+233 59 859 9687'),
-            const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: () {},
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 0,
-                ),
-                child: Text(
-                  'Save Changes',
-                  style: GoogleFonts.kumbhSans(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 15,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
+      body: RequireSignIn(
+        title: 'Sign in to edit your profile',
+        message: 'Your profile is shared between the app and the website.',
+        builder: (_) => const _ProfileForm(),
       ),
     );
   }
+}
 
-  Widget _buildTextField(String label, String placeholder) {
-    return TextField(
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: GoogleFonts.kumbhSans(color: AppTheme.textMed),
-        hintText: placeholder,
-        filled: true,
-        fillColor: AppTheme.surface,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
+class _ProfileForm extends StatefulWidget {
+  const _ProfileForm();
+
+  @override
+  State<_ProfileForm> createState() => _ProfileFormState();
+}
+
+class _ProfileFormState extends State<_ProfileForm> {
+  final _nameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  CustomerProfile? _profile;
+  String? _error;
+  bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _phoneController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _load() async {
+    try {
+      final profile = await context.read<AccountService>().getProfile();
+      if (!mounted) return;
+      setState(() {
+        _profile = profile;
+        _nameController.text =
+            profile.name ?? context.read<AuthCubit>().state.user?.displayName ?? '';
+        _phoneController.text = profile.phone ?? '';
+      });
+    } catch (error) {
+      if (mounted) setState(() => _error = friendlyError(error));
+    }
+  }
+
+  Future<void> _save() async {
+    FocusScope.of(context).unfocus();
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
+    try {
+      final profile = await context.read<AccountService>().updateProfile(
+            name: _nameController.text.trim(),
+            phone: _phoneController.text.trim(),
+          );
+      if (!mounted) return;
+      setState(() => _profile = profile);
+      showAppSnack(context, 'Profile saved');
+    } catch (error) {
+      if (mounted) setState(() => _error = friendlyError(error));
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final user = context.read<AuthCubit>().state.user;
+    if (_profile == null && _error == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    return ListView(
+      padding: const EdgeInsets.all(20),
+      children: [
+        Center(
+          child: CircleAvatar(
+            radius: 46,
+            backgroundColor: AppTheme.primary,
+            backgroundImage:
+                user?.photoUrl == null ? null : NetworkImage(user!.photoUrl!),
+            child: user?.photoUrl == null
+                ? Text(user?.initials ?? '',
+                    style: GoogleFonts.kumbhSans(
+                        color: AppTheme.accent,
+                        fontSize: 26,
+                        fontWeight: FontWeight.w700))
+                : null,
+          ),
         ),
-        floatingLabelBehavior: FloatingLabelBehavior.always,
-      ),
+        const SizedBox(height: 28),
+        TextField(
+          controller: _nameController,
+          textCapitalization: TextCapitalization.words,
+          decoration: const InputDecoration(labelText: 'Full name'),
+        ),
+        const SizedBox(height: 16),
+        TextFormField(
+          initialValue: _profile?.email ?? user?.email,
+          readOnly: true,
+          decoration: const InputDecoration(
+            labelText: 'Email address',
+            helperText: 'Your email comes from your Google account.',
+          ),
+        ),
+        const SizedBox(height: 16),
+        TextField(
+          controller: _phoneController,
+          keyboardType: TextInputType.phone,
+          decoration: const InputDecoration(
+            labelText: 'Phone number',
+            hintText: '059 859 9687',
+            helperText: 'Pre-fills checkout and is used for delivery calls.',
+          ),
+        ),
+        if (_error != null) ...[
+          const SizedBox(height: 16),
+          Text(_error!,
+              style: GoogleFonts.kumbhSans(
+                  color: AppTheme.error, fontWeight: FontWeight.w600)),
+        ],
+        const SizedBox(height: 28),
+        SizedBox(
+          height: 52,
+          child: ElevatedButton(
+            onPressed: _saving || _profile == null ? null : _save,
+            child: Text(_saving ? 'SAVING...' : 'SAVE CHANGES'),
+          ),
+        ),
+      ],
     );
   }
 }
