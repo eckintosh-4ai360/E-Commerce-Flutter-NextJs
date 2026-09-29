@@ -75,10 +75,10 @@ class _FaqHelpScreenState extends State<FaqHelpScreen> {
         padding: const EdgeInsets.all(20),
         children: [
           TextField(
+            onChanged: (value) => setState(() => _query = value),
             decoration: InputDecoration(
               hintText: 'Search for help...',
-              hintStyle: GoogleFonts.kumbhSans(color: AppTheme.textLight),
-              prefixIcon: const Icon(Icons.search, color: AppTheme.textLight),
+              prefixIcon: const Icon(Icons.search),
               filled: true,
               fillColor: AppTheme.surface,
               border: OutlineInputBorder(
