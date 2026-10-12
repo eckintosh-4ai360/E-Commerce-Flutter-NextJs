@@ -1,105 +1,155 @@
 # ECKINTOSH Mall - Premium E-commerce Storefront
 
-A high-end, **full-stack e-commerce platform** designed for a seamless shopping experience. **Eckintosh Mall** combines a visually stunning **Flutter** mobile application with a powerful **Next.js** backend to deliver speed, reliability, and elegance.
+A full-stack store for leather bags and accessories. Customers can shop in the **Flutter mobile app** or on the **website** — both use the same Next.js backend, so the catalogue, account, wishlist, saved addresses, orders and returns are shared.
 
 ---
+
+## What's in this repository
+
+| Part | Where | What it does |
+| --- | --- | --- |
+| Mobile app | `lib/` (Flutter) | Android, iOS and web builds of the shopping app |
+| Website | `backend/src/app/(store)` (Next.js) | The same shopping experience in the browser: home, shop with filters, product pages, cart, checkout, wishlist, order tracking, account, addresses, returns, help |
+| Admin | `backend/src/app/admin` | Products (with image upload), orders, returns and dashboard — Google sign-in, restricted to `ADMIN_EMAILS` |
+| API | `backend/src/app/api` | REST API used by the app, the website and the admin |
 
 ## Features
 
-- **Premium UI/UX**: Crafted with the **Kumbh Sans** typeface and fluid **Lottie** animations for a luxury feel.
-- **Dynamic Catalog**: Real-time product synchronization powered by **Next.js** and **Prisma**.
-- **Smart Filtering**: Advanced search and categorization to help users find products effortlessly.
-- **Secure Checkout**: Streamlined order creation process with real-time backend validation.
-- **Order Tracking**: Track orders from placement to delivery using unique tracking IDs.
-- **Responsive Design**: Fully optimized for **Android**, **iOS**, and **Web** platforms.
-- **Admin Dashboard**: Centralized management for products, orders, and customer data.
+- **Shop anywhere**: the website mirrors the app; signing in with the same Google account syncs the wishlist, addresses, profile, orders and returns.
+- **Catalogue**: categories, search, sort, price/colour/size filters, sale / new / best-seller collections, product pages with colour, size and quantity selection, sharing.
+- **Cart**: per-variant lines, saved on the device, prices refreshed from the live catalogue, free-shipping progress.
+- **Checkout**: Google sign-in, saved addresses, cash or Mobile Money on delivery, server-side pricing, protection against duplicate submissions and price changes.
+- **After purchase**: confirmation and status emails, order timeline, public tracking by code (personal details hidden), cancel while pending, return requests within 14 days, buy again.
+- **Admin**: dashboard, paginated order search, status updates with customer notes and emails, product management (products that appear in orders are archived, not deleted), return handling.
 
----
+## Tech stack
 
-## Tech Stack
-
-### **Frontend (Mobile & Web)**
-
-- **Framework**: Flutter (Dart)
-- **State Management**: BLoC (Business Logic Component)
-- **Styling**: Custom Theme System, Google Fonts (Kumbh Sans)
-- **Animations**: Lottie, Animate_do, Flutter Staggered Animations
-
-### **Backend (API & Database)**
-
-- **Framework**: Next.js (App Router)
-- **ORM**: Prisma
-- **Database**: PostgreSQL (Hosted on Neon)
-- **API**: RESTful architecture
+- **App**: Flutter, BLoC, Firebase Auth (Google), shared_preferences
+- **Backend & website**: Next.js 16 (App Router), React 19, Prisma, PostgreSQL (Neon), zod, Firebase Admin, Resend (email), Cloudinary (images)
 
 ---
 
 ## Screenshots
 
-|                 Splash Screen                  |                Home Page                 |              Product Details              |                                           | profile |
-| :--------------------------------------------: | :--------------------------------------: | :---------------------------------------: | :---------------------------------------: | ------- |
-| ![Splash](assets/screenshots/splashscreen.JPG) | ![Home](assets/screenshots/homepage.JPG) | ![Detail](assets/screenshots/catalog.JPG) | ![Detail](assets/screenshots/profile.JPG) |
+| Splash Screen | Home Page | Product Details | Profile |
+| :---: | :---: | :---: | :---: |
+| ![Splash](assets/screenshots/splashscreen.JPG) | ![Home](assets/screenshots/homepage.JPG) | ![Detail](assets/screenshots/catalog.JPG) | ![Profile](assets/screenshots/profile.JPG) |
 
 ---
 
-## Installation & Setup
+## Setup
 
-### **1. Prerequisites**
+### Prerequisites
 
-- **Flutter SDK** (Latest stable version)
-- **Node.js** (v18 or higher)
-- **PostgreSQL** database (Local or Cloud like Neon.tech)
+- Flutter SDK (stable)
+- Node.js 20 or newer
+- A PostgreSQL database (for example Neon)
+- A Firebase project with **Google** enabled under Authentication → Sign-in method
 
-### **2. Backend & Database Setup**
-
-Navigate to the `backend` directory and follow these steps:
+### 1. Backend, website and admin
 
 ```bash
-# Install dependencies
+cd backend
 npm install
+cp .env.example .env        # then fill in the values (see below)
 
-# Configure environment variables
-# Create a .env file based on .env.example with your DATABASE_URL
+npm run db:push             # create / update tables
+npm run db:seed             # optional: demo products
+npm run db:backfill         # only for databases that already have orders (safe to re-run)
 
-# Generate Prisma Client & Push Schema
-npx prisma generate
-npx prisma db push
-
-# Seed the database with demo products
-npx prisma db seed
-
-# Start the development server
-npm run dev -- --hostname 0.0.0.0
+npm run dev                 # http://localhost:3000
 ```
 
-_The backend will run on `http://localhost:3000`._
+Key settings in `backend/.env` (all are documented in `.env.example`):
 
-### **3. Flutter Application**
+| Variable | Needed for |
+| --- | --- |
+| `DATABASE_URL`, `DIRECT_URL` | Everything |
+| `ADMIN_EMAILS` | Signing in to `/admin` (comma-separated Google emails) |
+| `PUBLIC_APP_URL` | Absolute image URLs, email links, sitemap (set it in production) |
+| `FIREBASE_ADMIN_PROJECT_ID` | Verifying sign-ins (defaults to this project) |
+| `RESEND_API_KEY`, `ORDER_EMAIL_FROM` | Order emails (skipped when unset) |
+| `CLOUDINARY_*` | Image uploads in the admin |
+| `NEXT_PUBLIC_ANDROID_APP_URL`, `NEXT_PUBLIC_IOS_APP_URL` | "Get the app" links on the website |
 
-From the project root directory:
+For Google sign-in on the website, add your domain (for example `localhost` and your production domain) in Firebase Console → Authentication → Settings → Authorized domains.
+
+### 2. Flutter app
 
 ```bash
-# Fetch dependencies
 flutter pub get
 
-# Run the app (Standard)
+# Emulator (talks to http://10.0.2.2:3000/api on Android)
 flutter run
 
-# Run on physical device (with machine IP)
-flutter run --dart-define=API_BASE_URL=http://your-ip-address:3000/api
+# Physical device or production
+flutter run \
+  --dart-define=API_BASE_URL=https://your-domain.com/api \
+  --dart-define=WEB_BASE_URL=https://your-domain.com
+```
+
+**Google sign-in on Android** needs the app's SHA-1 fingerprint registered in Firebase (Project settings → Your apps → Android). Then download the new `google-services.json` into `android/app/`. If sign-in still returns no ID token, pass the project's *Web client ID* (Firebase → Authentication → Sign-in method → Google → Web SDK configuration):
+
+```bash
+flutter run --dart-define=GOOGLE_SERVER_CLIENT_ID=xxxx.apps.googleusercontent.com
 ```
 
 ---
 
-## Future Roadmap
+## Testing
 
-- [ ] **AI Recommendations**: Personalizing the shopping feed based on user behavior.
-- [ ] **Multi-Vendor Support**: Allowing third-party sellers to list products.
-- [ ] **Real-time Notifications**: Firebase Cloud Messaging for order updates and promos.
-- [ ] **Payment Integration**: Adding Stripe, Flutterwave, or Paystack for live transactions.
+```bash
+# Backend
+cd backend
+npm run typecheck
+npm test
+npm run build
+
+# Flutter
+flutter analyze
+flutter test
+```
 
 ---
+
+## Security model
+
+- All `/api/admin/*` routes and the `/admin` pages require a Google account listed in `ADMIN_EMAILS`.
+- Customers only see their own orders, addresses, wishlist and returns (Firebase ID token required).
+- Public order tracking needs the full 10-character code and hides phone, email and address.
+- Prices, shipping and stock are always computed on the server; the client's expected total is checked so customers are never charged a different amount than they saw.
+- Checkout requests carry an idempotency key so retries can't create duplicate orders.
+- Rate limits on checkout, tracking, returns and uploads; uploads are verified by file contents.
+- Security headers (frame, content-type, referrer, HSTS, permissions) on every response.
+
+## Before publishing the Android app
+
+1. **Application id** — change `applicationId` (`com.example.Eckintoshmall`) in `android/app/build.gradle.kts`, register the new id in Firebase and download its `google-services.json`. Google Play rejects `com.example` ids.
+2. **Upload key** — create one once and keep it safe (losing it means you can't update the app):
+
+   ```bash
+   keytool -genkey -v -keystore ~/eckintosh-upload.jks -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+   ```
+
+   Then create `android/key.properties` (already gitignored):
+
+   ```properties
+   storePassword=<password from keytool>
+   keyPassword=<password from keytool>
+   keyAlias=upload
+   storeFile=C:/Users/<you>/eckintosh-upload.jks
+   ```
+
+   `flutter build appbundle` signs with this key automatically. Without the file, release builds fall back to the debug key, which works for testing but can't be uploaded to Google Play.
+3. Add the upload key's SHA-1 (`keytool -list -v -keystore <file> -alias upload`) to Firebase too, or Google sign-in will fail in release builds.
+
+## Roadmap
+
+- [ ] Online payments (Paystack / Flutterwave)
+- [ ] Push notifications for order updates
+- [ ] Stock quantities per product and variant
+- [ ] AI recommendations
 
 ## License
 
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **MIT License**.
