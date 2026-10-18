@@ -1,3 +1,4 @@
+import 'package:device_preview/device_preview.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -30,7 +31,12 @@ Future<void> main() async {
     ),
   );
 
-  runApp(EckintoshApp(store: store));
+  runApp(
+    DevicePreview(
+      enabled: !kReleaseMode,
+      builder: (_) => EckintoshApp(store: store),
+    ),
+  );
 }
 
 class EckintoshApp extends StatefulWidget {
@@ -99,17 +105,21 @@ class _EckintoshAppState extends State<EckintoshApp> {
           child: MaterialApp(
             title: 'Eckintosh',
             debugShowCheckedModeBanner: false,
+            locale: DevicePreview.locale(context),
             theme: AppTheme.lightTheme,
             builder: (context, child) {
-              return Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [AppTheme.gradientStart, AppTheme.gradientEnd],
+              return DevicePreview.appBuilder(
+                context,
+                Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [AppTheme.gradientStart, AppTheme.gradientEnd],
+                    ),
                   ),
+                  child: child,
                 ),
-                child: child,
               );
             },
             home: const SplashScreen(),
