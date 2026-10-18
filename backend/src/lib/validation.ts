@@ -152,6 +152,11 @@ const imagePathSchema = z
     'Image must be an uploaded image, an https:// URL or a /products/ path.',
   );
 
+const galleryImagesSchema = z
+  .array(imagePathSchema)
+  .max(4, 'A product can have at most 5 images including the main image.')
+  .transform((values) => Array.from(new Set(values)));
+
 const productFields = {
   name: text('Product name', 2, 120),
   description: text('Description', 1, 2000),
@@ -166,6 +171,7 @@ const productFields = {
     .nullable()
     .optional(),
   imagePath: imagePathSchema,
+  galleryImages: galleryImagesSchema,
   category: text('Category', 1, 60),
   tags: listOfLabels('Tags'),
   rating: z.number().min(0, 'Rating must be between 0 and 5.').max(5, 'Rating must be between 0 and 5.'),
@@ -195,9 +201,26 @@ const originalPriceMessage = {
   path: ['originalPrice'],
 };
 
+export function productImagesAreDistinct(value: {
+  imagePath?: string;
+  galleryImages?: string[];
+}) {
+  return (
+    value.imagePath === undefined ||
+    value.galleryImages === undefined ||
+    !value.galleryImages.includes(value.imagePath)
+  );
+}
+
+const distinctProductImagesMessage = {
+  message: 'The main image cannot also be included in the additional images.',
+  path: ['galleryImages'],
+};
+
 export const createProductSchema = z
   .object({
     ...productFields,
+    galleryImages: productFields.galleryImages.default([]),
     tags: productFields.tags.default([]),
     sizes: productFields.sizes.default([]),
     colors: productFields.colors.default([]),
@@ -208,9 +231,13 @@ export const createProductSchema = z
     isBestSeller: productFields.isBestSeller.default(false),
     isArchived: productFields.isArchived.default(false),
   })
-  .refine(originalPriceAbovePrice, originalPriceMessage);
+  .refine(originalPriceAbovePrice, originalPriceMessage)
+  .refine(productImagesAreDistinct, distinctProductImagesMessage);
 
-export const updateProductSchema = z.object(productFields).partial();
+export const updateProductSchema = z
+  .object(productFields)
+  .partial()
+  .refine(productImagesAreDistinct, distinctProductImagesMessage);
 
 export function assertOriginalPriceAbovePrice(value: {
   price?: number;

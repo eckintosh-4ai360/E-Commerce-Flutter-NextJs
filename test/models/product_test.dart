@@ -21,6 +21,27 @@ void main() {
       );
     });
 
+    test('keeps multiple product images in primary-first order', () {
+      final product = Product.fromJson(const {
+        'id': 4,
+        'name': 'Gallery Product',
+        'description': 'Test product',
+        'price': 120,
+        'images': [
+          '/products/main.jpg',
+          '/products/side.jpg',
+          '/products/back.jpg',
+        ],
+      });
+
+      expect(product.images, [
+        AppConfig.resolveMediaUrl('/products/main.jpg'),
+        AppConfig.resolveMediaUrl('/products/side.jpg'),
+        AppConfig.resolveMediaUrl('/products/back.jpg'),
+      ]);
+      expect(product.primaryImage, product.images.first);
+    });
+
     test('prefers full image urls from CMS objects before thumbnails', () {
       final product = Product.fromJson(const {
         'id': 2,

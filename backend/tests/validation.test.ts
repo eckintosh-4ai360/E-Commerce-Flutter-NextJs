@@ -79,6 +79,7 @@ test('product defaults are filled and lists de-duplicated', () => {
   assert.deepEqual(parsed.colors, ['Black', 'Tan']);
   assert.equal(parsed.inStock, true);
   assert.equal(parsed.rating, 4.5);
+  assert.deepEqual(parsed.galleryImages, []);
 });
 
 test('original price must exceed the price', () => {
@@ -93,5 +94,32 @@ test('product images must be https URLs or local paths', () => {
   assert.equal(
     createProductSchema.safeParse({ ...validProduct, imagePath: 'https://res.cloudinary.com/demo/image/upload/x.jpg' }).success,
     true,
+  );
+});
+
+test('products allow one main image and up to four distinct gallery images', () => {
+  const galleryImages = [
+    '/products/tote-side.jpg',
+    '/products/tote-back.jpg',
+    'https://res.cloudinary.com/demo/image/upload/tote-detail.jpg',
+    '/products/tote-inside.jpg',
+  ];
+  assert.equal(
+    createProductSchema.safeParse({ ...validProduct, galleryImages }).success,
+    true,
+  );
+  assert.equal(
+    createProductSchema.safeParse({
+      ...validProduct,
+      galleryImages: [...galleryImages, '/products/tote-extra.jpg'],
+    }).success,
+    false,
+  );
+  assert.equal(
+    createProductSchema.safeParse({
+      ...validProduct,
+      galleryImages: [validProduct.imagePath],
+    }).success,
+    false,
   );
 });

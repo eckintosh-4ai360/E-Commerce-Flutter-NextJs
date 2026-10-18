@@ -4,13 +4,13 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import { ProductCard } from '@/components/store/ProductCard';
-import { ProductImage } from '@/components/store/ProductImage';
+import { ProductGallery } from '@/components/store/ProductGallery';
 import { PurchasePanel } from '@/components/store/PurchasePanel';
 import { PriceRow, RatingStars } from '@/components/store/ui';
 import { getProduct, getRelatedProducts } from '@/lib/catalog';
 import { getPublicBaseUrl } from '@/lib/http';
 import { discountPercent, formatPrice } from '@/lib/money';
-import { resolveImageUrl, serialiseProduct } from '@/lib/serializers';
+import { productImagePaths, resolveImageUrl, serialiseProduct } from '@/lib/serializers';
 import { storeConfig } from '@/lib/store-config';
 
 type ProductPageProps = { params: Promise<{ id: string }> };
@@ -66,7 +66,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     '@type': 'Product',
     name: product.name,
     description: product.description,
-    image: [resolveImageUrl(record.imagePath)],
+    image: productImagePaths(record),
     category: product.category,
     sku: String(product.id),
     brand: { '@type': 'Brand', name: storeConfig.shortName },
@@ -109,19 +109,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
       </nav>
 
       <div className="pdp">
-        <div className="pdp__gallery">
-          <ProductImage
-            src={product.images[0]}
-            alt={product.name}
-            priority
-            sizes="(min-width: 900px) 600px, 100vw"
-          />
-          {discount !== null ? (
-            <span className="badge badge--sale">{discount}% OFF</span>
-          ) : product.isNew ? (
-            <span className="badge badge--new">NEW</span>
-          ) : null}
-        </div>
+        <ProductGallery
+          images={product.images}
+          productName={product.name}
+          discount={discount}
+          isNew={product.isNew}
+        />
 
         <div className="pdp__info">
           <div className="pdp__title-row">

@@ -13,8 +13,10 @@ import { getPrisma } from '@/lib/prisma';
 import { revalidateStorefront } from '@/lib/revalidate';
 import {
   assertOriginalPriceAbovePrice,
+  productImagesAreDistinct,
   updateProductSchema,
 } from '@/lib/validation';
+import { parseList } from '@/lib/serializers';
 
 type Context = { params: Promise<{ id: string }> };
 
@@ -55,9 +57,23 @@ export const PUT = route<Context>(async (request, { params }) => {
     );
   }
 
-  const { tags, sizes, colors, ...fields } = input;
+  const imagePath = input.imagePath ?? existing.imagePath;
+  const galleryImages = input.galleryImages ?? parseList(existing.galleryImages);
+  if (!productImagesAreDistinct({ imagePath, galleryImages })) {
+    throw new HttpError(
+      400,
+      'The main image cannot also be included in the additional images.',
+      {},
+      { field: 'galleryImages' },
+    );
+  }
+
+  const { tags, sizes, colors, galleryImages: nextGalleryImages, ...fields } = input;
   const data: Prisma.ProductUpdateInput = {
     ...fields,
+    ...(nextGalleryImages !== undefined
+      ? { galleryImages: JSON.stringify(nextGalleryImages) }
+      : {}),
     ...(tags !== undefined ? { tags: JSON.stringify(tags) } : {}),
     ...(sizes !== undefined ? { sizes: JSON.stringify(sizes) } : {}),
     ...(colors !== undefined ? { colors: JSON.stringify(colors) } : {}),

@@ -31,6 +31,7 @@ export const POST = route(async (request) => {
   const data = {
     ...input,
     originalPrice: input.originalPrice ?? null,
+    galleryImages: JSON.stringify(input.galleryImages),
     tags: JSON.stringify(input.tags),
     sizes: JSON.stringify(input.sizes),
     colors: JSON.stringify(input.colors),

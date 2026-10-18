@@ -6,6 +6,7 @@ import { createOrderId, normaliseTrackingInput, ownsOrder } from '@/lib/orders';
 import {
   hasOpenReturn,
   isWithinReturnWindow,
+  productImagePaths,
   resolveImageUrl,
   serialiseOrder,
   trackingCodeFor,
@@ -140,4 +141,25 @@ test('local images become absolute only when PUBLIC_APP_URL is set', () => {
   assert.equal(resolveImageUrl('https://cdn.example.com/b.jpg'), 'https://cdn.example.com/b.jpg');
   if (previous === undefined) delete process.env.PUBLIC_APP_URL;
   else process.env.PUBLIC_APP_URL = previous;
+});
+
+test('product galleries keep the main image first and remove duplicates', () => {
+  assert.deepEqual(
+    productImagePaths(
+      {
+        imagePath: '/products/main.jpg',
+        galleryImages: JSON.stringify([
+          '/products/side.jpg',
+          '/products/main.jpg',
+          'https://cdn.example.com/detail.jpg',
+        ]),
+      },
+      { absolute: false },
+    ),
+    [
+      '/products/main.jpg',
+      '/products/side.jpg',
+      'https://cdn.example.com/detail.jpg',
+    ],
+  );
 });

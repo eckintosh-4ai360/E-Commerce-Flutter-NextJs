@@ -1,6 +1,6 @@
 'use client';
 
-import { ArchiveRestore, Check, ImageIcon, PackageX, Pencil, Plus, Search, Trash2, Upload, X } from 'lucide-react';
+import { ArchiveRestore, Check, ImageIcon, PackageX, Pencil, Plus, Search, Trash2, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState, type DragEvent, type ReactNode } from 'react';
 
 import { useAuth } from '@/components/providers/AuthProvider';
@@ -14,6 +14,7 @@ type Product = {
   price: number;
   originalPrice: number | null;
   imagePath: string;
+  galleryImages: string;
   category: string;
   tags: string;
   rating: number;
@@ -27,12 +28,30 @@ type Product = {
   orderCount: number;
 };
 
-const emptyForm = {
+type FormState = {
+  name: string;
+  description: string;
+  price: string;
+  originalPrice: string;
+  images: string[];
+  category: string;
+  tags: string;
+  rating: string;
+  reviewCount: string;
+  inStock: boolean;
+  sizes: string;
+  colors: string;
+  isNew: boolean;
+  isBestSeller: boolean;
+  isArchived: boolean;
+};
+
+const createEmptyForm = (): FormState => ({
   name: '',
   description: '',
   price: '',
   originalPrice: '',
-  imagePath: '',
+  images: [],
   category: '',
   tags: '',
   rating: '4.5',
@@ -43,9 +62,7 @@ const emptyForm = {
   isNew: false,
   isBestSeller: false,
   isArchived: false,
-};
-
-type FormState = typeof emptyForm;
+});
 
 function parseList(value: string) {
   try {
@@ -82,32 +99,52 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
   );
 }
 
-function ImageUploader({ value, onChange }: { value: string; onChange: (path: string) => void }) {
+function ImageUploader({ values, onChange }: { values: string[]; onChange: (paths: string[]) => void }) {
   const { authedFetch } = useAuth();
   const fileRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
+  const [url, setUrl] = useState('');
 
-  const uploadFile = async (file: File) => {
-    if (!['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.type)) {
-      setError('Please select a JPG, PNG, WebP or GIF image.');
+  const uploadFiles = async (files: File[]) => {
+    if (files.length === 0) return;
+    const remaining = 5 - values.length;
+    if (remaining <= 0 || files.length > remaining) {
+      setError(`You can add ${remaining <= 0 ? 'no more' : `only ${remaining} more`} image${remaining === 1 ? '' : 's'}.`);
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
-      setError('Image must be under 5 MB.');
-      return;
+
+    for (const file of files) {
+      if (!['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.type)) {
+        setError(`${file.name} is not a JPG, PNG, WebP or GIF image.`);
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        setError(`${file.name} must be under 5 MB.`);
+        return;
+      }
     }
+
     setError('');
     setUploading(true);
-    const formData = new FormData();
-    formData.append('file', file);
+    const uploaded: string[] = [];
     try {
-      const data = await authedFetch<{ imagePath: string }>('/api/admin/upload', { method: 'POST', body: formData });
-      onChange(data.imagePath);
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append('file', file);
+        const data = await authedFetch<{ imagePath: string }>('/api/admin/upload', {
+          method: 'POST',
+          body: formData,
+        });
+        if (!values.includes(data.imagePath) && !uploaded.includes(data.imagePath)) {
+          uploaded.push(data.imagePath);
+        }
+      }
     } catch (caught) {
-      setError(errorMessage(caught, 'Upload failed. Please try again.'));
+      setError(errorMessage(caught, 'One of the images could not be uploaded.'));
     } finally {
+      if (uploaded.length > 0) onChange([...values, ...uploaded].slice(0, 5));
       setUploading(false);
     }
   };
@@ -115,66 +152,129 @@ function ImageUploader({ value, onChange }: { value: string; onChange: (path: st
   const onDrop = (event: DragEvent) => {
     event.preventDefault();
     setDragging(false);
-    const file = event.dataTransfer.files[0];
-    if (file) void uploadFile(file);
+    if (!uploading) void uploadFiles(Array.from(event.dataTransfer.files));
+  };
+
+  const addUrl = () => {
+    const next = url.trim();
+    const valid =
+      (next.startsWith('/') && !next.startsWith('//') && !next.includes('..')) ||
+      /^https:\/\/[^\s"'<>]+$/.test(next);
+    if (!valid) {
+      setError('Enter an https:// image URL or a safe /products/ path.');
+      return;
+    }
+    if (values.includes(next)) {
+      setError('That image is already in the product gallery.');
+      return;
+    }
+    if (values.length >= 5) {
+      setError('A product can have at most 5 images.');
+      return;
+    }
+    onChange([...values, next]);
+    setUrl('');
+    setError('');
+  };
+
+  const makeMain = (index: number) => {
+    const selected = values[index];
+    onChange([selected, ...values.filter((_, currentIndex) => currentIndex !== index)]);
   };
 
   return (
     <div className="admin-field">
-      <span className="admin-label">Product image</span>
-      <div
-        role="button"
-        tabIndex={0}
-        onClick={() => !uploading && fileRef.current?.click()}
-        onKeyDown={(event) => (event.key === 'Enter' || event.key === ' ') && fileRef.current?.click()}
-        onDragOver={(event) => {
-          event.preventDefault();
-          setDragging(true);
-        }}
-        onDragLeave={() => setDragging(false)}
-        onDrop={onDrop}
-        style={{
-          border: `2px dashed ${dragging ? '#d4af37' : 'rgba(255,255,255,0.12)'}`,
-          borderRadius: 12,
-          background: dragging ? 'rgba(212,175,55,0.06)' : '#1a1a1a',
-          cursor: uploading ? 'progress' : 'pointer',
-          minHeight: 140,
-          display: 'grid',
-          placeItems: 'center',
-          padding: 12,
-          textAlign: 'center',
-          color: 'var(--a-text-3)',
-        }}
-      >
-        {uploading ? (
-          <div style={{ display: 'grid', justifyItems: 'center', gap: 10 }}>
-            <div className="admin-spinner" />
-            <span>Uploading…</span>
-          </div>
-        ) : value ? (
-          <div style={{ display: 'grid', justifyItems: 'center', gap: 8 }}>
-            <img src={value} alt="Product preview" style={{ maxHeight: 180, maxWidth: '100%', objectFit: 'contain' }} />
-            <span style={{ fontSize: 12 }}><Upload size={12} style={{ display: 'inline' }} /> Click or drop to replace</span>
-          </div>
-        ) : (
-          <div>
-            <ImageIcon size={36} style={{ opacity: 0.3, margin: '0 auto 10px' }} />
-            <div style={{ fontWeight: 500, color: 'var(--a-text-2)' }}>Drop image here or click to browse</div>
-            <div style={{ fontSize: 12 }}>JPG, PNG, WebP, GIF · Max 5 MB</div>
-          </div>
-        )}
-        <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" style={{ display: 'none' }} onChange={(event) => {
-          const file = event.target.files?.[0];
-          if (file) void uploadFile(file);
-          event.target.value = '';
-        }} />
-      </div>
-      <input
-        className="admin-input"
-        placeholder="…or paste an https:// image URL or /products/ path"
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-      />
+      <span className="admin-label">Product images ({values.length}/5)</span>
+      <span style={{ fontSize: 12, color: 'var(--a-text-3)' }}>
+        The first image is the main image used on product cards. Add up to four alternate views or variants.
+      </span>
+
+      {values.length > 0 ? (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 10 }}>
+          {values.map((value, index) => (
+            <div key={value} style={{ border: index === 0 ? '2px solid var(--a-gold)' : '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: 8, background: '#1a1a1a' }}>
+              <div style={{ position: 'relative', aspectRatio: '1 / 1', borderRadius: 7, overflow: 'hidden', background: '#111' }}>
+                <img src={value} alt={`Product image ${index + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                {index === 0 ? <span className="admin-tag" style={{ position: 'absolute', top: 6, left: 6, background: 'var(--a-gold)', color: '#111' }}>Main</span> : null}
+              </div>
+              <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+                {index > 0 ? (
+                  <button type="button" className="admin-btn admin-btn--sm" style={{ flex: 1 }} onClick={() => makeMain(index)}>
+                    Make main
+                  </button>
+                ) : <span style={{ flex: 1, alignSelf: 'center', fontSize: 11, color: 'var(--a-text-3)' }}>Shown across the store</span>}
+                <button type="button" className="admin-icon-btn" onClick={() => onChange(values.filter((_, currentIndex) => currentIndex !== index))} aria-label={`Remove product image ${index + 1}`}>
+                  <X size={16} />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      {values.length < 5 ? (
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={() => !uploading && fileRef.current?.click()}
+          onKeyDown={(event) => (event.key === 'Enter' || event.key === ' ') && !uploading && fileRef.current?.click()}
+          onDragOver={(event) => {
+            event.preventDefault();
+            setDragging(true);
+          }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={onDrop}
+          style={{
+            border: `2px dashed ${dragging ? '#d4af37' : 'rgba(255,255,255,0.12)'}`,
+            borderRadius: 12,
+            background: dragging ? 'rgba(212,175,55,0.06)' : '#1a1a1a',
+            cursor: uploading ? 'progress' : 'pointer',
+            minHeight: 110,
+            display: 'grid',
+            placeItems: 'center',
+            padding: 12,
+            textAlign: 'center',
+            color: 'var(--a-text-3)',
+          }}
+        >
+          {uploading ? (
+            <div style={{ display: 'grid', justifyItems: 'center', gap: 10 }}>
+              <div className="admin-spinner" />
+              <span>Uploading images…</span>
+            </div>
+          ) : (
+            <div>
+              <ImageIcon size={32} style={{ opacity: 0.3, margin: '0 auto 8px' }} />
+              <div style={{ fontWeight: 500, color: 'var(--a-text-2)' }}>Drop images here or click to browse</div>
+              <div style={{ fontSize: 12 }}>Select up to {5 - values.length} · JPG, PNG, WebP, GIF · Max 5 MB each</div>
+            </div>
+          )}
+          <input ref={fileRef} type="file" multiple accept="image/jpeg,image/png,image/webp,image/gif" style={{ display: 'none' }} onChange={(event) => {
+            void uploadFiles(Array.from(event.target.files ?? []));
+            event.target.value = '';
+          }} />
+        </div>
+      ) : null}
+
+      {values.length < 5 ? (
+        <div style={{ display: 'flex', gap: 8 }}>
+          <input
+            className="admin-input"
+            placeholder="…or add an https:// image URL or /products/ path"
+            value={url}
+            onChange={(event) => setUrl(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                addUrl();
+              }
+            }}
+          />
+          <button type="button" className="admin-btn" onClick={addUrl} disabled={!url.trim()}>
+            Add
+          </button>
+        </div>
+      ) : null}
       {error ? <span style={{ fontSize: 12, color: 'var(--a-red)' }}>{error}</span> : null}
     </div>
   );
@@ -188,7 +288,7 @@ export default function ProductsPage() {
   const [showArchived, setShowArchived] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState<FormState>(emptyForm);
+  const [form, setForm] = useState<FormState>(createEmptyForm);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<Product | null>(null);
@@ -206,7 +306,7 @@ export default function ProductsPage() {
 
   const openNew = () => {
     setEditing(null);
-    setForm(emptyForm);
+    setForm(createEmptyForm());
     setFormError(null);
     setShowModal(true);
   };
@@ -219,7 +319,7 @@ export default function ProductsPage() {
       description: product.description,
       price: String(product.price),
       originalPrice: product.originalPrice ? String(product.originalPrice) : '',
-      imagePath: product.imagePath,
+      images: Array.from(new Set([product.imagePath, ...parseList(product.galleryImages)])).filter(Boolean).slice(0, 5),
       category: product.category,
       tags: parseList(product.tags).join(', '),
       rating: String(product.rating),
@@ -242,7 +342,8 @@ export default function ProductsPage() {
       description: form.description,
       price: Number(form.price),
       originalPrice: form.originalPrice.trim() ? Number(form.originalPrice) : null,
-      imagePath: form.imagePath,
+      imagePath: form.images[0] ?? '',
+      galleryImages: form.images.slice(1),
       category: form.category,
       tags: splitList(form.tags),
       sizes: splitList(form.sizes),
@@ -396,7 +497,7 @@ export default function ProductsPage() {
 
       {showModal ? (
         <Modal title={editing ? 'Edit product' : 'Add new product'} onClose={() => setShowModal(false)}>
-          <ImageUploader value={form.imagePath} onChange={(path) => set('imagePath', path)} />
+          <ImageUploader values={form.images} onChange={(paths) => set('images', paths)} />
           <div className="admin-form-grid">
             <div className="admin-field"><label htmlFor="p-name">Product name</label><input id="p-name" className="admin-input" value={form.name} onChange={(e) => set('name', e.target.value)} /></div>
             <div className="admin-field"><label htmlFor="p-category">Category</label><input id="p-category" className="admin-input" value={form.category} onChange={(e) => set('category', e.target.value)} /></div>

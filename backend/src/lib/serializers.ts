@@ -45,6 +45,18 @@ export function resolveImageUrl(imagePath: string, { absolute = true } = {}) {
   return baseUrl ? new URL(trimmed, baseUrl).toString() : trimmed;
 }
 
+export function productImagePaths(
+  product: Pick<Product, 'imagePath' | 'galleryImages'>,
+  { absolute = true } = {},
+) {
+  return Array.from(
+    new Set([product.imagePath, ...parseList(product.galleryImages)].map((path) => path.trim())),
+  )
+    .filter(Boolean)
+    .slice(0, 5)
+    .map((path) => resolveImageUrl(path, { absolute }));
+}
+
 export function serialiseProduct(
   product: Product,
   { absoluteImages = true } = {},
@@ -55,7 +67,7 @@ export function serialiseProduct(
     description: product.description,
     price: product.price,
     originalPrice: product.originalPrice,
-    images: [resolveImageUrl(product.imagePath, { absolute: absoluteImages })],
+    images: productImagePaths(product, { absolute: absoluteImages }),
     category: product.category,
     tags: parseList(product.tags),
     rating: product.rating,

@@ -40,16 +40,25 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   String? _selectedColor;
   String? _selectedSize;
   int _quantity = 1;
+  int _selectedImageIndex = 0;
+  late final PageController _imagePageController;
 
   @override
   void initState() {
     super.initState();
+    _imagePageController = PageController();
     if (widget.product.colors.isNotEmpty) {
       _selectedColor = widget.product.colors.first;
     }
     if (widget.product.sizes.isNotEmpty) {
       _selectedSize = widget.product.sizes.first;
     }
+  }
+
+  @override
+  void dispose() {
+    _imagePageController.dispose();
+    super.dispose();
   }
 
   @override
@@ -97,10 +106,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   Widget _buildSliverAppBar(BuildContext context, Product p) {
-    final imagePath = p.primaryImage;
+    final images = p.images.take(5).toList(growable: false);
 
     return SliverAppBar(
-      expandedHeight: 380,
+      expandedHeight: images.length > 1 ? 430 : 380,
       pinned: true,
       backgroundColor: Colors.transparent,
       leading: GestureDetector(
@@ -170,36 +179,23 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         background: Stack(
           children: [
             Positioned.fill(
-              child: imagePath == null
+              child: images.isEmpty
                   ? _buildErrorImage()
-                  : imagePath.startsWith('assets/')
-                      ? Image.asset(
-                          imagePath,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => _buildErrorImage(),
-                        )
-                      : CachedNetworkImage(
-                          imageUrl: imagePath,
-                          fit: BoxFit.cover,
-                          placeholder: (context, url) => Container(
-                            color: AppTheme.cardBg,
-                            child: const Center(
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: AppTheme.accent,
-                              ),
-                            ),
-                          ),
-                          errorWidget: (context, url, error) =>
-                              _buildErrorImage(),
-                        ),
+                  : PageView.builder(
+                      controller: _imagePageController,
+                      itemCount: images.length,
+                      onPageChanged: (index) =>
+                          setState(() => _selectedImageIndex = index),
+                      itemBuilder: (context, index) =>
+                          _buildProductImage(images[index]),
+                    ),
             ),
             // gradient
             Positioned(
               bottom: 0,
               left: 0,
               right: 0,
-              height: 100,
+              height: images.length > 1 ? 140 : 100,
               child: Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -213,6 +209,55 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 ),
               ),
             ),
+            if (images.length > 1)
+              Positioned(
+                left: 16,
+                right: 16,
+                bottom: 16,
+                height: 58,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: images.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 8),
+                  itemBuilder: (context, index) {
+                    final selected = _selectedImageIndex == index;
+                    return Semantics(
+                      button: true,
+                      selected: selected,
+                      label: 'Show product image ${index + 1}',
+                      child: GestureDetector(
+                        onTap: () => _imagePageController.animateToPage(
+                          index,
+                          duration: const Duration(milliseconds: 220),
+                          curve: Curves.easeOut,
+                        ),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 150),
+                          width: 58,
+                          clipBehavior: Clip.antiAlias,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(9),
+                            border: Border.all(
+                              color: selected
+                                  ? AppTheme.accent
+                                  : Colors.white.withValues(alpha: 0.8),
+                              width: selected ? 3 : 2,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.16),
+                                blurRadius: 8,
+                              ),
+                            ],
+                          ),
+                          child: _buildProductImage(images[index]),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
             if (p.discountPercent != null)
               Positioned(
                 top: 80,
@@ -236,6 +281,31 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildProductImage(String imagePath) {
+    if (imagePath.startsWith('assets/')) {
+      return Image.asset(
+        imagePath,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => _buildErrorImage(),
+      );
+    }
+
+    return CachedNetworkImage(
+      imageUrl: imagePath,
+      fit: BoxFit.cover,
+      placeholder: (context, url) => Container(
+        color: AppTheme.cardBg,
+        child: const Center(
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: AppTheme.accent,
+          ),
+        ),
+      ),
+      errorWidget: (context, url, error) => _buildErrorImage(),
     );
   }
 
@@ -566,8 +636,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       ),
       child: BlocBuilder<CartBloc, CartState>(
         builder: (context, state) {
-          final line = state.itemFor(
-              CartItem.keyFor(p.id, _selectedColor, _selectedSize));
+          final line = state
+              .itemFor(CartItem.keyFor(p.id, _selectedColor, _selectedSize));
           final inCart = line != null;
           return Row(
             children: [
@@ -657,8 +727,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               style: GoogleFonts.kumbhSans()),
           backgroundColor: AppTheme.primary,
           behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           duration: const Duration(seconds: 3),
           action: SnackBarAction(
             label: 'VIEW CART',
