@@ -39,7 +39,7 @@ class CatalogRepository {
         isFallback: true,
         source: 'embedded-demo',
         message:
-            'Backend unavailable, so the app is showing the built-in demo catalog.',
+            'Connecting to the backend. Showing the built-in demo catalog while retrying.',
       );
     }
   }

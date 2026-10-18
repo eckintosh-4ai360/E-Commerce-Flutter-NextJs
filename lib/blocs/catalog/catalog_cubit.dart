@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -59,22 +61,41 @@ class CatalogState extends Equatable {
 }
 
 class CatalogCubit extends Cubit<CatalogState> {
-  CatalogCubit({CatalogRepository? repository})
-      : _repository = repository ?? CatalogRepository(),
+  CatalogCubit({
+    CatalogRepository? repository,
+    Duration retryDelay = const Duration(seconds: 10),
+  })  : _retryDelay = retryDelay,
+        _repository = repository ?? CatalogRepository(),
         super(const CatalogState());
 
   final CatalogRepository _repository;
+  final Duration _retryDelay;
+  Timer? _retryTimer;
+  bool _requestInFlight = false;
 
-  Future<void> loadCatalog() async {
-    emit(
-      state.copyWith(
-        status: CatalogStatus.loading,
-        clearMessage: true,
-      ),
-    );
+  Future<void> loadCatalog({bool quietly = false}) async {
+    if (_requestInFlight || isClosed) {
+      return;
+    }
+
+    _requestInFlight = true;
+    _retryTimer?.cancel();
+
+    if (!quietly) {
+      emit(
+        state.copyWith(
+          status: CatalogStatus.loading,
+          clearMessage: true,
+        ),
+      );
+    }
 
     try {
       final result = await _repository.fetchCatalog();
+      if (isClosed) {
+        return;
+      }
+
       emit(
         state.copyWith(
           status: CatalogStatus.success,
@@ -83,15 +104,46 @@ class CatalogCubit extends Cubit<CatalogState> {
           isFallback: result.isFallback,
           source: result.source,
           message: result.message,
+          clearMessage: result.message == null,
         ),
       );
+
+      if (result.isFallback) {
+        _scheduleRetry();
+      }
     } catch (error) {
+      if (isClosed) {
+        return;
+      }
+
+      if (quietly && state.products.isNotEmpty) {
+        _scheduleRetry();
+        return;
+      }
+
       emit(
         state.copyWith(
           status: CatalogStatus.failure,
           message: 'Unable to load the catalog right now.',
         ),
       );
+      _scheduleRetry();
+    } finally {
+      _requestInFlight = false;
     }
+  }
+
+  void _scheduleRetry() {
+    _retryTimer?.cancel();
+    _retryTimer = Timer(
+      _retryDelay,
+      () => loadCatalog(quietly: true),
+    );
+  }
+
+  @override
+  Future<void> close() {
+    _retryTimer?.cancel();
+    return super.close();
   }
 }

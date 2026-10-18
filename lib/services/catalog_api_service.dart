@@ -26,7 +26,10 @@ class CatalogApiService {
   Future<CatalogApiResponse> fetchCatalog() async {
     final response = await _client
         .get(Uri.parse('${AppConfig.apiBaseUrl}/catalog'))
-        .timeout(const Duration(seconds: 15));
+        // A sleeping Neon database can need longer than the usual request
+        // window for its first connection. The backend uses a 30-second pool
+        // timeout, so keep the client alive slightly longer than that.
+        .timeout(const Duration(seconds: 40));
 
     if (response.statusCode != 200) {
       throw Exception('Catalog request failed with ${response.statusCode}');
