@@ -2,11 +2,11 @@
 // this file is secret: it is bundled into the browser.
 
 export const storeConfig = {
-  name: 'Eckintosh Mall',
-  shortName: 'Eckintosh',
-  tagline: 'Leather Bags & Accessories',
+  name: 'GlobalCart GH',
+  shortName: 'GlobalCart',
+  tagline: 'Shop Global, Pay Local',
   description:
-    'Premium leather bags, wallets, watches and accessories delivered across Ghana.',
+    'Global finds, local convenience and dependable delivery across Ghana.',
   currencyCode: 'GHS',
   currencySymbol: 'GH₵',
   freeShippingThreshold: 300,
@@ -15,24 +15,36 @@ export const storeConfig = {
   maxLinesPerOrder: 50,
   maxSavedAddresses: 10,
   returnWindowDays: 14,
-  supportPhone: '+233 59 859 9687',
-  supportPhoneHref: 'tel:+233598599687',
-  supportEmail: 'info@eckintoshmall.com',
+  supportPhone: '024 307 3148',
+  supportPhoneHref: 'tel:+233243073148',
+  secondaryPhone: '054 134 1263',
+  secondaryPhoneHref: 'tel:+233541341263',
+  whatsappHref: 'https://wa.me/233243073148',
   socials: [
     {
-      label: 'Instagram',
-      handle: '@Eckintoshmall',
-      href: 'https://www.instagram.com/eckintoshmall',
-    },
-    {
       label: 'Facebook',
-      handle: 'Eckintoshmall',
-      href: 'https://www.facebook.com/eckintoshmall',
+      handle: 'GlobalCart GH',
+      href: 'https://www.facebook.com/GlobalCartGH',
     },
     {
-      label: 'Twitter',
-      handle: '@Eckintosh_mall',
-      href: 'https://x.com/Eckintosh_mall',
+      label: 'Instagram',
+      handle: '@globalcart_gh',
+      href: 'https://www.instagram.com/globalcart_gh',
+    },
+    {
+      label: 'TikTok',
+      handle: '@globalcart_gh',
+      href: 'https://www.tiktok.com/@globalcart_gh',
+    },
+    {
+      label: 'WhatsApp',
+      handle: '024 307 3148',
+      href: 'https://wa.me/233243073148',
+    },
+    {
+      label: 'Telegram',
+      handle: '@globalcart_gh',
+      href: 'https://t.me/globalcart_gh',
     },
   ],
   appLinks: {

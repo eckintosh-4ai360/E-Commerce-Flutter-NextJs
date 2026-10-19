@@ -1,6 +1,10 @@
 import 'package:flutter/foundation.dart';
 
 class AppConfig {
+  static const String storeName = 'GlobalCart GH';
+  static const String shortName = 'GlobalCart';
+  static const String tagline = 'Shop Global, Pay Local';
+
   static const String _apiBaseUrlOverride =
       String.fromEnvironment('API_BASE_URL');
 
@@ -15,12 +19,15 @@ class AppConfig {
   static const String googleServerClientId =
       String.fromEnvironment('GOOGLE_SERVER_CLIENT_ID');
 
-  static const String supportPhone = '+233 59 859 9687';
-  static const String supportPhoneUri = 'tel:+233598599687';
-  static const String supportEmail = 'info@eckintoshmall.com';
-  static const String instagramUrl = 'https://www.instagram.com/eckintoshmall';
-  static const String facebookUrl = 'https://www.facebook.com/eckintoshmall';
-  static const String twitterUrl = 'https://x.com/Eckintosh_mall';
+  static const String supportPhone = '024 307 3148';
+  static const String supportPhoneUri = 'tel:+233243073148';
+  static const String secondaryPhone = '054 134 1263';
+  static const String secondaryPhoneUri = 'tel:+233541341263';
+  static const String instagramUrl = 'https://www.instagram.com/globalcart_gh';
+  static const String facebookUrl = 'https://www.facebook.com/GlobalCartGH';
+  static const String tiktokUrl = 'https://www.tiktok.com/@globalcart_gh';
+  static const String whatsappUrl = 'https://wa.me/233243073148';
+  static const String telegramUrl = 'https://t.me/globalcart_gh';
 
   static const double freeShippingThreshold = 300;
   static const double flatShippingFee = 25;
