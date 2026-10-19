@@ -2,13 +2,22 @@ import Link from 'next/link';
 
 import { storeConfig } from '@/lib/store-config';
 
-import { FacebookIcon, InstagramIcon, XIcon } from './brand-icons';
+import {
+  FacebookIcon,
+  InstagramIcon,
+  TelegramIcon,
+  TikTokIcon,
+  WhatsAppIcon,
+} from './brand-icons';
+import { BrandLogo } from './BrandLogo';
 import { StoreBadges } from './StoreBadges';
 
 const socialIcons = {
-  Instagram: InstagramIcon,
   Facebook: FacebookIcon,
-  Twitter: XIcon,
+  Instagram: InstagramIcon,
+  TikTok: TikTokIcon,
+  WhatsApp: WhatsAppIcon,
+  Telegram: TelegramIcon,
 } as const;
 
 export function SiteFooter() {
@@ -17,17 +26,9 @@ export function SiteFooter() {
       <div className="container">
         <div className="footer-grid">
           <div>
-            <Link href="/" className="brand" aria-label="Eckintosh Mall home">
-              <span className="brand__mark" aria-hidden="true">
-                E
-              </span>
-              <span className="brand__word" style={{ display: 'inline' }}>
-                ECKINTOSH
-              </span>
-            </Link>
+            <BrandLogo className="brand--footer" />
             <p className="muted small" style={{ maxWidth: 320 }}>
-              {storeConfig.description} Shop here on the web or in our mobile app — your
-              account, wishlist and orders follow you everywhere.
+              {storeConfig.description} {storeConfig.tagline}.
             </p>
             <div className="social-row">
               {storeConfig.socials.map((social) => {
@@ -39,6 +40,7 @@ export function SiteFooter() {
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={`${social.label} ${social.handle}`}
+                    title={`${social.label}: ${social.handle}`}
                   >
                     <Icon />
                   </a>
@@ -62,7 +64,8 @@ export function SiteFooter() {
               <li><Link href="/account/returns">Returns &amp; refunds</Link></li>
               <li><Link href="/help">FAQ &amp; help centre</Link></li>
               <li><a href={storeConfig.supportPhoneHref}>Call {storeConfig.supportPhone}</a></li>
-              <li><a href={`mailto:${storeConfig.supportEmail}`}>{storeConfig.supportEmail}</a></li>
+              <li><a href={storeConfig.secondaryPhoneHref}>Call {storeConfig.secondaryPhone}</a></li>
+              <li><a href={storeConfig.whatsappHref} target="_blank" rel="noopener noreferrer">WhatsApp us</a></li>
             </ul>
           </div>
           <div>
@@ -71,7 +74,7 @@ export function SiteFooter() {
           </div>
         </div>
         <div className="footer-bottom">
-          © {new Date().getFullYear()} {storeConfig.name}. Delivered across Ghana.
+          © {new Date().getFullYear()} {storeConfig.name}. {storeConfig.tagline}.
         </div>
       </div>
     </footer>

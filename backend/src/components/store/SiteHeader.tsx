@@ -9,6 +9,7 @@ import { useCart } from '@/components/providers/CartProvider';
 import { useWishlist } from '@/components/providers/WishlistProvider';
 
 import { Avatar } from './Avatar';
+import { BrandLogo } from './BrandLogo';
 
 const navLinks = [
   { href: '/', label: 'Home' },
@@ -27,12 +28,7 @@ export function SiteHeader() {
   return (
     <header className="site-header">
       <div className="container site-header__inner">
-        <Link href="/" className="brand" aria-label="Eckintosh Mall home">
-          <span className="brand__mark" aria-hidden="true">
-            E
-          </span>
-          <span className="brand__word">ECKINTOSH</span>
-        </Link>
+        <BrandLogo />
 
         <nav className="site-nav" aria-label="Main">
           {navLinks.map((link) => (
@@ -55,7 +51,7 @@ export function SiteHeader() {
             id="site-search"
             type="search"
             name="q"
-            placeholder="Search bags, accessories..."
+            placeholder="Search GlobalCart..."
             autoComplete="off"
             maxLength={100}
           />

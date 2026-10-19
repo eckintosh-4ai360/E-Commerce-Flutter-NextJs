@@ -74,7 +74,7 @@ export const POST = route(async (request) => {
     result = await new Promise<UploadApiResponse>((resolve, reject) => {
       cloudinary.uploader
         .upload_stream(
-          { folder: 'eckintosh-mall/products', resource_type: 'image' },
+          { folder: 'globalcart-gh/products', resource_type: 'image' },
           (error, response) => {
             if (error || !response) reject(error ?? new Error('Empty upload response'));
             else resolve(response);

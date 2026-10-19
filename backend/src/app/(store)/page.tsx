@@ -27,14 +27,14 @@ export default async function HomePage() {
       <section className="hero" aria-labelledby="hero-heading">
         <div className="hero__rings" aria-hidden="true" />
         <div className="hero__content">
-          <span className="hero__tag">EXCLUSIVE OFFER</span>
+          <span className="hero__tag">{storeConfig.tagline}</span>
           <h1 id="hero-heading">
-            For the Stylish
+            The world in
             <br />
-            &amp; Fashionable
+            your cart
           </h1>
           <p>
-            Premium leather bags, wallets, watches and accessories — delivered across Ghana.
+            Discover global finds with local payment and dependable delivery across Ghana.
             Free shipping on orders over {storeConfig.currencySymbol}
             {storeConfig.freeShippingThreshold}.
           </p>

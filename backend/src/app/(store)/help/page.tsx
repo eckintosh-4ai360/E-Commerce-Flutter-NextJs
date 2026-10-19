@@ -1,10 +1,11 @@
 import type { Metadata } from 'next';
 
 import { HelpCenter } from '@/components/store/HelpCenter';
+import { storeConfig } from '@/lib/store-config';
 
 export const metadata: Metadata = {
   title: 'FAQ & Help Center',
-  description: 'Answers about delivery, payment, returns and order tracking at Eckintosh Mall.',
+  description: `Answers about delivery, payment, returns and order tracking at ${storeConfig.name}.`,
 };
 
 export default function HelpPage() {

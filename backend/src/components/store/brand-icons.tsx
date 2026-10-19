@@ -28,6 +28,31 @@ export function XIcon({ size = 18 }: IconProps) {
   );
 }
 
+export function TikTokIcon({ size = 18 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M15 3c.3 2.2 1.6 3.6 4 4v3a8.2 8.2 0 01-4-1.1v6.2a5.9 5.9 0 11-5-5.8v3.1a2.9 2.9 0 102 2.7V3h3z" />
+    </svg>
+  );
+}
+
+export function WhatsAppIcon({ size = 18 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M20 11.6a8 8 0 01-11.8 7L4 20l1.4-4.1A8 8 0 1120 11.6z" />
+      <path d="M9 8.2c.3 2.7 2.1 4.5 4.8 5l1.2-1.1 2 1.3c-.5 1.7-1.7 2.4-3.5 2-3.4-.8-5.9-3.3-6.7-6.7-.4-1.8.3-3 2-3.5l1.3 2L9 8.2z" />
+    </svg>
+  );
+}
+
+export function TelegramIcon({ size = 18 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M21.6 3.5L18.4 20c-.2 1.1-.9 1.4-1.8.9l-4.9-3.6-2.4 2.3c-.3.3-.5.5-1 .5l.4-5 9-8.1c.4-.4-.1-.6-.6-.2L6 13.8l-4.8-1.5c-1-.3-1.1-1 .2-1.5L20.2 3.5c.9-.3 1.7.2 1.4 0z" />
+    </svg>
+  );
+}
+
 export function AndroidIcon({ size = 22 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">

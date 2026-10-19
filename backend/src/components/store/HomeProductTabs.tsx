@@ -29,7 +29,7 @@ export function HomeProductTabs({
       <div className="section-header">
         <div>
           <h2 id="all-products-heading">All Products</h2>
-          <p>Eckintosh essentials for every season</p>
+          <p>Global finds, selected for life in Ghana</p>
         </div>
         <Link href={viewAllHref} className="link-arrow">
           View all <ArrowRight size={14} />

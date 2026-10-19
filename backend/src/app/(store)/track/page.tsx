@@ -1,10 +1,11 @@
 import type { Metadata } from 'next';
 
 import { TrackOrderView } from '@/components/store/TrackOrderView';
+import { storeConfig } from '@/lib/store-config';
 
 export const metadata: Metadata = {
   title: 'Track your order',
-  description: 'Check the delivery status of your Eckintosh Mall order.',
+  description: `Check the delivery status of your ${storeConfig.name} order.`,
 };
 
 export default async function TrackPage({

@@ -13,6 +13,7 @@ import {
   type CatalogFilters,
 } from '@/lib/catalog-params';
 import { serialiseProduct } from '@/lib/serializers';
+import { storeConfig } from '@/lib/store-config';
 
 type ShopPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -36,7 +37,7 @@ export async function generateMetadata({ searchParams }: ShopPageProps): Promise
   const title = titleFor(filters).replace(/[“”]/g, '"');
   return {
     title,
-    description: `Browse ${title.toLowerCase()} at Eckintosh Mall.`,
+    description: `Browse ${title.toLowerCase()} at ${storeConfig.name}.`,
     alternates: { canonical: filters.category ? `/shop?category=${encodeURIComponent(filters.category)}` : '/shop' },
     robots: filters.search || hasRefinements(filters) ? { index: false } : undefined,
   };

@@ -38,7 +38,7 @@ export function PurchasePanel({ product }: { product: StoreProduct }) {
     const url = window.location.href;
     try {
       if (navigator.share) {
-        await navigator.share({ title: product.name, text: `${product.name} on Eckintosh Mall`, url });
+        await navigator.share({ title: product.name, text: `${product.name} on ${storeConfig.name}`, url });
         return;
       }
       await navigator.clipboard.writeText(url);

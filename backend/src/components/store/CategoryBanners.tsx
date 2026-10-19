@@ -1,7 +1,7 @@
 import { Footprints, Gem, ShoppingBag, Tag, Wallet, Watch } from 'lucide-react';
 import Link from 'next/link';
 
-const palette = ['#1a1a1a', '#d9896a', '#5b6b12', '#8b6914'];
+const palette = ['#001a3a', '#0b4aa2', '#cc8900', '#164f86'];
 
 function iconFor(category: string) {
   const name = category.toLowerCase();

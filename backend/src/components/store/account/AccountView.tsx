@@ -5,7 +5,7 @@ import {
   CircleHelp,
   CreditCard,
   LayoutDashboard,
-  Mail,
+  MessageCircle,
   MapPin,
   Phone,
   Receipt,
@@ -21,7 +21,13 @@ import { useAuth } from '@/components/providers/AuthProvider';
 import { storeConfig } from '@/lib/store-config';
 
 import { Avatar } from '../Avatar';
-import { FacebookIcon, InstagramIcon, XIcon } from '../brand-icons';
+import {
+  FacebookIcon,
+  InstagramIcon,
+  TelegramIcon,
+  TikTokIcon,
+  WhatsAppIcon,
+} from '../brand-icons';
 
 type MenuItem = {
   icon: ReactNode;
@@ -87,12 +93,19 @@ export function AccountView() {
   ];
   const support: MenuItem[] = [
     { icon: <Phone size={18} />, label: `Call: ${storeConfig.supportPhone}`, href: storeConfig.supportPhoneHref, external: true },
-    { icon: <Mail size={18} />, label: storeConfig.supportEmail, href: `mailto:${storeConfig.supportEmail}`, external: true },
+    { icon: <Phone size={18} />, label: `Call: ${storeConfig.secondaryPhone}`, href: storeConfig.secondaryPhoneHref, external: true },
+    { icon: <MessageCircle size={18} />, label: `WhatsApp: ${storeConfig.supportPhone}`, href: storeConfig.whatsappHref, external: true },
     { icon: <CircleHelp size={18} />, label: 'FAQ & Help Center', href: '/help' },
   ];
-  const socialIcons = [<InstagramIcon key="i" />, <FacebookIcon key="f" />, <XIcon key="x" />];
-  const follow: MenuItem[] = storeConfig.socials.map((social, index) => ({
-    icon: socialIcons[index],
+  const socialIcons = {
+    Facebook: <FacebookIcon />,
+    Instagram: <InstagramIcon />,
+    TikTok: <TikTokIcon />,
+    WhatsApp: <WhatsAppIcon />,
+    Telegram: <TelegramIcon />,
+  } as const;
+  const follow: MenuItem[] = storeConfig.socials.map((social) => ({
+    icon: socialIcons[social.label],
     label: `${social.label} ${social.handle}`,
     href: social.href,
     external: true,
@@ -112,7 +125,7 @@ export function AccountView() {
                   : 'Sign in for personalised checkout and tracking emails'}
               </p>
               {status === 'loading' ? null : user ? (
-                <button type="button" className="btn btn-sm" style={{ background: '#fff', color: '#1a1a1a' }} onClick={() => void signOut()} disabled={busy}>
+                <button type="button" className="btn btn-sm" style={{ background: '#fff', color: '#001a3a' }} onClick={() => void signOut()} disabled={busy}>
                   {busy ? 'Please wait' : 'Sign out'}
                 </button>
               ) : (
@@ -125,7 +138,7 @@ export function AccountView() {
           {error ? <div className="alert alert--error" role="alert">{error}</div> : null}
 
           <Link href="/track" className="track-cta">
-            <Truck size={28} color="#8b6914" />
+            <Truck size={28} color="#0b4aa2" />
             <span style={{ flex: 1 }}>
               <strong>Track Your Order</strong>
               <span>Enter your tracking code to follow your delivery</span>
@@ -134,8 +147,8 @@ export function AccountView() {
           </Link>
 
           {isAdmin ? (
-            <Link href="/admin" className="track-cta" style={{ background: '#1a1a1a', color: '#fff', borderColor: '#1a1a1a' }}>
-              <LayoutDashboard size={26} color="#bdd253" />
+            <Link href="/admin" className="track-cta" style={{ background: '#001a3a', color: '#fff', borderColor: '#001a3a' }}>
+              <LayoutDashboard size={26} color="#ffb000" />
               <span style={{ flex: 1 }}>
                 <strong>Store admin</strong>
                 <span style={{ color: 'rgba(255,255,255,.7)' }}>Manage products, orders and returns</span>
@@ -152,10 +165,10 @@ export function AccountView() {
           <MenuSection title="Follow us" items={follow} />
           <MenuSection
             title="Get the app"
-            items={[{ icon: <Smartphone size={18} />, label: 'Download the Eckintosh app', href: '/get-the-app' }]}
+            items={[{ icon: <Smartphone size={18} />, label: 'Download the GlobalCart app', href: '/get-the-app' }]}
           />
           <p className="small muted" style={{ textAlign: 'center', margin: '8px 0 0' }}>
-            Crafted in rich colours, delivered across Ghana.
+            Shop Global, Pay Local — delivered across Ghana.
           </p>
         </div>
       </div>

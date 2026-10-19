@@ -1,6 +1,6 @@
 'use client';
 
-import { Mail, Phone, Search, Truck } from 'lucide-react';
+import { MessageCircle, Phone, Search, Truck } from 'lucide-react';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 
@@ -91,13 +91,18 @@ export function HelpCenter() {
       <div className="contact-grid">
         <a className="contact-tile" href={storeConfig.supportPhoneHref}>
           <Phone size={20} />
-          <strong>Call us</strong>
+          <strong>Call our main line</strong>
           <span>{storeConfig.supportPhone}</span>
         </a>
-        <a className="contact-tile" href={`mailto:${storeConfig.supportEmail}`}>
-          <Mail size={20} />
-          <strong>Email us</strong>
-          <span>{storeConfig.supportEmail}</span>
+        <a className="contact-tile" href={storeConfig.secondaryPhoneHref}>
+          <Phone size={20} />
+          <strong>Call our second line</strong>
+          <span>{storeConfig.secondaryPhone}</span>
+        </a>
+        <a className="contact-tile" href={storeConfig.whatsappHref} target="_blank" rel="noopener noreferrer">
+          <MessageCircle size={20} />
+          <strong>WhatsApp us</strong>
+          <span>{storeConfig.supportPhone}</span>
         </a>
         <Link className="contact-tile" href="/track">
           <Truck size={20} />

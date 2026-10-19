@@ -7,7 +7,7 @@ import { storeConfig } from '@/lib/store-config';
 
 export const metadata: Metadata = {
   title: 'Get the app',
-  description: 'Download the Eckintosh Mall app for Android and iPhone, or keep shopping on the web.',
+  description: `Download the ${storeConfig.name} app for Android and iPhone, or keep shopping on the web.`,
 };
 
 const perks = [
@@ -24,7 +24,7 @@ export default function GetTheAppPage() {
     <div className="container">
       <section className="app-cta" style={{ marginTop: 24 }}>
         <div>
-          <span className="eyebrow">Eckintosh Mall app</span>
+          <span className="eyebrow">{storeConfig.name} app</span>
           <h1 style={{ margin: '8px 0', fontSize: 'clamp(28px, 5vw, 40px)', lineHeight: 1.15 }}>
             Shop the web or the app — it&apos;s your choice
           </h1>
