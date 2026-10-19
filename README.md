@@ -76,11 +76,12 @@ For Google sign-in on the website, add your domain (for example `localhost` and 
 
 ### Deploying the website to Vercel
 
-Set the Vercel project's **Root Directory** to `backend`, then add both
-`DATABASE_URL` (the pooled PostgreSQL connection) and `DIRECT_URL` (the direct
-connection) in every Vercel environment you deploy. The production build runs
-an idempotent `prisma db push` before Next.js prerenders database-backed pages,
-so a new database receives the required tables automatically.
+Set the Vercel project's **Root Directory** to `backend`, then add `DATABASE_URL`
+in every Vercel environment you deploy. `DIRECT_URL` is recommended when your
+database provider offers a separate direct connection, but the build safely
+falls back to `DATABASE_URL` when it is absent. The production build runs an
+idempotent `prisma db push` before Next.js prerenders database-backed pages, so
+a new database receives the required tables automatically.
 
 After the first successful deployment, load the starter catalogue once if the
 store is empty:
