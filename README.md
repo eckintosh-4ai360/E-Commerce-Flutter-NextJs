@@ -74,6 +74,24 @@ Key settings in `backend/.env` (all are documented in `.env.example`):
 
 For Google sign-in on the website, add your domain (for example `localhost` and your production domain) in Firebase Console → Authentication → Settings → Authorized domains.
 
+### Deploying the website to Vercel
+
+Set the Vercel project's **Root Directory** to `backend`, then add both
+`DATABASE_URL` (the pooled PostgreSQL connection) and `DIRECT_URL` (the direct
+connection) in every Vercel environment you deploy. The production build runs
+an idempotent `prisma db push` before Next.js prerenders database-backed pages,
+so a new database receives the required tables automatically.
+
+After the first successful deployment, load the starter catalogue once if the
+store is empty:
+
+```bash
+cd backend
+npm run db:seed
+```
+
+The seed is safe to rerun because products are upserted by id.
+
 ### 2. Flutter app
 
 ```bash
