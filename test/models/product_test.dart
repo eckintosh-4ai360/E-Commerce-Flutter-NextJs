@@ -1,5 +1,5 @@
-import 'package:eckintosh/config/app_config.dart';
-import 'package:eckintosh/models/product.dart';
+import 'package:globalcart/config/app_config.dart';
+import 'package:globalcart/models/product.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

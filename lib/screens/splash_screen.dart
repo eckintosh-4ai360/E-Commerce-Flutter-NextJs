@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_shell.dart';
+import '../widgets/brand_logo.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -97,30 +98,12 @@ class _SplashScreenState extends State<SplashScreen>
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          color: AppTheme.accent.withOpacity(0.15),
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                              color: AppTheme.accent.withOpacity(0.4),
-                              width: 1.5),
-                        ),
-                        child: const Icon(Icons.shopping_bag_outlined,
-                            color: AppTheme.accent, size: 36),
+                      const GlobalCartLogo(
+                        markSize: 82,
+                        fontSize: 34,
+                        onDark: true,
                       ),
                       const SizedBox(height: 24),
-                      Text(
-                        'ECKINTOSH',
-                        style: GoogleFonts.kumbhSans(
-                          color: Colors.white,
-                          fontSize: 32,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 5,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -130,7 +113,7 @@ class _SplashScreenState extends State<SplashScreen>
                               color: AppTheme.accent.withOpacity(0.6)),
                           const SizedBox(width: 10),
                           Text(
-                            'Leather Bags & Accessories',
+                            'Shop Global, Pay Local',
                             style: GoogleFonts.kumbhSans(
                               color: Colors.white.withOpacity(0.6),
                               fontSize: 12,

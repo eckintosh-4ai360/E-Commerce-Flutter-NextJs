@@ -1,7 +1,7 @@
-import 'package:eckintosh/blocs/cart/cart_bloc.dart';
-import 'package:eckintosh/models/cart_item.dart';
-import 'package:eckintosh/models/product.dart';
-import 'package:eckintosh/services/local_store.dart';
+import 'package:globalcart/blocs/cart/cart_bloc.dart';
+import 'package:globalcart/models/cart_item.dart';
+import 'package:globalcart/models/product.dart';
+import 'package:globalcart/services/local_store.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -86,7 +86,8 @@ void main() {
   });
 
   test('totals include shipping below the free threshold only', () async {
-    final bloc = CartBloc(store: store)..add(const AddToCart(tote, quantity: 2));
+    final bloc = CartBloc(store: store)
+      ..add(const AddToCart(tote, quantity: 2));
     await settle();
     expect(bloc.state.subtotal, 100);
     expect(bloc.state.shippingFee, 25);

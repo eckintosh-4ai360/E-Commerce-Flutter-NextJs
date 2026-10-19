@@ -89,10 +89,12 @@ class _FaqHelpScreenState extends State<FaqHelpScreen> {
           ),
           const SizedBox(height: 24),
           Text('Frequently Asked Questions',
-              style: GoogleFonts.kumbhSans(fontSize: 18, fontWeight: FontWeight.w700)),
+              style: GoogleFonts.kumbhSans(
+                  fontSize: 18, fontWeight: FontWeight.w700)),
           const SizedBox(height: 12),
           if (results.isEmpty)
-            Text('No answers match "$_query". Contact us below and we will help.',
+            Text(
+                'No answers match "$_query". Contact us below and we will help.',
                 style: GoogleFonts.kumbhSans(color: AppTheme.textMed)),
           for (final faq in results)
             Container(
@@ -102,7 +104,8 @@ class _FaqHelpScreenState extends State<FaqHelpScreen> {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Theme(
-                data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                data: Theme.of(context)
+                    .copyWith(dividerColor: Colors.transparent),
                 child: ExpansionTile(
                   title: Text(faq.$1,
                       style: GoogleFonts.kumbhSans(
@@ -118,12 +121,21 @@ class _FaqHelpScreenState extends State<FaqHelpScreen> {
             ),
           const SizedBox(height: 24),
           Text('Contact Support',
-              style: GoogleFonts.kumbhSans(fontSize: 18, fontWeight: FontWeight.w700)),
+              style: GoogleFonts.kumbhSans(
+                  fontSize: 18, fontWeight: FontWeight.w700)),
           const SizedBox(height: 12),
           _contactTile(Icons.phone_outlined, 'Call us', AppConfig.supportPhone,
               () => openExternal(context, AppConfig.supportPhoneUri)),
-          _contactTile(Icons.email_outlined, 'Email us', AppConfig.supportEmail,
-              () => openExternal(context, 'mailto:${AppConfig.supportEmail}')),
+          _contactTile(
+              Icons.phone_outlined,
+              'Second line',
+              AppConfig.secondaryPhone,
+              () => openExternal(context, AppConfig.secondaryPhoneUri)),
+          _contactTile(
+              Icons.chat_outlined,
+              'WhatsApp us',
+              AppConfig.supportPhone,
+              () => openExternal(context, AppConfig.whatsappUrl)),
           _contactTile(
             Icons.local_shipping_outlined,
             'Track an order',
@@ -146,7 +158,8 @@ class _FaqHelpScreenState extends State<FaqHelpScreen> {
       ),
       child: ListTile(
         leading: Icon(icon, color: AppTheme.primary),
-        title: Text(title, style: GoogleFonts.kumbhSans(fontWeight: FontWeight.w600)),
+        title: Text(title,
+            style: GoogleFonts.kumbhSans(fontWeight: FontWeight.w600)),
         subtitle: Text(subtitle, style: GoogleFonts.kumbhSans(fontSize: 12)),
         trailing: const Icon(Icons.chevron_right),
         onTap: onTap,

@@ -104,12 +104,12 @@ Color statusColor(String status) {
       return AppTheme.success;
     case 'PROCESSING':
     case 'SHIPPED':
-      return const Color(0xFF6B7A1A);
+      return AppTheme.primaryBlue;
     case 'CANCELLED':
     case 'REJECTED':
       return AppTheme.error;
     case 'REQUESTED':
-      return const Color(0xFF8B6914);
+      return const Color(0xFF946300);
     default:
       return AppTheme.primary;
   }
@@ -249,7 +249,8 @@ class SignInPrompt extends StatelessWidget {
                       ? null
                       : () => context.read<AuthCubit>().signInWithGoogle(),
                   icon: const Icon(Icons.login),
-                  label: Text(auth.isBusy ? 'SIGNING IN...' : 'SIGN IN WITH GOOGLE'),
+                  label: Text(
+                      auth.isBusy ? 'SIGNING IN...' : 'SIGN IN WITH GOOGLE'),
                 )
               : null,
         );
@@ -344,8 +345,10 @@ class OrderProgress extends StatelessWidget {
                   _progressLabels[i],
                   style: GoogleFonts.kumbhSans(
                     fontSize: 11,
-                    fontWeight: i <= current ? FontWeight.w700 : FontWeight.w500,
-                    color: i <= current ? AppTheme.textDark : AppTheme.textLight,
+                    fontWeight:
+                        i <= current ? FontWeight.w700 : FontWeight.w500,
+                    color:
+                        i <= current ? AppTheme.textDark : AppTheme.textLight,
                   ),
                 ),
               ],
@@ -391,7 +394,8 @@ class OrderTimeline extends StatelessWidget {
                     children: [
                       Text(
                         titleCaseStatus(event.status),
-                        style: GoogleFonts.kumbhSans(fontWeight: FontWeight.w700),
+                        style:
+                            GoogleFonts.kumbhSans(fontWeight: FontWeight.w700),
                       ),
                       Text(
                         formatter.format(event.createdAt.toLocal()),

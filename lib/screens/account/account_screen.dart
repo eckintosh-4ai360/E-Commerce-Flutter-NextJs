@@ -6,6 +6,7 @@ import '../../blocs/auth/auth_cubit.dart';
 import '../../config/app_config.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/common.dart';
+import '../../widgets/brand_logo.dart';
 import '../order_tracking/order_tracking_screen.dart';
 import '../orders/orders_screen.dart';
 import 'delivery_addresses_screen.dart';
@@ -43,44 +44,98 @@ class AccountScreen extends StatelessWidget {
                 _buildOrderTracking(context),
                 const SizedBox(height: 20),
                 _buildMenuSection('Shopping', [
-                  (Icons.receipt_long_outlined, 'My Orders',
-                      () => _push(context, const OrdersScreen())),
-                  (Icons.local_shipping_outlined, 'Track Order',
-                      () => _push(context, const OrderTrackingScreen())),
-                  (Icons.replay, 'Returns & Refunds',
-                      () => _push(context, const ReturnsRefundsScreen())),
+                  (
+                    Icons.receipt_long_outlined,
+                    'My Orders',
+                    () => _push(context, const OrdersScreen())
+                  ),
+                  (
+                    Icons.local_shipping_outlined,
+                    'Track Order',
+                    () => _push(context, const OrderTrackingScreen())
+                  ),
+                  (
+                    Icons.replay,
+                    'Returns & Refunds',
+                    () => _push(context, const ReturnsRefundsScreen())
+                  ),
                 ]),
                 const SizedBox(height: 16),
                 _buildMenuSection('Account', [
-                  (Icons.person_outline, 'Edit Profile',
-                      () => _push(context, const EditProfileScreen())),
-                  (Icons.location_on_outlined, 'Delivery Addresses',
-                      () => _push(context, const DeliveryAddressesScreen())),
-                  (Icons.payment_outlined, 'Payment Methods',
-                      () => _push(context, const PaymentMethodsScreen())),
+                  (
+                    Icons.person_outline,
+                    'Edit Profile',
+                    () => _push(context, const EditProfileScreen())
+                  ),
+                  (
+                    Icons.location_on_outlined,
+                    'Delivery Addresses',
+                    () => _push(context, const DeliveryAddressesScreen())
+                  ),
+                  (
+                    Icons.payment_outlined,
+                    'Payment Methods',
+                    () => _push(context, const PaymentMethodsScreen())
+                  ),
                 ]),
                 const SizedBox(height: 16),
                 _buildMenuSection('Support', [
-                  (Icons.phone_outlined, 'Call: ${AppConfig.supportPhone}',
-                      () => openExternal(context, AppConfig.supportPhoneUri)),
-                  (Icons.email_outlined, AppConfig.supportEmail,
-                      () => openExternal(context, 'mailto:${AppConfig.supportEmail}')),
-                  (Icons.help_outline, 'FAQ & Help Center',
-                      () => _push(context, const FaqHelpScreen())),
+                  (
+                    Icons.phone_outlined,
+                    'Call: ${AppConfig.supportPhone}',
+                    () => openExternal(context, AppConfig.supportPhoneUri)
+                  ),
+                  (
+                    Icons.phone_outlined,
+                    'Call: ${AppConfig.secondaryPhone}',
+                    () => openExternal(context, AppConfig.secondaryPhoneUri)
+                  ),
+                  (
+                    Icons.chat_outlined,
+                    'WhatsApp: ${AppConfig.supportPhone}',
+                    () => openExternal(context, AppConfig.whatsappUrl)
+                  ),
+                  (
+                    Icons.help_outline,
+                    'FAQ & Help Center',
+                    () => _push(context, const FaqHelpScreen())
+                  ),
                 ]),
                 const SizedBox(height: 16),
                 _buildMenuSection('Shop anywhere', [
-                  (Icons.language, 'Shop on the website',
-                      () => openExternal(context, AppConfig.webBaseUri.toString())),
+                  (
+                    Icons.language,
+                    'Shop on the website',
+                    () => openExternal(context, AppConfig.webBaseUri.toString())
+                  ),
                 ]),
                 const SizedBox(height: 16),
                 _buildMenuSection('Follow Us', [
-                  (Icons.camera_alt_outlined, 'Instagram @Eckintoshmall',
-                      () => openExternal(context, AppConfig.instagramUrl)),
-                  (Icons.facebook_outlined, 'Facebook: Eckintoshmall',
-                      () => openExternal(context, AppConfig.facebookUrl)),
-                  (Icons.alternate_email, 'X @Eckintosh_mall',
-                      () => openExternal(context, AppConfig.twitterUrl)),
+                  (
+                    Icons.facebook_outlined,
+                    'Facebook: GlobalCart GH',
+                    () => openExternal(context, AppConfig.facebookUrl)
+                  ),
+                  (
+                    Icons.camera_alt_outlined,
+                    'Instagram @globalcart_gh',
+                    () => openExternal(context, AppConfig.instagramUrl)
+                  ),
+                  (
+                    Icons.music_note,
+                    'TikTok @globalcart_gh',
+                    () => openExternal(context, AppConfig.tiktokUrl)
+                  ),
+                  (
+                    Icons.chat,
+                    'WhatsApp 024 307 3148',
+                    () => openExternal(context, AppConfig.whatsappUrl)
+                  ),
+                  (
+                    Icons.send_outlined,
+                    'Telegram @globalcart_gh',
+                    () => openExternal(context, AppConfig.telegramUrl)
+                  ),
                 ]),
                 const SizedBox(height: 32),
                 _buildFooter(),
@@ -233,7 +288,7 @@ class AccountScreen extends StatelessWidget {
         child: Row(
           children: [
             const Icon(Icons.local_shipping_outlined,
-                color: Color(0xFF8B6914), size: 28),
+                color: AppTheme.primaryBlue, size: 28),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -313,20 +368,16 @@ class AccountScreen extends StatelessWidget {
   Widget _buildFooter() {
     return Column(
       children: [
-        Text(
-          'ECKINTOSH',
-          style: GoogleFonts.kumbhSans(
-              fontSize: 22, fontWeight: FontWeight.w700, letterSpacing: 3),
-        ),
+        const GlobalCartLogo(markSize: 38, fontSize: 23),
         const SizedBox(height: 8),
         Text(
-          'Crafted in rich colours, delivered across Ghana.',
+          'Shop Global, Pay Local — delivered across Ghana.',
           style: GoogleFonts.kumbhSans(fontSize: 12, color: AppTheme.textMed),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 8),
         Text(
-          'Copyright ${DateTime.now().year} © Eckintoshmall. All rights reserved.',
+          'Copyright ${DateTime.now().year} © GlobalCart GH. All rights reserved.',
           style: GoogleFonts.kumbhSans(fontSize: 10, color: AppTheme.textLight),
         ),
       ],

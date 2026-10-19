@@ -196,9 +196,9 @@ class Product extends Equatable {
   List<Object?> get props => [id, name, price, originalPrice, images, category];
 }
 
-// Data source - Eckintoshmall products
+// Data source - GlobalCart GH products
 class ProductData {
-  static const String baseUrl = 'https://Eckintoshmall.com/wp-content/uploads';
+  static const String baseUrl = 'https://globalcartgh.com/wp-content/uploads';
 
   static final List<Product> products = [
     const Product(

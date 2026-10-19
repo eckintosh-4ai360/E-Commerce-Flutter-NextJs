@@ -388,7 +388,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               style: GoogleFonts.kumbhSans(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
-                  color: const Color(0xFF8B6914)),
+                  color: const Color(0xFF946300)),
             ),
           ),
         ],
@@ -744,7 +744,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     try {
       await SharePlus.instance.share(
         ShareParams(
-          text: '${p.name} — ${formatPrice(p.price)} at Eckintosh Mall\n$url',
+          text: '${p.name} — ${formatPrice(p.price)} at GlobalCart GH\n$url',
           subject: p.name,
         ),
       );

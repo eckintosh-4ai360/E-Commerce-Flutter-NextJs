@@ -1,6 +1,6 @@
-import 'package:eckintosh/blocs/catalog/catalog_cubit.dart';
-import 'package:eckintosh/models/product.dart';
-import 'package:eckintosh/repositories/catalog_repository.dart';
+import 'package:globalcart/blocs/catalog/catalog_cubit.dart';
+import 'package:globalcart/models/product.dart';
+import 'package:globalcart/repositories/catalog_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class _RecoveringCatalogRepository extends CatalogRepository {

@@ -8,6 +8,7 @@ import '../../blocs/wishlist/wishlist_bloc.dart';
 import '../../models/product.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/product_card.dart';
+import '../../widgets/brand_logo.dart';
 import '../product_detail/product_detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -102,7 +103,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     SliverToBoxAdapter(
                       child: _buildSectionHeader(
                         'All Products',
-                        'Eckintosh essentials for every season',
+                        'Global finds, selected for life in Ghana',
                         onSeeAll: () => context
                             .read<NavigationBloc>()
                             .add(const NavigateTo(1)),
@@ -169,6 +170,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         ),
         child: Row(
           children: [
+            const GlobalCartMark(size: 42),
+            const SizedBox(width: 10),
             Expanded(
               child: GestureDetector(
                 onTap: () => _showSearch(context, products),
@@ -186,7 +189,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           color: AppTheme.textMed, size: 22),
                       const SizedBox(width: 12),
                       Text(
-                        'Search bags, accessories...',
+                        'Search GlobalCart...',
                         style: GoogleFonts.kumbhSans(
                           color: AppTheme.textMed,
                           fontSize: 14,
@@ -278,7 +281,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                               color: AppTheme.accent.withValues(alpha: 0.5)),
                         ),
                         child: Text(
-                          'EXCLUSIVE OFFER',
+                          'SHOP GLOBAL, PAY LOCAL',
                           style: GoogleFonts.kumbhSans(
                             color: AppTheme.accent,
                             fontSize: 10,
@@ -289,7 +292,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'For the\nStylish &\nFashionable',
+                        'The world\nin your\ncart',
                         style: GoogleFonts.kumbhSans(
                           color: Colors.white,
                           fontSize: 30,

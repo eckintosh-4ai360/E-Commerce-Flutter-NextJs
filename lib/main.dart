@@ -34,21 +34,21 @@ Future<void> main() async {
   runApp(
     DevicePreview(
       enabled: !kReleaseMode,
-      builder: (_) => EckintoshApp(store: store),
+      builder: (_) => GlobalCartApp(store: store),
     ),
   );
 }
 
-class EckintoshApp extends StatefulWidget {
-  const EckintoshApp({super.key, required this.store});
+class GlobalCartApp extends StatefulWidget {
+  const GlobalCartApp({super.key, required this.store});
 
   final LocalStore store;
 
   @override
-  State<EckintoshApp> createState() => _EckintoshAppState();
+  State<GlobalCartApp> createState() => _GlobalCartAppState();
 }
 
-class _EckintoshAppState extends State<EckintoshApp> {
+class _GlobalCartAppState extends State<GlobalCartApp> {
   late final AuthService _authService = AuthService();
   late final ApiClient _api = ApiClient(
     tokenProvider: () => _authService.getIdToken(),
@@ -103,7 +103,7 @@ class _EckintoshAppState extends State<EckintoshApp> {
             ),
           ],
           child: MaterialApp(
-            title: 'Eckintosh',
+            title: 'GlobalCart GH',
             debugShowCheckedModeBanner: false,
             locale: DevicePreview.locale(context),
             theme: AppTheme.lightTheme,

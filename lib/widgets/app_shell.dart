@@ -8,6 +8,7 @@ import '../screens/shop/shop_screen.dart';
 import '../screens/cart/cart_screen.dart';
 import '../screens/wishlist/wishlist_screen.dart';
 import '../screens/account/account_screen.dart';
+import '../theme/app_theme.dart';
 
 class AppShell extends StatelessWidget {
   const AppShell({super.key});
@@ -45,7 +46,7 @@ class AppShell extends StatelessWidget {
         child: Container(
           height: 60,
           decoration: BoxDecoration(
-            color: Colors.black,
+            color: AppTheme.primary,
             borderRadius: BorderRadius.circular(35),
             boxShadow: [
               BoxShadow(
@@ -136,7 +137,7 @@ class AppShell extends StatelessWidget {
           if (isActive)
             const Icon(
               Icons.check,
-              color: Colors.black,
+              color: AppTheme.primary,
               size: 16,
             ),
         ],

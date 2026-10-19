@@ -1,6 +1,6 @@
-import 'package:eckintosh/models/app_order.dart';
-import 'package:eckintosh/models/cart_item.dart';
-import 'package:eckintosh/models/product.dart';
+import 'package:globalcart/models/app_order.dart';
+import 'package:globalcart/models/cart_item.dart';
+import 'package:globalcart/models/product.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 Map<String, dynamic> orderJson([Map<String, dynamic> overrides = const {}]) => {
@@ -34,8 +34,16 @@ Map<String, dynamic> orderJson([Map<String, dynamic> overrides = const {}]) => {
         }
       ],
       'events': [
-        {'status': 'PENDING', 'note': null, 'createdAt': '2026-01-01T10:00:00.000Z'},
-        {'status': 'SHIPPED', 'note': 'On the way', 'createdAt': '2026-01-02T10:00:00.000Z'},
+        {
+          'status': 'PENDING',
+          'note': null,
+          'createdAt': '2026-01-01T10:00:00.000Z'
+        },
+        {
+          'status': 'SHIPPED',
+          'note': 'On the way',
+          'createdAt': '2026-01-02T10:00:00.000Z'
+        },
       ],
       'returnRequests': [],
       ...overrides,
@@ -99,12 +107,14 @@ void main() {
       category: 'Bags',
       colors: ['Black', 'Caramel'],
     );
-    const item = CartItem(product: product, quantity: 2, selectedColor: 'Caramel');
+    const item =
+        CartItem(product: product, quantity: 2, selectedColor: 'Caramel');
     final restored = CartItem.tryParse(item.toJson())!;
     expect(restored.lineKey, item.lineKey);
     expect(restored.quantity, 2);
     expect(restored.product.colors, ['Black', 'Caramel']);
     expect(CartItem.tryParse({'quantity': 1}), isNull);
-    expect(CartItem.tryParse({'product': product.toJson(), 'quantity': 0}), isNull);
+    expect(CartItem.tryParse({'product': product.toJson(), 'quantity': 0}),
+        isNull);
   });
 }
