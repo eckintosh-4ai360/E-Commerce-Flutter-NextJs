@@ -1,11 +1,11 @@
 {
-    "name": "Eckintosh Mall",
-    "short_name": "Eckintosh",
+    "name": "GlobalCart GH",
+    "short_name": "GlobalCart",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#FAF9F7",
-    "theme_color": "#1A1A1A",
-    "description": "Premium leather bags, wallets, watches and accessories delivered across Ghana.",
+    "background_color": "#F7F9FC",
+    "theme_color": "#001A3A",
+    "description": "Shop Global, Pay Local with GlobalCart GH.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
