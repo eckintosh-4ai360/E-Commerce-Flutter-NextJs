@@ -107,7 +107,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
               return (
                 <div key={step} style={{ display: 'flex', alignItems: 'center', flex: index < flow.length - 1 ? 1 : 0 }}>
                   <div style={{ display: 'grid', justifyItems: 'center', gap: 8 }}>
-                    <div style={{ width: 40, height: 40, borderRadius: '50%', border: `2px solid ${color}`, background: done ? `${color}22` : '#1a1a1a', display: 'grid', placeItems: 'center', color }}>
+                    <div style={{ width: 40, height: 40, borderRadius: '50%', border: `2px solid ${color}`, background: done ? `${color}22` : '#08284f', display: 'grid', placeItems: 'center', color }}>
                       <Icon size={16} />
                     </div>
                     <span style={{ fontSize: 11, color: done ? color : '#555', fontWeight: done ? 600 : 400 }}>{step}</span>

@@ -97,28 +97,28 @@ function layout({
     .map(
       ([label, value]) => `
         <tr>
-          <td style="padding:6px 0;color:#5c5c5c;font-size:14px;">${escapeHtml(label)}</td>
+          <td style="padding:6px 0;color:#45556c;font-size:14px;">${escapeHtml(label)}</td>
           <td style="padding:6px 0;text-align:right;font-weight:700;font-size:14px;">${escapeHtml(value)}</td>
         </tr>`,
     )
     .join('');
 
   return `
-  <div style="background:#faf9f7;padding:32px 16px;font-family:Arial,Helvetica,sans-serif;color:#1a1a1a;">
-    <div style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #eeece8;">
-      <div style="padding:24px 28px;background:#1a1a1a;color:#ffffff;">
-        <div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#bdd253;">${escapeHtml(storeConfig.name)}</div>
+  <div style="background:#f7f9fc;padding:32px 16px;font-family:Arial,Helvetica,sans-serif;color:#001a3a;">
+    <div style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #dce3ec;">
+      <div style="padding:24px 28px;background:#001a3a;color:#ffffff;border-top:4px solid #ffb000;">
+        <div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#ffb000;">${escapeHtml(storeConfig.name)}</div>
         <h1 style="margin:10px 0 0;font-size:22px;line-height:1.3;">${escapeHtml(heading)}</h1>
       </div>
       <div style="padding:24px 28px;">
         ${paragraphs.map((p) => `<p style="margin:0 0 14px;font-size:15px;line-height:1.6;">${p}</p>`).join('')}
-        <table role="presentation" style="width:100%;margin:18px 0;padding:14px 18px;border-radius:12px;background:#f5f3ef;border-collapse:separate;">${rowHtml}</table>
+        <table role="presentation" style="width:100%;margin:18px 0;padding:14px 18px;border-radius:12px;background:#eef3f8;border-collapse:separate;">${rowHtml}</table>
         ${
           cta
-            ? `<p style="margin:22px 0 8px;"><a href="${escapeHtml(cta.href)}" style="display:inline-block;background:#1a1a1a;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:8px;font-weight:700;font-size:14px;">${escapeHtml(cta.label)}</a></p>`
+            ? `<p style="margin:22px 0 8px;"><a href="${escapeHtml(cta.href)}" style="display:inline-block;background:#001a3a;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:8px;font-weight:700;font-size:14px;">${escapeHtml(cta.label)}</a></p>`
             : ''
         }
-        <p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#5c5c5c;">
+        <p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#45556c;">
           Questions? Reply to this email or call ${escapeHtml(storeConfig.supportPhone)}.
         </p>
       </div>

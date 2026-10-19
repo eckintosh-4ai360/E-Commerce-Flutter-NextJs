@@ -192,7 +192,7 @@ function ImageUploader({ values, onChange }: { values: string[]; onChange: (path
       {values.length > 0 ? (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 10 }}>
           {values.map((value, index) => (
-            <div key={value} style={{ border: index === 0 ? '2px solid var(--a-gold)' : '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: 8, background: '#1a1a1a' }}>
+            <div key={value} style={{ border: index === 0 ? '2px solid var(--a-gold)' : '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: 8, background: '#08284f' }}>
               <div style={{ position: 'relative', aspectRatio: '1 / 1', borderRadius: 7, overflow: 'hidden', background: '#111' }}>
                 <img src={value} alt={`Product image ${index + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 {index === 0 ? <span className="admin-tag" style={{ position: 'absolute', top: 6, left: 6, background: 'var(--a-gold)', color: '#111' }}>Main</span> : null}
@@ -227,7 +227,7 @@ function ImageUploader({ values, onChange }: { values: string[]; onChange: (path
           style={{
             border: `2px dashed ${dragging ? '#d4af37' : 'rgba(255,255,255,0.12)'}`,
             borderRadius: 12,
-            background: dragging ? 'rgba(212,175,55,0.06)' : '#1a1a1a',
+            background: dragging ? 'rgba(255,176,0,0.08)' : '#08284f',
             cursor: uploading ? 'progress' : 'pointer',
             minHeight: 110,
             display: 'grid',
@@ -447,7 +447,7 @@ export default function ProductsPage() {
                     <div style={{ fontWeight: 600 }}>{product.name}</div>
                     <div style={{ fontSize: 12, color: 'var(--a-text-3)' }}>ID {product.id} · {product.orderCount} order line{product.orderCount === 1 ? '' : 's'}</div>
                   </td>
-                  <td><span className="admin-tag" style={{ background: 'rgba(212,175,55,0.1)', color: 'var(--a-gold)' }}>{product.category}</span></td>
+                  <td><span className="admin-tag" style={{ background: 'rgba(255,176,0,0.1)', color: 'var(--a-gold)' }}>{product.category}</span></td>
                   <td style={{ fontWeight: 600 }}>
                     {formatMoney(product.price)}
                     {product.originalPrice ? <div style={{ fontSize: 11, color: 'var(--a-text-3)', textDecoration: 'line-through', fontWeight: 400 }}>{formatMoney(product.originalPrice)}</div> : null}
@@ -461,7 +461,7 @@ export default function ProductsPage() {
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                       {product.isArchived ? <span className="admin-tag" style={{ background: 'rgba(255,255,255,0.08)', color: 'var(--a-text-2)' }}>Archived</span> : null}
                       {product.isNew ? <span className="admin-tag" style={{ background: 'rgba(96,165,250,0.12)', color: 'var(--a-blue)' }}>New</span> : null}
-                      {product.isBestSeller ? <span className="admin-tag" style={{ background: 'rgba(212,175,55,0.12)', color: 'var(--a-gold)' }}>Best seller</span> : null}
+                      {product.isBestSeller ? <span className="admin-tag" style={{ background: 'rgba(255,176,0,0.12)', color: 'var(--a-gold)' }}>Best seller</span> : null}
                     </div>
                   </td>
                   <td>

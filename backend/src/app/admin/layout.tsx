@@ -6,7 +6,7 @@ import { AdminShell } from './_components/AdminShell';
 import './admin.css';
 
 export const metadata: Metadata = {
-  title: { default: 'Admin', template: '%s · Eckintosh Admin' },
+  title: { default: 'Admin', template: '%s · GlobalCart Admin' },
   description: 'Manage products, orders, returns and store data.',
   robots: { index: false, follow: false },
 };

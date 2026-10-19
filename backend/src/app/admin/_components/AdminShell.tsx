@@ -36,9 +36,9 @@ function Sidebar({ email }: { email: string }) {
     <>
       <aside className="admin-sidebar">
         <Link href="/admin" className="admin-brand">
-          <span className="admin-brand__mark">E</span>
+          <span className="admin-brand__mark">G</span>
           <span>
-            <strong>Eckintosh</strong>
+            <strong>GlobalCart GH</strong>
             <span>Admin CMS</span>
           </span>
         </Link>
@@ -113,8 +113,8 @@ function AdminGate({ children }: { children: ReactNode }) {
     return (
       <div className="admin-center">
         <div className="admin-card" style={{ maxWidth: 420 }}>
-          <div className="admin-brand__mark" style={{ margin: '0 auto 16px' }}>E</div>
-          <h1 style={{ margin: '0 0 8px', fontSize: 22, color: 'var(--a-text)' }}>Eckintosh Admin</h1>
+          <div className="admin-brand__mark" style={{ margin: '0 auto 16px' }}>G</div>
+          <h1 style={{ margin: '0 0 8px', fontSize: 22, color: 'var(--a-text)' }}>GlobalCart Admin</h1>
           <p style={{ margin: '0 0 20px' }}>Sign in with an authorised Google account to manage the store.</p>
           {error ? <div className="admin-alert admin-alert--error">{error}</div> : null}
           <button type="button" className="admin-btn admin-btn--primary" style={{ width: '100%' }} onClick={() => void signIn()} disabled={busy}>

@@ -84,7 +84,7 @@ export default function AdminDashboard() {
       <div className="admin-page-head">
         <div>
           <h1>Dashboard</h1>
-          <p>Overview of your Eckintosh Mall storefront</p>
+          <p>Overview of your GlobalCart GH storefront</p>
         </div>
       </div>
 
