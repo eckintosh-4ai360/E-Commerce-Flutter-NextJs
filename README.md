@@ -1,6 +1,6 @@
-# ECKINTOSH Mall - Premium E-commerce Storefront
+# GlobalCart GH - Shop Global, Pay Local
 
-A full-stack store for leather bags and accessories. Customers can shop in the **Flutter mobile app** or on the **website** — both use the same Next.js backend, so the catalogue, account, wishlist, saved addresses, orders and returns are shared.
+A full-stack Ghanaian e-commerce store. Customers can shop in the **Flutter mobile app** or on the **website** — both use the same Next.js backend, so the catalogue, account, wishlist, saved addresses, orders and returns are shared.
 
 ---
 
@@ -124,11 +124,11 @@ flutter test
 
 ## Before publishing the Android app
 
-1. **Application id** — change `applicationId` (`com.example.Eckintoshmall`) in `android/app/build.gradle.kts`, register the new id in Firebase and download its `google-services.json`. Google Play rejects `com.example` ids.
+1. **Application id** — replace the current `com.example` placeholder in `android/app/build.gradle.kts`, register the new id in Firebase and download its `google-services.json`. Google Play rejects `com.example` ids.
 2. **Upload key** — create one once and keep it safe (losing it means you can't update the app):
 
    ```bash
-   keytool -genkey -v -keystore ~/eckintosh-upload.jks -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+   keytool -genkey -v -keystore ~/globalcart-upload.jks -keyalg RSA -keysize 2048 -validity 10000 -alias upload
    ```
 
    Then create `android/key.properties` (already gitignored):
@@ -137,7 +137,7 @@ flutter test
    storePassword=<password from keytool>
    keyPassword=<password from keytool>
    keyAlias=upload
-   storeFile=C:/Users/<you>/eckintosh-upload.jks
+   storeFile=C:/Users/<you>/globalcart-upload.jks
    ```
 
    `flutter build appbundle` signs with this key automatically. Without the file, release builds fall back to the debug key, which works for testing but can't be uploaded to Google Play.
