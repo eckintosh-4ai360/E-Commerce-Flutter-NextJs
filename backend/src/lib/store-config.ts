@@ -72,7 +72,7 @@ export const ghanaRegions = [
   'Ahafo',
 ] as const;
 
-export const paymentMethods = [
+export const paymentOnDeliveryMethods = [
   {
     value: 'CASH_ON_DELIVERY',
     label: 'Cash on delivery',
@@ -85,10 +85,32 @@ export const paymentMethods = [
   },
 ] as const;
 
+export const paymentMethods = [
+  ...paymentOnDeliveryMethods,
+  {
+    value: 'PAYSTACK',
+    label: 'Paystack online payment · Test mode',
+    description: 'Test card or Mobile Money checkout. No real money will be charged.',
+  },
+] as const;
+
 export type PaymentMethodValue = (typeof paymentMethods)[number]['value'];
 
 export function paymentMethodLabel(value: string) {
   return paymentMethods.find((method) => method.value === value)?.label ?? value;
+}
+
+export function paymentStatusLabel(value: string) {
+  switch (value) {
+    case 'PAID':
+      return 'Paid';
+    case 'PENDING':
+      return 'Payment pending';
+    case 'PAY_ON_DELIVERY':
+      return 'Due on delivery';
+    default:
+      return value;
+  }
 }
 
 export const returnReasons = [

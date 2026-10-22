@@ -19,6 +19,13 @@ enum OrderStatus {
 enum PaymentMethod {
   CASH_ON_DELIVERY
   MOBILE_MONEY
+  PAYSTACK
+}
+
+enum PaymentStatus {
+  PAY_ON_DELIVERY
+  PENDING
+  PAID
 }
 
 enum ReturnStatus {
@@ -99,37 +106,42 @@ model WishlistItem {
 }
 
 model Order {
-  id              String          @id @default(cuid())
+  id                      String          @id @default(cuid())
   // Upper-cased last 10 characters of the id; what customers type to track.
-  trackingCode    String?         @unique
+  trackingCode            String?         @unique
   // Null only for orders placed before accounts were linked by uid.
-  customerUid     String?
-  customerName    String
-  customerEmail   String?
-  customerPhone   String
-  deliveryAddress String?
-  notes           String?
-  paymentMethod   PaymentMethod   @default(CASH_ON_DELIVERY)
+  customerUid             String?
+  customerName            String
+  customerEmail           String?
+  customerPhone           String
+  deliveryAddress         String?
+  notes                   String?
+  paymentMethod           PaymentMethod   @default(CASH_ON_DELIVERY)
+  paymentStatus           PaymentStatus   @default(PAY_ON_DELIVERY)
+  paymentReference        String?
+  paymentAuthorizationUrl String?
+  paidAt                  DateTime?
   // Client-generated key that makes checkout retries return the same order.
-  clientRequestId String?         @unique
-  subtotal        Float
-  shippingFee     Float
-  total           Float
-  status          OrderStatus     @default(PENDING)
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-  items           OrderItem[]
-  events          OrderEvent[]
-  returnRequests  ReturnRequest[]
+  clientRequestId         String?         @unique
+  subtotal                Float
+  shippingFee             Float
+  total                   Float
+  status                  OrderStatus     @default(PENDING)
+  createdAt               DateTime        @default(now())
+  updatedAt               DateTime        @updatedAt
+  items                   OrderItem[]
+  events                  OrderEvent[]
+  returnRequests          ReturnRequest[]
 
   @@index([customerUid, createdAt])
   @@index([customerEmail])
+  @@index([paymentReference])
   @@index([status, createdAt])
   @@index([createdAt])
 }
 
 model OrderItem {
-  id            String   @id @default(cuid())
+  id            String  @id @default(cuid())
   orderId       String
   productId     Int
   productName   String
@@ -137,8 +149,8 @@ model OrderItem {
   quantity      Int
   selectedColor String?
   selectedSize  String?
-  order         Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product       Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
+  order         Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product       Product @relation(fields: [productId], references: [id], onDelete: Restrict)
 
   @@index([orderId])
   @@index([productId])

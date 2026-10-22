@@ -41,6 +41,17 @@ test('orders need a delivery address and at least one item', () => {
   );
 });
 
+test('Paystack is allowed at checkout but not stored as an on-delivery preference', () => {
+  assert.equal(
+    createOrderSchema.safeParse({ ...validOrder, paymentMethod: 'PAYSTACK' }).success,
+    true,
+  );
+  assert.equal(
+    updateProfileSchema.safeParse({ preferredPaymentMethod: 'PAYSTACK' }).success,
+    false,
+  );
+});
+
 test('phone numbers allow common formats only', () => {
   for (const phone of ['0598599687', '+233 59 859 9687', '(059) 859-9687']) {
     assert.equal(phoneSchema.safeParse(phone).success, true, phone);

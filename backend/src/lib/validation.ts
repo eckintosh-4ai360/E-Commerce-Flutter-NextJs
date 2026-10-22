@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import {
   orderStatuses,
+  paymentOnDeliveryMethods,
   paymentMethods,
   returnReasons,
   returnStatuses,
@@ -11,6 +12,11 @@ import {
 const paymentMethodValues = paymentMethods.map((method) => method.value) as [
   (typeof paymentMethods)[number]['value'],
   ...(typeof paymentMethods)[number]['value'][],
+];
+
+const paymentPreferenceValues = paymentOnDeliveryMethods.map((method) => method.value) as [
+  (typeof paymentOnDeliveryMethods)[number]['value'],
+  ...(typeof paymentOnDeliveryMethods)[number]['value'][],
 ];
 
 function text(label: string, min: number, max: number) {
@@ -92,7 +98,7 @@ export const updateProfileSchema = z.object({
     .union([phoneSchema, z.literal('').transform(() => null), z.null()])
     .optional(),
   preferredPaymentMethod: z
-    .enum(paymentMethodValues, { error: 'Choose a valid payment method.' })
+    .enum(paymentPreferenceValues, { error: 'Choose a valid payment method.' })
     .optional(),
 });
 

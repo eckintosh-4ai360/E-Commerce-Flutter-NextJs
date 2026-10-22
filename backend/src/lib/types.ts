@@ -25,7 +25,9 @@ export type OrderStatus =
   | 'DELIVERED'
   | 'CANCELLED';
 
-export type PaymentMethod = 'CASH_ON_DELIVERY' | 'MOBILE_MONEY';
+export type PaymentMethod = 'CASH_ON_DELIVERY' | 'MOBILE_MONEY' | 'PAYSTACK';
+
+export type PaymentStatus = 'PAY_ON_DELIVERY' | 'PENDING' | 'PAID';
 
 export type ReturnStatus = 'REQUESTED' | 'APPROVED' | 'REJECTED' | 'REFUNDED';
 
@@ -68,6 +70,9 @@ export type OrderView = {
   shippingFee: number;
   total: number;
   paymentMethod: PaymentMethod;
+  paymentStatus: PaymentStatus;
+  paymentReference: string | null;
+  paidAt: string | null;
   customerName: string;
   customerPhone: string;
   customerEmail: string | null;

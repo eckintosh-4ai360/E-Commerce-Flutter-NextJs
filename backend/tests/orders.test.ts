@@ -34,6 +34,10 @@ function order(overrides: Partial<OrderWithRelations> = {}): OrderWithRelations 
     deliveryAddress: '12 Oxford St, Osu',
     notes: 'Call on arrival',
     paymentMethod: 'CASH_ON_DELIVERY',
+    paymentStatus: 'PAY_ON_DELIVERY',
+    paymentReference: null,
+    paymentAuthorizationUrl: null,
+    paidAt: null,
     clientRequestId: null,
     subtotal: 100,
     shippingFee: 25,
@@ -102,6 +106,22 @@ test('owner view exposes details and actions', () => {
   assert.equal(view.deliveryAddress, '12 Oxford St, Osu');
   assert.equal(view.canCancel, true);
   assert.equal(view.canRequestReturn, false);
+});
+
+test('a paid Paystack order cannot be self-cancelled', () => {
+  const paidAt = new Date('2026-01-01T10:05:00Z');
+  const view = serialiseOrder(
+    order({
+      paymentMethod: 'PAYSTACK',
+      paymentStatus: 'PAID',
+      paymentReference: 'globacart-cabc123def456ghi789jkl0mn',
+      paidAt,
+    }),
+    'owner',
+  );
+  assert.equal(view.canCancel, false);
+  assert.equal(view.paymentStatus, 'PAID');
+  assert.equal(view.paidAt, paidAt.toISOString());
 });
 
 test('returns are allowed within the window after delivery, once', () => {

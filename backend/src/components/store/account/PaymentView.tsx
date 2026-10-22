@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { useToast } from '@/components/providers/ToastProvider';
 import { errorMessage } from '@/lib/client/api';
-import { paymentMethods } from '@/lib/store-config';
+import { paymentOnDeliveryMethods } from '@/lib/store-config';
 import type { CustomerProfile, PaymentMethod } from '@/lib/types';
 
 import { RequireAuth } from '../RequireAuth';
@@ -45,7 +45,7 @@ function PaymentPreference() {
       <div className="card">
         <h2>Preferred payment method</h2>
         <div className="radio-list">
-          {paymentMethods.map((method) => (
+          {paymentOnDeliveryMethods.map((method) => (
             <label key={method.value} className="radio-card">
               <input
                 type="radio"

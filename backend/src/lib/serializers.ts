@@ -168,6 +168,9 @@ export function serialiseOrder(
     shippingFee: order.shippingFee,
     total: order.total,
     paymentMethod: order.paymentMethod,
+    paymentStatus: order.paymentStatus,
+    paymentReference: isPublic ? null : order.paymentReference,
+    paidAt: order.paidAt?.toISOString() ?? null,
     customerName: isPublic ? firstName(order.customerName) : order.customerName,
     customerPhone: isPublic ? maskPhone(order.customerPhone) : order.customerPhone,
     customerEmail: isPublic ? null : order.customerEmail,
@@ -188,7 +191,10 @@ export function serialiseOrder(
         ? events
         : [{ status: 'PENDING', note: null, createdAt: order.createdAt.toISOString() }],
     isRedacted: isPublic,
-    canCancel: !isPublic && order.status === 'PENDING',
+    canCancel:
+      !isPublic &&
+      order.status === 'PENDING' &&
+      !(order.paymentMethod === 'PAYSTACK' && order.paymentStatus === 'PAID'),
     canRequestReturn:
       !isPublic && isWithinReturnWindow(order) && !hasOpenReturn(order),
     returnRequests: isPublic
