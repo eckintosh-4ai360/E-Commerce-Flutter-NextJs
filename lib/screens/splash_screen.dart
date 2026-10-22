@@ -98,7 +98,7 @@ class _SplashScreenState extends State<SplashScreen>
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const GlobalCartLogo(
+                      const GlobaCartLogo(
                         markSize: 82,
                         fontSize: 34,
                         onDark: true,

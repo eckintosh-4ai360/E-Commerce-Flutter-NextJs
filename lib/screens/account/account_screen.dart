@@ -113,17 +113,17 @@ class AccountScreen extends StatelessWidget {
                 _buildMenuSection('Follow Us', [
                   (
                     Icons.facebook_outlined,
-                    'Facebook: GlobalCart GH',
+                    'Facebook: GlobaCart GH',
                     () => openExternal(context, AppConfig.facebookUrl)
                   ),
                   (
                     Icons.camera_alt_outlined,
-                    'Instagram @globalcart_gh',
+                    'Instagram @globacart_gh',
                     () => openExternal(context, AppConfig.instagramUrl)
                   ),
                   (
                     Icons.music_note,
-                    'TikTok @globalcart_gh',
+                    'TikTok @globacart_gh',
                     () => openExternal(context, AppConfig.tiktokUrl)
                   ),
                   (
@@ -133,7 +133,7 @@ class AccountScreen extends StatelessWidget {
                   ),
                   (
                     Icons.send_outlined,
-                    'Telegram @globalcart_gh',
+                    'Telegram @globacart_gh',
                     () => openExternal(context, AppConfig.telegramUrl)
                   ),
                 ]),
@@ -368,7 +368,7 @@ class AccountScreen extends StatelessWidget {
   Widget _buildFooter() {
     return Column(
       children: [
-        const GlobalCartLogo(markSize: 38, fontSize: 23),
+        const GlobaCartLogo(markSize: 38, fontSize: 23),
         const SizedBox(height: 8),
         Text(
           'Shop Global, Pay Local — delivered across Ghana.',
@@ -377,7 +377,7 @@ class AccountScreen extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          'Copyright ${DateTime.now().year} © GlobalCart GH. All rights reserved.',
+          'Copyright ${DateTime.now().year} © GlobaCart GH. All rights reserved.',
           style: GoogleFonts.kumbhSans(fontSize: 10, color: AppTheme.textLight),
         ),
       ],

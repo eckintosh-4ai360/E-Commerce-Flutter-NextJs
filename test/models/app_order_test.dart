@@ -1,6 +1,6 @@
-import 'package:globalcart/models/app_order.dart';
-import 'package:globalcart/models/cart_item.dart';
-import 'package:globalcart/models/product.dart';
+import 'package:globacart/models/app_order.dart';
+import 'package:globacart/models/cart_item.dart';
+import 'package:globacart/models/product.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 Map<String, dynamic> orderJson([Map<String, dynamic> overrides = const {}]) => {

@@ -3,10 +3,10 @@
     <uses-permission android:name="android.permission.INTERNET"/>
 
     <application
-        android:label="GlobalCart GH"
+        android:label="GlobaCart GH"
         android:name="${applicationName}"
-        android:icon="@drawable/globalcart_launcher"
-        android:roundIcon="@drawable/globalcart_launcher">
+        android:icon="@drawable/globacart_launcher"
+        android:roundIcon="@drawable/globacart_launcher">
         <activity
             android:name=".MainActivity"
             android:exported="true"

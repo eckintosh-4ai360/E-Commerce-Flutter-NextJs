@@ -34,21 +34,21 @@ Future<void> main() async {
   runApp(
     DevicePreview(
       enabled: !kReleaseMode,
-      builder: (_) => GlobalCartApp(store: store),
+      builder: (_) => GlobaCartApp(store: store),
     ),
   );
 }
 
-class GlobalCartApp extends StatefulWidget {
-  const GlobalCartApp({super.key, required this.store});
+class GlobaCartApp extends StatefulWidget {
+  const GlobaCartApp({super.key, required this.store});
 
   final LocalStore store;
 
   @override
-  State<GlobalCartApp> createState() => _GlobalCartAppState();
+  State<GlobaCartApp> createState() => _GlobaCartAppState();
 }
 
-class _GlobalCartAppState extends State<GlobalCartApp> {
+class _GlobaCartAppState extends State<GlobaCartApp> {
   late final AuthService _authService = AuthService();
   late final ApiClient _api = ApiClient(
     tokenProvider: () => _authService.getIdToken(),
@@ -103,7 +103,7 @@ class _GlobalCartAppState extends State<GlobalCartApp> {
             ),
           ],
           child: MaterialApp(
-            title: 'GlobalCart GH',
+            title: 'GlobaCart GH',
             debugShowCheckedModeBanner: false,
             locale: DevicePreview.locale(context),
             theme: AppTheme.lightTheme,

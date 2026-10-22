@@ -1,4 +1,4 @@
-# GlobalCart GH - Shop Global, Pay Local
+# GlobaCart GH - Shop Global, Pay Local
 
 A full-stack Ghanaian e-commerce store. Customers can shop in the **Flutter mobile app** or on the **website** — both use the same Next.js backend, so the catalogue, account, wishlist, saved addresses, orders and returns are shared.
 
@@ -147,7 +147,7 @@ flutter test
 2. **Upload key** — create one once and keep it safe (losing it means you can't update the app):
 
    ```bash
-   keytool -genkey -v -keystore ~/globalcart-upload.jks -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+   keytool -genkey -v -keystore ~/globacart-upload.jks -keyalg RSA -keysize 2048 -validity 10000 -alias upload
    ```
 
    Then create `android/key.properties` (already gitignored):
@@ -156,7 +156,7 @@ flutter test
    storePassword=<password from keytool>
    keyPassword=<password from keytool>
    keyAlias=upload
-   storeFile=C:/Users/<you>/globalcart-upload.jks
+   storeFile=C:/Users/<you>/globacart-upload.jks
    ```
 
    `flutter build appbundle` signs with this key automatically. Without the file, release builds fall back to the debug key, which works for testing but can't be uploaded to Google Play.

@@ -1,5 +1,5 @@
-import 'package:globalcart/config/app_config.dart';
-import 'package:globalcart/models/product.dart';
+import 'package:globacart/config/app_config.dart';
+import 'package:globacart/models/product.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

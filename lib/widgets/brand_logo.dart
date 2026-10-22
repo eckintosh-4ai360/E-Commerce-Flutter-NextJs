@@ -3,8 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../theme/app_theme.dart';
 
-class GlobalCartMark extends StatelessWidget {
-  const GlobalCartMark({super.key, this.size = 52});
+class GlobaCartMark extends StatelessWidget {
+  const GlobaCartMark({super.key, this.size = 52});
 
   final double size;
 
@@ -37,8 +37,8 @@ class GlobalCartMark extends StatelessWidget {
   }
 }
 
-class GlobalCartLogo extends StatelessWidget {
-  const GlobalCartLogo({
+class GlobaCartLogo extends StatelessWidget {
+  const GlobaCartLogo({
     super.key,
     this.markSize = 52,
     this.fontSize = 28,
@@ -63,7 +63,7 @@ class GlobalCartLogo extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         if (showMark) ...[
-          GlobalCartMark(size: markSize),
+          GlobaCartMark(size: markSize),
           SizedBox(width: markSize * 0.2),
         ],
         RichText(
@@ -71,7 +71,7 @@ class GlobalCartLogo extends StatelessWidget {
             style: baseStyle,
             children: [
               TextSpan(
-                text: 'Global',
+                text: 'Globa',
                 style: TextStyle(
                   color: onDark ? Colors.white : AppTheme.primary,
                 ),

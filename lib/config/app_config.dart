@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 
 class AppConfig {
-  static const String storeName = 'GlobalCart GH';
-  static const String shortName = 'GlobalCart';
+  static const String storeName = 'GlobaCart GH';
+  static const String shortName = 'GlobaCart';
   static const String tagline = 'Shop Global, Pay Local';
 
   static const String _apiBaseUrlOverride =
@@ -23,11 +23,11 @@ class AppConfig {
   static const String supportPhoneUri = 'tel:+233243073148';
   static const String secondaryPhone = '054 134 1263';
   static const String secondaryPhoneUri = 'tel:+233541341263';
-  static const String instagramUrl = 'https://www.instagram.com/globalcart_gh';
-  static const String facebookUrl = 'https://www.facebook.com/GlobalCartGH';
-  static const String tiktokUrl = 'https://www.tiktok.com/@globalcart_gh';
+  static const String instagramUrl = 'https://www.instagram.com/globacart_gh';
+  static const String facebookUrl = 'https://www.facebook.com/GlobaCartGH';
+  static const String tiktokUrl = 'https://www.tiktok.com/@globacart_gh';
   static const String whatsappUrl = 'https://wa.me/233243073148';
-  static const String telegramUrl = 'https://t.me/globalcart_gh';
+  static const String telegramUrl = 'https://t.me/globacart_gh';
 
   static const double freeShippingThreshold = 300;
   static const double flatShippingFee = 25;

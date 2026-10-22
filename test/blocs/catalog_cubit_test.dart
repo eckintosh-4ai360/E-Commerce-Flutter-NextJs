@@ -1,6 +1,6 @@
-import 'package:globalcart/blocs/catalog/catalog_cubit.dart';
-import 'package:globalcart/models/product.dart';
-import 'package:globalcart/repositories/catalog_repository.dart';
+import 'package:globacart/blocs/catalog/catalog_cubit.dart';
+import 'package:globacart/models/product.dart';
+import 'package:globacart/repositories/catalog_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class _RecoveringCatalogRepository extends CatalogRepository {

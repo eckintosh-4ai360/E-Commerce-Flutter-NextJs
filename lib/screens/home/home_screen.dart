@@ -170,7 +170,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         ),
         child: Row(
           children: [
-            const GlobalCartMark(size: 42),
+            const GlobaCartMark(size: 42),
             const SizedBox(width: 10),
             Expanded(
               child: GestureDetector(
@@ -189,7 +189,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           color: AppTheme.textMed, size: 22),
                       const SizedBox(width: 12),
                       Text(
-                        'Search GlobalCart...',
+                        'Search GlobaCart...',
                         style: GoogleFonts.kumbhSans(
                           color: AppTheme.textMed,
                           fontSize: 14,

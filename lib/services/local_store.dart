@@ -9,8 +9,8 @@ class LocalStore {
 
   final SharedPreferences? _prefs;
 
-  static const cartKey = 'globalcart.cart.v1';
-  static const wishlistKey = 'globalcart.wishlist.v1';
+  static const cartKey = 'globacart.cart.v1';
+  static const wishlistKey = 'globacart.wishlist.v1';
 
   static Future<LocalStore> open() async {
     try {

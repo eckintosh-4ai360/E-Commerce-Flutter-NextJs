@@ -1,7 +1,7 @@
-import 'package:globalcart/blocs/cart/cart_bloc.dart';
-import 'package:globalcart/models/cart_item.dart';
-import 'package:globalcart/models/product.dart';
-import 'package:globalcart/services/local_store.dart';
+import 'package:globacart/blocs/cart/cart_bloc.dart';
+import 'package:globacart/models/cart_item.dart';
+import 'package:globacart/models/product.dart';
+import 'package:globacart/services/local_store.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

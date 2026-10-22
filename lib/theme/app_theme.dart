@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  // GlobalCart GH brand colours, derived from the supplied identity artwork.
+  // GlobaCart GH brand colours, derived from the supplied identity artwork.
   static const Color primary = Color(0xFF001A3A);
   static const Color primaryBlue = Color(0xFF0B4AA2);
   static const Color accent = Color(0xFFFFB000);

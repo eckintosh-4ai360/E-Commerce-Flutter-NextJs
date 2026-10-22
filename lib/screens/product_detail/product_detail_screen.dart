@@ -744,7 +744,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     try {
       await SharePlus.instance.share(
         ShareParams(
-          text: '${p.name} — ${formatPrice(p.price)} at GlobalCart GH\n$url',
+          text: '${p.name} — ${formatPrice(p.price)} at GlobaCart GH\n$url',
           subject: p.name,
         ),
       );
