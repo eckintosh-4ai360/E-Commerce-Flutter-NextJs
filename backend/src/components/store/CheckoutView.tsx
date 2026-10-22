@@ -59,7 +59,7 @@ function validate(form: FormState, usingSaved: boolean) {
   return null;
 }
 
-export function CheckoutView() {
+export function CheckoutView({ paymentError = false }: { paymentError?: boolean }) {
   const { cart } = useFreshCart();
   const { user, status, signOut, busy, authedFetch } = useAuth();
   const toast = useToast();
@@ -70,7 +70,9 @@ export function CheckoutView() {
   const [accountLoaded, setAccountLoaded] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [placed, setPlaced] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(
+    paymentError ? 'We could not confirm that Paystack payment. Your cart is still here.' : null,
+  );
   const prefilledFor = useRef<string | null>(null);
 
   // A fresh key whenever the cart changes: retries of the same cart reuse it,
@@ -107,6 +109,7 @@ export function CheckoutView() {
     setForm((current) => ({ ...current, [key]: value }));
 
   const selectedAddress = addresses.find((address) => address.id === form.addressId) ?? null;
+  const payingWithPaystack = form.paymentMethod === 'PAYSTACK';
 
   const placeOrder = async (event: FormEvent) => {
     event.preventDefault();
@@ -135,26 +138,41 @@ export function CheckoutView() {
             city: form.city.trim(),
             region: form.region,
           },
-        }).catch(() => toast('Your order is fine, but we could not save the address.', 'error'));
+        }).catch(() => toast('Checkout can continue, but we could not save the address.', 'error'));
+      }
+
+      const checkoutBody = {
+        customerName: form.name.trim(),
+        customerPhone: form.phone.trim(),
+        deliveryAddress,
+        notes: form.notes.trim() || null,
+        paymentMethod: form.paymentMethod,
+        expectedTotal: cart.total,
+        items: cart.lines.map((line) => ({
+          productId: line.product.id,
+          quantity: line.quantity,
+          selectedColor: line.selectedColor,
+          selectedSize: line.selectedSize,
+        })),
+      };
+
+      if (payingWithPaystack) {
+        const payment = await authedFetch<{ authorizationUrl: string; testMode: true }>(
+          '/api/payments/paystack/initialize',
+          {
+            method: 'POST',
+            headers: { 'Idempotency-Key': requestId },
+            body: checkoutBody,
+          },
+        );
+        window.location.assign(payment.authorizationUrl);
+        return;
       }
 
       const { order } = await authedFetch<{ order: OrderView }>('/api/orders', {
         method: 'POST',
         headers: { 'Idempotency-Key': requestId },
-        body: {
-          customerName: form.name.trim(),
-          customerPhone: form.phone.trim(),
-          deliveryAddress,
-          notes: form.notes.trim() || null,
-          paymentMethod: form.paymentMethod,
-          expectedTotal: cart.total,
-          items: cart.lines.map((line) => ({
-            productId: line.product.id,
-            quantity: line.quantity,
-            selectedColor: line.selectedColor,
-            selectedSize: line.selectedSize,
-          })),
-        },
+        body: checkoutBody,
       });
 
       setPlaced(true);
@@ -220,11 +238,19 @@ export function CheckoutView() {
           className="btn btn-primary btn-lg btn-block"
           disabled={submitting || accountLoaded !== user.uid}
         >
-          {submitting ? 'Placing order…' : `Place order · ${formatMoney(cart.total)}`}
+          {submitting
+            ? payingWithPaystack
+              ? 'Opening Paystack…'
+              : 'Placing order…'
+            : payingWithPaystack
+              ? `Pay with Paystack · ${formatMoney(cart.total)}`
+              : `Place order · ${formatMoney(cart.total)}`}
         </button>
       ) : null}
       <p className="small muted" style={{ margin: '12px 0 0' }}>
-        You pay on delivery. We&apos;ll email your confirmation and every status update.
+        {payingWithPaystack
+          ? 'Paystack is in test mode. No real money will be charged.'
+          : 'You pay on delivery. We\'ll email your confirmation and every status update.'}
       </p>
     </CartSummary>
   );
@@ -388,6 +414,11 @@ export function CheckoutView() {
 
           <div className="card">
             <h2>Payment</h2>
+            {payingWithPaystack ? (
+              <div className="alert alert--info" style={{ marginBottom: 14 }}>
+                Test mode is active. Paystack will show its test checkout after you continue.
+              </div>
+            ) : null}
             <div className="radio-list">
               {paymentMethods.map((method) => (
                 <label key={method.value} className="radio-card">

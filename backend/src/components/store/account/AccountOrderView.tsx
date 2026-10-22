@@ -15,9 +15,20 @@ import { OrderDetail } from '../OrderDetail';
 import { RequireAuth } from '../RequireAuth';
 import { Spinner } from '../ui';
 
-function OrderPanel({ reference, justPlaced }: { reference: string; justPlaced: boolean }) {
+type PaymentResult = 'success' | 'pending' | 'cancelled' | null;
+
+function OrderPanel({
+  reference,
+  justPlaced,
+  paymentResult,
+}: {
+  reference: string;
+  justPlaced: boolean;
+  paymentResult: PaymentResult;
+}) {
   const { authedFetch, user } = useAuth();
   const cart = useCart();
+  const clearCart = cart.clear;
   const toast = useToast();
   const [order, setOrder] = useState<OrderView | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -37,6 +48,12 @@ function OrderPanel({ reference, justPlaced }: { reference: string; justPlaced: 
   }, [authedFetch, reference]);
 
   useEffect(load, [load]);
+
+  useEffect(() => {
+    if (paymentResult === 'success') {
+      clearCart();
+    }
+  }, [clearCart, paymentResult]);
 
   const cancel = async () => {
     if (!order) return;
@@ -100,12 +117,23 @@ function OrderPanel({ reference, justPlaced }: { reference: string; justPlaced: 
 
   return (
     <>
-      {justPlaced ? (
+      {paymentResult === 'cancelled' ? (
+        <div className="alert alert--error" role="status" style={{ marginBottom: 16 }}>
+          This order was cancelled before Paystack confirmed payment. Contact support if you need
+          help with the test transaction.
+        </div>
+      ) : paymentResult === 'pending' ? (
+        <div className="alert alert--warn" role="status" style={{ marginBottom: 16 }}>
+          Paystack has not confirmed this payment yet. The order will remain on hold until payment
+          succeeds.
+        </div>
+      ) : justPlaced ? (
         <div className="alert alert--success" role="status" style={{ marginBottom: 16 }}>
           <CheckCircle2 size={18} />
           <span>
-            Order placed! A confirmation has been sent to <strong>{user?.email}</strong>. Your
-            tracking code is <strong>{order.trackingCode}</strong>.
+            {paymentResult === 'success' ? 'Test payment confirmed!' : 'Order placed!'} A
+            confirmation has been sent to <strong>{user?.email}</strong>. Your tracking code is{' '}
+            <strong>{order.trackingCode}</strong>.
           </span>
         </div>
       ) : null}
@@ -147,7 +175,15 @@ function OrderPanel({ reference, justPlaced }: { reference: string; justPlaced: 
   );
 }
 
-export function AccountOrderView({ reference, justPlaced }: { reference: string; justPlaced: boolean }) {
+export function AccountOrderView({
+  reference,
+  justPlaced,
+  paymentResult,
+}: {
+  reference: string;
+  justPlaced: boolean;
+  paymentResult: PaymentResult;
+}) {
   return (
     <div className="container" style={{ maxWidth: 1000 }}>
       <Link href="/account/orders" className="back-link">
@@ -156,7 +192,11 @@ export function AccountOrderView({ reference, justPlaced }: { reference: string;
       <h1 className="page-title">Order details</h1>
       <div style={{ marginTop: 16 }}>
         <RequireAuth title="Sign in to view this order">
-          <OrderPanel reference={reference} justPlaced={justPlaced} />
+          <OrderPanel
+            reference={reference}
+            justPlaced={justPlaced}
+            paymentResult={paymentResult}
+          />
         </RequireAuth>
       </div>
     </div>

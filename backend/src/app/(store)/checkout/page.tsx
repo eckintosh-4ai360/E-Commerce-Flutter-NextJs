@@ -7,10 +7,15 @@ export const metadata: Metadata = {
   robots: { index: false },
 };
 
-export default function CheckoutPage() {
+export default async function CheckoutPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const { payment } = await searchParams;
   return (
     <div className="container">
-      <CheckoutView />
+      <CheckoutView paymentError={payment === 'error'} />
     </div>
   );
 }

@@ -14,6 +14,14 @@ export default async function Page({
   params: Promise<{ id: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const [{ id }, { placed }] = await Promise.all([params, searchParams]);
-  return <AccountOrderView reference={id} justPlaced={placed === '1'} />;
+  const [{ id }, { placed, payment }] = await Promise.all([params, searchParams]);
+  const paymentResult =
+    payment === 'success' || payment === 'pending' || payment === 'cancelled' ? payment : null;
+  return (
+    <AccountOrderView
+      reference={id}
+      justPlaced={placed === '1'}
+      paymentResult={paymentResult}
+    />
+  );
 }

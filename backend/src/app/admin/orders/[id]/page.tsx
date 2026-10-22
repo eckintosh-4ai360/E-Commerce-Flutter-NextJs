@@ -7,7 +7,7 @@ import { use, useCallback, useEffect, useState } from 'react';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { errorMessage } from '@/lib/client/api';
 import { formatMoney } from '@/lib/money';
-import { orderStatuses, paymentMethodLabel } from '@/lib/store-config';
+import { orderStatuses, paymentMethodLabel, paymentStatusLabel } from '@/lib/store-config';
 import type { OrderView } from '@/lib/types';
 
 import { StatusBadge, statusColors, statusIcons } from '../../_components/status';
@@ -130,7 +130,10 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
             <div><Phone size={14} /><a href={`tel:${order.customerPhone}`}>{order.customerPhone}</a></div>
             {order.customerEmail ? <div><Mail size={14} /><a href={`mailto:${order.customerEmail}`}>{order.customerEmail}</a></div> : null}
             {order.deliveryAddress ? <div><MapPin size={14} /><span>{order.deliveryAddress}</span></div> : null}
-            <div><Wallet size={14} /><span>{paymentMethodLabel(order.paymentMethod)}</span></div>
+            <div>
+              <Wallet size={14} />
+              <span>{paymentMethodLabel(order.paymentMethod)} · {paymentStatusLabel(order.paymentStatus)}</span>
+            </div>
             {order.notes ? <div><FileText size={14} /><span>{order.notes}</span></div> : null}
           </div>
         </div>

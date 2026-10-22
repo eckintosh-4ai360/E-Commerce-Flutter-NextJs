@@ -5,7 +5,7 @@ import type { ReactNode } from 'react';
 
 import { formatDateTime } from '@/lib/client/format';
 import { formatMoney } from '@/lib/money';
-import { paymentMethodLabel } from '@/lib/store-config';
+import { paymentMethodLabel, paymentStatusLabel } from '@/lib/store-config';
 import type { OrderView } from '@/lib/types';
 
 import { ProductImage } from './ProductImage';
@@ -90,7 +90,11 @@ export function OrderDetail({ order, actions }: { order: OrderView; actions?: Re
             ) : null}
             <div>
               <Wallet size={15} />
-              <span>{paymentMethodLabel(order.paymentMethod)}</span>
+              <span>
+                {paymentMethodLabel(order.paymentMethod)}
+                <br />
+                <span className="muted small">{paymentStatusLabel(order.paymentStatus)}</span>
+              </span>
             </div>
             {order.notes ? (
               <div>
