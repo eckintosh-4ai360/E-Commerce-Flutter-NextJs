@@ -1,3 +1,5 @@
+import type { Prisma } from '@prisma/client';
+
 import { requireAdmin } from '@/lib/auth';
 import { jsonResponse, privateNoStoreHeaders, route } from '@/lib/http';
 import { getPrisma } from '@/lib/prisma';
@@ -8,6 +10,13 @@ export const GET = route(async (request) => {
   const prisma = getPrisma();
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const revenueWhere: Prisma.OrderWhereInput = {
+    status: { not: 'CANCELLED' },
+    OR: [
+      { paymentMethod: { not: 'PAYSTACK' } },
+      { paymentStatus: 'PAID' },
+    ],
+  };
 
   const [
     totalProducts,
@@ -23,14 +32,14 @@ export const GET = route(async (request) => {
     prisma.product.count({ where: { isArchived: false } }),
     prisma.order.count(),
     prisma.order.count({ where: { createdAt: { gte: monthStart } } }),
-    // Cancelled orders never produced revenue.
+    // Cancelled orders and unconfirmed Paystack checkouts never produced revenue.
     prisma.order.aggregate({
       _sum: { total: true },
-      where: { status: { not: 'CANCELLED' } },
+      where: revenueWhere,
     }),
     prisma.order.aggregate({
       _sum: { total: true },
-      where: { status: { not: 'CANCELLED' }, createdAt: { gte: monthStart } },
+      where: { AND: [revenueWhere, { createdAt: { gte: monthStart } }] },
     }),
     prisma.product.count({ where: { inStock: false, isArchived: false } }),
     prisma.returnRequest.count({ where: { status: { in: ['REQUESTED', 'APPROVED'] } } }),

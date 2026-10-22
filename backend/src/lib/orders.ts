@@ -15,6 +15,7 @@ import {
   type OrderWithRelations,
 } from './serializers';
 import { shippingFeeFor, storeConfig } from './store-config';
+import { paystackReferenceForOrder } from './paystack';
 import type { CreateOrderInput } from './validation';
 
 const base36 = '0123456789abcdefghijklmnopqrstuvwxyz';
@@ -43,6 +44,17 @@ export function ownsOrder(
     user.emailVerified &&
     order.customerEmail?.trim().toLowerCase() === user.email
   );
+}
+
+export function readIdempotencyKey(request: Request) {
+  const key = request.headers.get('idempotency-key')?.trim();
+  if (!key) {
+    return null;
+  }
+  if (!/^[A-Za-z0-9_-]{8,64}$/.test(key)) {
+    throw new HttpError(400, 'Idempotency-Key must be 8-64 letters, digits, dashes or underscores.');
+  }
+  return key;
 }
 
 function ownedOrdersWhere(user: AuthenticatedUser): Prisma.OrderWhereInput {
@@ -186,6 +198,7 @@ export async function createOrder(
 
   for (let attempt = 0; attempt < 3; attempt += 1) {
     const id = createOrderId();
+    const isPaystack = input.paymentMethod === 'PAYSTACK';
     try {
       const order = await getPrisma().order.create({
         data: {
@@ -198,6 +211,8 @@ export async function createOrder(
           deliveryAddress: input.deliveryAddress,
           notes: input.notes,
           paymentMethod: input.paymentMethod,
+          paymentStatus: isPaystack ? 'PENDING' : 'PAY_ON_DELIVERY',
+          paymentReference: isPaystack ? paystackReferenceForOrder(id) : null,
           clientRequestId,
           subtotal: priced.subtotal,
           shippingFee: priced.shippingFee,
@@ -282,6 +297,13 @@ export async function cancelOrder(user: AuthenticatedUser, reference: string) {
   const order = await getOwnedOrder(user, reference);
   const prisma = getPrisma();
 
+  if (order.paymentMethod === 'PAYSTACK' && order.paymentStatus === 'PAID') {
+    throw new HttpError(
+      409,
+      'Contact support to cancel a paid Paystack order so the payment can be reviewed.',
+    );
+  }
+
   // The status check is part of the update so an order an admin has just
   // started processing cannot be cancelled by a stale screen.
   const result = await prisma.$transaction(async (tx) => {
@@ -309,6 +331,14 @@ export async function updateOrderStatus(id: string, status: OrderStatus, note: s
   const existing = await prisma.order.findUnique({ where: { id } });
   if (!existing) {
     throw new HttpError(404, 'Order not found.');
+  }
+  if (
+    existing.paymentMethod === 'PAYSTACK' &&
+    existing.paymentStatus !== 'PAID' &&
+    status !== 'PENDING' &&
+    status !== 'CANCELLED'
+  ) {
+    throw new HttpError(409, 'Paystack payment has not been confirmed for this order.');
   }
   if (existing.status === status) {
     return { order: null, previousStatus: existing.status };

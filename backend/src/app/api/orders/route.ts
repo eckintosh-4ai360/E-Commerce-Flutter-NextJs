@@ -11,7 +11,7 @@ import {
   readJson,
   route,
 } from '@/lib/http';
-import { createOrder, listCustomerOrders } from '@/lib/orders';
+import { createOrder, listCustomerOrders, readIdempotencyKey } from '@/lib/orders';
 import { rateLimit, rateLimitByIp } from '@/lib/rate-limit';
 import { serialiseOrder } from '@/lib/serializers';
 import { createOrderSchema } from '@/lib/validation';
@@ -28,23 +28,15 @@ export const GET = route(async (request) => {
   );
 });
 
-function readIdempotencyKey(request: Request) {
-  const key = request.headers.get('idempotency-key')?.trim();
-  if (!key) {
-    return null;
-  }
-  if (!/^[A-Za-z0-9_-]{8,64}$/.test(key)) {
-    throw new HttpError(400, 'Idempotency-Key must be 8-64 letters, digits, dashes or underscores.');
-  }
-  return key;
-}
-
 export const POST = route(async (request) => {
   rateLimitByIp(request, 'orders:create', { limit: 60, windowMs: 60_000 });
   const user = await requireUser(request);
   rateLimit(`orders:create:${user.uid}`, { limit: 10, windowMs: 60_000 });
 
   const input = await readJson(request, createOrderSchema);
+  if (input.paymentMethod === 'PAYSTACK') {
+    throw new HttpError(400, 'Start Paystack payments through the secure payment endpoint.');
+  }
   const { order, created } = await createOrder(user, input, readIdempotencyKey(request));
 
   if (created) {
