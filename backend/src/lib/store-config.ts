@@ -2,8 +2,8 @@
 // this file is secret: it is bundled into the browser.
 
 export const storeConfig = {
-  name: 'GlobalCart GH',
-  shortName: 'GlobalCart',
+  name: 'GlobaCart GH',
+  shortName: 'GlobaCart',
   tagline: 'Shop Global, Pay Local',
   description:
     'Global finds, local convenience and dependable delivery across Ghana.',
@@ -23,18 +23,18 @@ export const storeConfig = {
   socials: [
     {
       label: 'Facebook',
-      handle: 'GlobalCart GH',
-      href: 'https://www.facebook.com/GlobalCartGH',
+      handle: 'GlobaCart GH',
+      href: 'https://www.facebook.com/GlobaCartGH',
     },
     {
       label: 'Instagram',
-      handle: '@globalcart_gh',
-      href: 'https://www.instagram.com/globalcart_gh',
+      handle: '@globacart_gh',
+      href: 'https://www.instagram.com/globacart_gh',
     },
     {
       label: 'TikTok',
-      handle: '@globalcart_gh',
-      href: 'https://www.tiktok.com/@globalcart_gh',
+      handle: '@globacart_gh',
+      href: 'https://www.tiktok.com/@globacart_gh',
     },
     {
       label: 'WhatsApp',
@@ -43,8 +43,8 @@ export const storeConfig = {
     },
     {
       label: 'Telegram',
-      handle: '@globalcart_gh',
-      href: 'https://t.me/globalcart_gh',
+      handle: '@globacart_gh',
+      href: 'https://t.me/globacart_gh',
     },
   ],
   appLinks: {

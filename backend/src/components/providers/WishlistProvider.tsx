@@ -26,7 +26,7 @@ type WishlistContextValue = {
   remove: (productId: number) => void;
 };
 
-const storageKey = 'globalcart.wishlist.v1';
+const storageKey = 'globacart.wishlist.v1';
 const WishlistContext = createContext<WishlistContextValue | null>(null);
 
 function validateItems(value: unknown) {

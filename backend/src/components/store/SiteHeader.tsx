@@ -51,7 +51,7 @@ export function SiteHeader() {
             id="site-search"
             type="search"
             name="q"
-            placeholder="Search GlobalCart..."
+            placeholder="Search GlobaCart..."
             autoComplete="off"
             maxLength={100}
           />

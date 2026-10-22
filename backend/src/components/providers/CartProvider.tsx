@@ -46,7 +46,7 @@ type CartContextValue = {
   syncProducts: (products: StoreProduct[]) => string[];
 };
 
-const storageKey = 'globalcart.cart.v1';
+const storageKey = 'globacart.cart.v1';
 const CartContext = createContext<CartContextValue | null>(null);
 
 export function cartLineKey(productId: number, color: string | null, size: string | null) {

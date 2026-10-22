@@ -165,7 +165,7 @@ export function AccountView() {
           <MenuSection title="Follow us" items={follow} />
           <MenuSection
             title="Get the app"
-            items={[{ icon: <Smartphone size={18} />, label: 'Download the GlobalCart app', href: '/get-the-app' }]}
+            items={[{ icon: <Smartphone size={18} />, label: 'Download the GlobaCart app', href: '/get-the-app' }]}
           />
           <p className="small muted" style={{ textAlign: 'center', margin: '8px 0 0' }}>
             Shop Global, Pay Local — delivered across Ghana.

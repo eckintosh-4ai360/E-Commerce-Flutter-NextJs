@@ -27,6 +27,11 @@ export const metadata: Metadata = {
   },
   description: storeConfig.description,
   applicationName: storeConfig.name,
+  icons: {
+    icon: [{ url: '/logo.jpeg', type: 'image/jpeg' }],
+    shortcut: [{ url: '/logo.jpeg', type: 'image/jpeg' }],
+    apple: [{ url: '/logo.jpeg', type: 'image/jpeg' }],
+  },
   openGraph: {
     siteName: storeConfig.name,
     type: 'website',

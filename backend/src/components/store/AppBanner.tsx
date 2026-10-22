@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 import { readStored, writeStored } from '@/lib/client/storage';
 import { storeConfig } from '@/lib/store-config';
 
-const storageKey = 'globalcart.appBanner.dismissed';
+const storageKey = 'globacart.appBanner.dismissed';
 
 /** A dismissible strip offering the mobile app, shown only when a download link is configured. */
 export function AppBanner() {
@@ -27,7 +27,7 @@ export function AppBanner() {
       <div className="container app-banner__inner">
         <Smartphone size={18} aria-hidden="true" />
         <span className="app-banner__text">
-          Shop faster with the GlobalCart app. <Link href="/get-the-app">Get the app</Link>
+          Shop faster with the GlobaCart app. <Link href="/get-the-app">Get the app</Link>
         </span>
         <button
           type="button"

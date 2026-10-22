@@ -15,6 +15,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useState, type ReactNode } from 'react';
 
 import { AuthProvider, useAuth } from '@/components/providers/AuthProvider';
+import { BrandMark } from '@/components/store/BrandLogo';
 import { errorMessage } from '@/lib/client/api';
 
 const navItems = [
@@ -36,9 +37,11 @@ function Sidebar({ email }: { email: string }) {
     <>
       <aside className="admin-sidebar">
         <Link href="/admin" className="admin-brand">
-          <span className="admin-brand__mark">G</span>
+          <span className="admin-brand__mark" aria-hidden="true">
+            <BrandMark className="admin-brand__image" />
+          </span>
           <span>
-            <strong>GlobalCart GH</strong>
+            <strong>GlobaCart GH</strong>
             <span>Admin CMS</span>
           </span>
         </Link>
@@ -113,8 +116,10 @@ function AdminGate({ children }: { children: ReactNode }) {
     return (
       <div className="admin-center">
         <div className="admin-card" style={{ maxWidth: 420 }}>
-          <div className="admin-brand__mark" style={{ margin: '0 auto 16px' }}>G</div>
-          <h1 style={{ margin: '0 0 8px', fontSize: 22, color: 'var(--a-text)' }}>GlobalCart Admin</h1>
+          <div className="admin-brand__mark" style={{ margin: '0 auto 16px' }} aria-hidden="true">
+            <BrandMark className="admin-brand__image" />
+          </div>
+          <h1 style={{ margin: '0 0 8px', fontSize: 22, color: 'var(--a-text)' }}>GlobaCart Admin</h1>
           <p style={{ margin: '0 0 20px' }}>Sign in with an authorised Google account to manage the store.</p>
           {error ? <div className="admin-alert admin-alert--error">{error}</div> : null}
           <button type="button" className="admin-btn admin-btn--primary" style={{ width: '100%' }} onClick={() => void signIn()} disabled={busy}>

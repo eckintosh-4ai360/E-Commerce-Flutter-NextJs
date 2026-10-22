@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 
 type BrandLogoProps = {
@@ -5,25 +6,35 @@ type BrandLogoProps = {
   className?: string;
 };
 
-/** Compact vector interpretation of the supplied globe, cart and wordmark. */
+type BrandMarkProps = {
+  className?: string;
+};
+
+export function BrandMark({ className = '' }: BrandMarkProps) {
+  return (
+    <Image
+      src="/logo.jpeg"
+      width={777}
+      height={601}
+      sizes="48px"
+      alt=""
+      className={`brand__mark-image ${className}`.trim()}
+    />
+  );
+}
+
 export function BrandLogo({ href = '/', className = '' }: BrandLogoProps) {
   return (
     <Link
       href={href}
       className={`brand ${className}`.trim()}
-      aria-label="GlobalCart GH home"
+      aria-label="GlobaCart GH home"
     >
       <span className="brand__mark" aria-hidden="true">
-        <svg viewBox="0 0 32 32" role="presentation">
-          <circle cx="17" cy="13" r="8" />
-          <path d="M9 13h16M17 5c-2.5 2.4-3.5 5-3.5 8s1 5.6 3.5 8M17 5c2.5 2.4 3.5 5 3.5 8" />
-          <path className="brand__cart" d="M3 8h3l2.4 13h14.2l2.1-8H8" />
-          <circle className="brand__wheel" cx="11" cy="25.5" r="1.5" />
-          <circle className="brand__wheel" cx="21" cy="25.5" r="1.5" />
-        </svg>
+        <BrandMark />
       </span>
       <span className="brand__word" aria-hidden="true">
-        <span className="brand__global">Global</span>
+        <span className="brand__global">Globa</span>
         <span className="brand__cart-word">Cart</span>
         <span className="brand__gh">GH</span>
       </span>
