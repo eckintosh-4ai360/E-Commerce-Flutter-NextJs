@@ -1,4 +1,4 @@
-import type { App } from 'firebase-admin/app';
+import { createRemoteJWKSet, errors, jwtVerify } from 'jose';
 
 import { HttpError } from './errors';
 import { firebaseWebConfig } from './store-config';
@@ -11,73 +11,20 @@ export type AuthenticatedUser = {
   emailVerified: boolean;
 };
 
-let firebaseAdminAppModule: Promise<typeof import('firebase-admin/app')> | undefined;
-let firebaseAdminAuthModule: Promise<typeof import('firebase-admin/auth')> | undefined;
+const firebaseSigningKeys = createRemoteJWKSet(
+  new URL('https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com'),
+);
 
-/**
- * Firebase Admin uses Node-only modules. Loading it only for an authenticated
- * request prevents a packaging/runtime issue from crashing every route module
- * before the route's normal error handling can respond.
- */
-function loadFirebaseAdminApp() {
-  firebaseAdminAppModule ??= import('firebase-admin/app').catch((error: unknown) => {
-    firebaseAdminAppModule = undefined;
-    console.error('[auth] Failed to load Firebase Admin app module', error);
+function firebaseProjectId() {
+  const projectId = process.env.FIREBASE_ADMIN_PROJECT_ID?.trim() || firebaseWebConfig.projectId;
+  if (!projectId) {
     throw new HttpError(503, 'Authentication is temporarily unavailable. Please try again.');
-  });
-  return firebaseAdminAppModule;
+  }
+  return projectId;
 }
 
-function loadFirebaseAdminAuth() {
-  firebaseAdminAuthModule ??= import('firebase-admin/auth').catch((error: unknown) => {
-    firebaseAdminAuthModule = undefined;
-    console.error('[auth] Failed to load Firebase Admin auth module', error);
-    throw new HttpError(503, 'Authentication is temporarily unavailable. Please try again.');
-  });
-  return firebaseAdminAuthModule;
-}
-
-function cleanPrivateKey(raw?: string) {
-  if (!raw) return undefined;
-  let key = raw.trim();
-  if (
-    (key.startsWith('"') && key.endsWith('"')) ||
-    (key.startsWith("'") && key.endsWith("'"))
-  ) {
-    key = key.slice(1, -1);
-  }
-  return key.replace(/\\n/g, '\n').trim();
-}
-
-async function getFirebaseAdminApp(): Promise<App> {
-  const { cert, getApps, initializeApp } = await loadFirebaseAdminApp();
-  const existing = getApps()[0];
-  if (existing) {
-    return existing;
-  }
-
-  const projectId =
-    process.env.FIREBASE_ADMIN_PROJECT_ID?.trim() || firebaseWebConfig.projectId;
-  const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL?.trim();
-  const privateKey = cleanPrivateKey(process.env.FIREBASE_ADMIN_PRIVATE_KEY);
-
-  // Verifying ID tokens only needs the project id (Google's signing keys are
-  // public). A service account is optional and enables other Admin features.
-  if (clientEmail && privateKey) {
-    try {
-      return initializeApp({
-        credential: cert({ projectId, clientEmail, privateKey }),
-        projectId,
-      });
-    } catch (error) {
-      console.error(
-        '[auth] Warning: Failed to initialize Firebase Admin with service account credentials, falling back to public key token verification:',
-        error,
-      );
-    }
-  }
-
-  return initializeApp({ projectId });
+function isPastTimestamp(value: unknown, now: number) {
+  return typeof value === 'number' && Number.isFinite(value) && value <= now + 60;
 }
 
 function readBearerToken(request: Request) {
@@ -102,18 +49,40 @@ export async function getAuthenticatedUser(
     return null;
   }
 
-  let decoded;
+  const projectId = firebaseProjectId();
+  let payload;
   try {
-    const [{ getAuth }, app] = await Promise.all([loadFirebaseAdminAuth(), getFirebaseAdminApp()]);
-    decoded = await getAuth(app).verifyIdToken(idToken);
+    ({ payload } = await jwtVerify(idToken, firebaseSigningKeys, {
+      algorithms: ['RS256'],
+      audience: projectId,
+      issuer: `https://securetoken.google.com/${projectId}`,
+      requiredClaims: ['auth_time'],
+    }));
   } catch (error) {
-    if (error instanceof HttpError) {
-      throw error;
+    if (error instanceof errors.JWKSTimeout || error instanceof errors.JWKSInvalid) {
+      console.error('[auth] Firebase signing-key lookup failed', error);
+      throw new HttpError(503, 'Authentication is temporarily unavailable. Please try again.');
+    }
+    if (!(error instanceof errors.JOSEError)) {
+      console.error('[auth] Firebase token verification failed unexpectedly', error);
+      throw new HttpError(503, 'Authentication is temporarily unavailable. Please try again.');
     }
     throw new HttpError(401, 'Your session has expired. Please sign in again.');
   }
 
-  const email = decoded.email?.trim().toLowerCase();
+  const now = Math.floor(Date.now() / 1_000);
+  const uid = payload.sub;
+  if (
+    typeof uid !== 'string' ||
+    uid.length === 0 ||
+    uid.length > 128 ||
+    !isPastTimestamp(payload.iat, now) ||
+    !isPastTimestamp(payload.auth_time, now)
+  ) {
+    throw new HttpError(401, 'Your session has expired. Please sign in again.');
+  }
+
+  const email = typeof payload.email === 'string' ? payload.email.trim().toLowerCase() : '';
   if (!email) {
     throw new HttpError(
       401,
@@ -122,11 +91,11 @@ export async function getAuthenticatedUser(
   }
 
   return {
-    uid: decoded.uid,
+    uid,
     email,
-    name: typeof decoded.name === 'string' && decoded.name.trim() ? decoded.name.trim() : null,
-    picture: typeof decoded.picture === 'string' ? decoded.picture : null,
-    emailVerified: decoded.email_verified === true,
+    name: typeof payload.name === 'string' && payload.name.trim() ? payload.name.trim() : null,
+    picture: typeof payload.picture === 'string' ? payload.picture : null,
+    emailVerified: payload.email_verified === true,
   };
 }
 

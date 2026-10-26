@@ -20,7 +20,6 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
-  serverExternalPackages: ['firebase-admin'],
   images: {
     formats: ['image/avif', 'image/webp'],
   },
