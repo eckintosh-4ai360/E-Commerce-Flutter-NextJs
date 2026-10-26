@@ -21,11 +21,11 @@ function getPaystackLiveSecret() {
   if (!secret) {
     throw new HttpError(
       503,
-      'Online payments are not configured. Set a Paystack live secret key.',
+      'Online payments are not configured. Set a Paystack secret key.',
     );
   }
-  if (!secret.startsWith('sk_live_')) {
-    throw new HttpError(503, 'Online payments require a Paystack live secret key.');
+  if (!secret.startsWith('sk_live_') && !secret.startsWith('sk_test_')) {
+    throw new HttpError(503, 'Online payments require a valid Paystack secret key.');
   }
   return secret;
 }
@@ -35,11 +35,11 @@ function getPaystackLivePublicKey() {
   if (!publicKey) {
     throw new HttpError(
       503,
-      'Online payments are not configured. Set a Paystack live public key.',
+      'Online payments are not configured. Set a Paystack public key.',
     );
   }
-  if (!publicKey.startsWith('pk_live_')) {
-    throw new HttpError(503, 'Online payments require a Paystack live public key.');
+  if (!publicKey.startsWith('pk_live_') && !publicKey.startsWith('pk_test_')) {
+    throw new HttpError(503, 'Online payments require a valid Paystack public key.');
   }
   return publicKey;
 }
@@ -132,8 +132,10 @@ export async function settlePaystackPayment(
 
   const expectedEmail = existing.customerEmail?.trim().toLowerCase();
   const actualEmail = payment.customer?.email?.trim().toLowerCase();
+  const isLive = getPaystackLiveSecret().startsWith('sk_live_');
+  const expectedDomain = isLive ? 'live' : 'test';
   if (
-    payment.domain !== 'live' ||
+    payment.domain !== expectedDomain ||
     payment.status !== 'success' ||
     payment.amount !== toPaystackAmount(existing.total) ||
     payment.currency.toUpperCase() !== storeConfig.currencyCode ||
