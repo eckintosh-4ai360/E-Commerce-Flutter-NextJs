@@ -8,30 +8,19 @@ class GlobaCartMark extends StatelessWidget {
 
   final double size;
 
+  static const _assetPath = 'backend/public/logo.jpeg';
+  static const _aspectRatio = 777 / 601;
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: AppTheme.primaryBlue,
-        borderRadius: BorderRadius.circular(size * 0.25),
-        border: Border.all(color: AppTheme.accent, width: size * 0.045),
-      ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Icon(Icons.public, color: AppTheme.accent, size: size * 0.58),
-          Positioned(
-            bottom: size * 0.08,
-            right: size * 0.06,
-            child: Icon(
-              Icons.shopping_cart_rounded,
-              color: Colors.white,
-              size: size * 0.42,
-            ),
-          ),
-        ],
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(size * 0.16),
+      child: Image.asset(
+        _assetPath,
+        width: size,
+        height: size / _aspectRatio,
+        fit: BoxFit.cover,
+        excludeFromSemantics: true,
       ),
     );
   }
