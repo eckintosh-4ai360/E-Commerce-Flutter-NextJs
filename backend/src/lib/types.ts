@@ -5,6 +5,8 @@ export type StoreProduct = {
   name: string;
   description: string;
   price: number;
+  /** Per-item delivery fee. Zero means shipping is included for this product. */
+  shippingFee: number;
   originalPrice: number | null;
   images: string[];
   category: string;

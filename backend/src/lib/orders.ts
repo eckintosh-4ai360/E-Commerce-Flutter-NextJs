@@ -4,7 +4,7 @@ import type { OrderStatus, Prisma } from '@prisma/client';
 
 import type { AuthenticatedUser } from './auth';
 import { HttpError, isPrismaError } from './errors';
-import { roundMoney } from './money';
+import { roundMoney, shippingFeeForLines } from './money';
 import { getPrisma } from './prisma';
 import { revalidateStorefront } from './revalidate';
 import {
@@ -16,7 +16,7 @@ import {
   trackingCodeFor,
   type OrderWithRelations,
 } from './serializers';
-import { shippingFeeFor, storeConfig } from './store-config';
+import { storeConfig } from './store-config';
 import { paystackReferenceForOrder } from './paystack';
 import type { CreateOrderInput } from './validation';
 
@@ -170,7 +170,12 @@ export async function priceOrder(input: CreateOrderInput) {
   const subtotal = roundMoney(
     orderItems.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0),
   );
-  const shippingFee = shippingFeeFor(subtotal);
+  const shippingFee = shippingFeeForLines(
+    lines.map((line) => ({
+      shippingFee: productsById.get(line.productId)!.shippingFee,
+      quantity: line.quantity,
+    })),
+  );
   return {
     orderItems,
     stockReservations: lines.map((line) => ({

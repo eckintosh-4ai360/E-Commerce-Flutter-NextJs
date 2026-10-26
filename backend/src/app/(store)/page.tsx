@@ -35,8 +35,7 @@ export default async function HomePage() {
           </h1>
           <p>
             Discover global finds with local payment and dependable delivery across Ghana.
-            Free shipping on orders over {storeConfig.currencySymbol}
-            {storeConfig.freeShippingThreshold}.
+            Delivery fees are set per product and shown at checkout.
           </p>
           <div className="hero__actions">
             <Link href="/shop" className="btn btn-accent">
@@ -71,9 +70,9 @@ export default async function HomePage() {
         <div>
           <Truck size={22} aria-hidden="true" />
           <span>
-            Free{' '}
+            Flexible{' '}
             <br />
-            Shipping
+            Delivery
           </span>
         </div>
         <div>

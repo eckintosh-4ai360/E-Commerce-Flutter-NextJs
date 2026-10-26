@@ -99,7 +99,13 @@ test('product defaults are filled and lists de-duplicated', () => {
   assert.equal(parsed.stockQuantity, 0);
   assert.equal(parsed.rating, 4.5);
   assert.deepEqual(parsed.galleryImages, []);
+  assert.equal(parsed.shippingFee, 0);
   assert.equal(createProductSchema.safeParse({ ...validProduct, stockQuantity: -1 }).success, false);
+});
+
+test('product shipping fees are optional and cannot be negative', () => {
+  assert.equal(createProductSchema.parse({ ...validProduct, shippingFee: 12.5 }).shippingFee, 12.5);
+  assert.equal(createProductSchema.safeParse({ ...validProduct, shippingFee: -0.01 }).success, false);
 });
 
 test('original price must exceed the price', () => {

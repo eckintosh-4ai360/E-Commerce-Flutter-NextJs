@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import { discountPercent, formatMoney, formatPrice, roundMoney } from '@/lib/money';
-import { shippingFeeFor } from '@/lib/store-config';
+import { shippingFeeForLines } from '@/lib/money';
 
 test('roundMoney removes floating point noise', () => {
   assert.equal(roundMoney(0.1 + 0.2), 0.3);
@@ -29,7 +29,13 @@ test('discountPercent needs an original price above the price', () => {
   assert.equal(discountPercent(100, 80), null);
 });
 
-test('shipping is free from the threshold upwards', () => {
-  assert.equal(shippingFeeFor(299.99), 25);
-  assert.equal(shippingFeeFor(300), 0);
+test('shipping adds each product fee for its quantity', () => {
+  assert.equal(
+    shippingFeeForLines([
+      { shippingFee: 15, quantity: 2 },
+      { shippingFee: 0, quantity: 3 },
+      { shippingFee: 2.5, quantity: 1 },
+    ]),
+    32.5,
+  );
 });

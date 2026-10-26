@@ -9,7 +9,7 @@ import { PurchasePanel } from '@/components/store/PurchasePanel';
 import { PriceRow, RatingStars } from '@/components/store/ui';
 import { getProduct, getRelatedProducts } from '@/lib/catalog';
 import { getPublicBaseUrl } from '@/lib/http';
-import { discountPercent, formatPrice } from '@/lib/money';
+import { discountPercent, formatMoney, formatPrice } from '@/lib/money';
 import { productImagePaths, resolveImageUrl, serialiseProduct } from '@/lib/serializers';
 import { storeConfig } from '@/lib/store-config';
 
@@ -154,8 +154,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
               <span>
                 <strong>Fast Delivery</strong>
                 <span>
-                  Delivered across Ghana · free over {storeConfig.currencySymbol}
-                  {storeConfig.freeShippingThreshold}
+                  Delivered across Ghana · {product.shippingFee === 0
+                    ? 'shipping included'
+                    : `${formatMoney(product.shippingFee)} per item`}
                 </span>
               </span>
             </div>

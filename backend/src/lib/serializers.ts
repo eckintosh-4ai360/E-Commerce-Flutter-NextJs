@@ -72,6 +72,7 @@ export function serialiseProduct(
     name: product.name,
     description: product.description,
     price: product.price,
+    shippingFee: product.shippingFee,
     originalPrice: product.originalPrice,
     images: productImagePaths(product, { absolute: absoluteImages }),
     category: product.category,

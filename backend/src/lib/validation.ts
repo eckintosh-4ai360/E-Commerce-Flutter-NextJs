@@ -170,6 +170,10 @@ const productFields = {
     .number({ error: 'Price must be a number.' })
     .positive('Price must be greater than zero.')
     .max(1_000_000),
+  shippingFee: z
+    .number({ error: 'Shipping fee must be a number.' })
+    .min(0, 'Shipping fee cannot be negative.')
+    .max(1_000_000, 'Shipping fee is too large.'),
   originalPrice: z
     .number()
     .positive('Original price must be greater than zero.')
@@ -234,6 +238,7 @@ export const createProductSchema = z
     tags: productFields.tags.default([]),
     sizes: productFields.sizes.default([]),
     colors: productFields.colors.default([]),
+    shippingFee: productFields.shippingFee.default(0),
     rating: productFields.rating.default(4.5),
     reviewCount: productFields.reviewCount.default(0),
     stockQuantity: productFields.stockQuantity.default(0),

@@ -9,8 +9,6 @@ export const storeConfig = {
     'Global finds, local convenience and dependable delivery across Ghana.',
   currencyCode: 'GHS',
   currencySymbol: 'GH₵',
-  freeShippingThreshold: 300,
-  flatShippingFee: 25,
   maxQuantityPerLine: 20,
   maxLinesPerOrder: 50,
   maxSavedAddresses: 10,
@@ -138,12 +136,6 @@ export const returnStatuses = [
 ] as const;
 
 export type ReturnStatusValue = (typeof returnStatuses)[number];
-
-export function shippingFeeFor(subtotal: number) {
-  return subtotal >= storeConfig.freeShippingThreshold
-    ? 0
-    : storeConfig.flatShippingFee;
-}
 
 // The Firebase web config identifies the project to the browser SDK. These are
 // public identifiers, not credentials; access is enforced by the backend.

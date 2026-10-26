@@ -12,8 +12,8 @@ import {
 } from 'react';
 
 import { readStored, removeStored, writeStored } from '@/lib/client/storage';
-import { roundMoney } from '@/lib/money';
-import { shippingFeeFor, storeConfig } from '@/lib/store-config';
+import { roundMoney, shippingFeeForLines } from '@/lib/money';
+import { storeConfig } from '@/lib/store-config';
 import type { StoreProduct } from '@/lib/types';
 
 export type CartLine = {
@@ -67,7 +67,20 @@ function isCartLine(value: unknown): value is CartLine {
 }
 
 function validateLines(value: unknown) {
-  return Array.isArray(value) ? value.filter(isCartLine) : null;
+  if (!Array.isArray(value)) return null;
+
+  // Carts saved before product-level shipping existed remain valid and use a
+  // zero fee until the catalog refreshes them.
+  return value.filter(isCartLine).map((line) => ({
+    ...line,
+    product: {
+      ...line.product,
+      shippingFee:
+        typeof line.product.shippingFee === 'number' && Number.isFinite(line.product.shippingFee)
+          ? line.product.shippingFee
+          : 0,
+    },
+  }));
 }
 
 export function CartProvider({ children }: { children: ReactNode }) {
@@ -193,7 +206,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const subtotal = roundMoney(
       lines.reduce((sum, line) => sum + line.product.price * line.quantity, 0),
     );
-    const shippingFee = lines.length === 0 ? 0 : shippingFeeFor(subtotal);
+    const shippingFee = shippingFeeForLines(
+      lines.map((line) => ({
+        shippingFee: line.product.shippingFee,
+        quantity: line.quantity,
+      })),
+    );
     return {
       lines,
       hydrated,

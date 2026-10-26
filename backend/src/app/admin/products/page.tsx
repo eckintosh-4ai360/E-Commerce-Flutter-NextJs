@@ -12,6 +12,7 @@ type Product = {
   name: string;
   description: string;
   price: number;
+  shippingFee: number;
   originalPrice: number | null;
   imagePath: string;
   galleryImages: string;
@@ -34,6 +35,7 @@ type FormState = {
   name: string;
   description: string;
   price: string;
+  shippingFee: string;
   originalPrice: string;
   images: string[];
   category: string;
@@ -53,6 +55,7 @@ const createEmptyForm = (): FormState => ({
   name: '',
   description: '',
   price: '',
+  shippingFee: '',
   originalPrice: '',
   images: [],
   category: '',
@@ -322,6 +325,7 @@ export default function ProductsPage() {
       name: product.name,
       description: product.description,
       price: String(product.price),
+      shippingFee: product.shippingFee === 0 ? '' : String(product.shippingFee),
       originalPrice: product.originalPrice ? String(product.originalPrice) : '',
       images: Array.from(new Set([product.imagePath, ...parseList(product.galleryImages)])).filter(Boolean).slice(0, 5),
       category: product.category,
@@ -347,6 +351,7 @@ export default function ProductsPage() {
       name: form.name,
       description: form.description,
       price: Number(form.price),
+      shippingFee: form.shippingFee.trim() ? Number(form.shippingFee) : 0,
       originalPrice: form.originalPrice.trim() ? Number(form.originalPrice) : null,
       imagePath: form.images[0] ?? '',
       galleryImages: form.images.slice(1),
@@ -508,6 +513,11 @@ export default function ProductsPage() {
             <div className="admin-field"><label htmlFor="p-name">Product name</label><input id="p-name" className="admin-input" value={form.name} onChange={(e) => set('name', e.target.value)} /></div>
             <div className="admin-field"><label htmlFor="p-category">Category</label><input id="p-category" className="admin-input" value={form.category} onChange={(e) => set('category', e.target.value)} /></div>
             <div className="admin-field"><label htmlFor="p-price">Price (GH₵)</label><input id="p-price" className="admin-input" type="number" min="0" step="0.01" value={form.price} onChange={(e) => set('price', e.target.value)} /></div>
+            <div className="admin-field">
+              <label htmlFor="p-shipping">Shipping fee per item (optional, GH₵)</label>
+              <input id="p-shipping" className="admin-input" type="number" min="0" step="0.01" placeholder="Free shipping" value={form.shippingFee} onChange={(e) => set('shippingFee', e.target.value)} />
+              <span style={{ fontSize: 12, color: 'var(--a-text-3)' }}>Leave blank to include shipping at no extra charge.</span>
+            </div>
             <div className="admin-field"><label htmlFor="p-original">Original price (optional)</label><input id="p-original" className="admin-input" type="number" min="0" step="0.01" value={form.originalPrice} onChange={(e) => set('originalPrice', e.target.value)} /></div>
 
             <div className="admin-field" style={{ gridColumn: '1 / -1' }}>

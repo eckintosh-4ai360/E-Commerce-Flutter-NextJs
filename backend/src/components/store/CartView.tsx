@@ -1,6 +1,6 @@
 'use client';
 
-import { Minus, Plus, ShoppingBag, Trash2, Truck } from 'lucide-react';
+import { Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 
@@ -39,24 +39,9 @@ export function useFreshCart() {
 
 export function CartSummary({ children }: { children?: ReactNode }) {
   const cart = useCart();
-  const remaining = storeConfig.freeShippingThreshold - cart.subtotal;
-  const progress = Math.min(100, (cart.subtotal / storeConfig.freeShippingThreshold) * 100);
 
   return (
     <aside className="card summary" aria-label="Order summary">
-      <div className="shipping-progress">
-        {remaining > 0 ? (
-          <>
-            <Truck size={15} style={{ display: 'inline', verticalAlign: '-2px', marginRight: 6 }} />
-            Add {formatPrice(remaining)} more for free shipping
-          </>
-        ) : (
-          <strong style={{ color: 'var(--success)' }}>You qualify for free shipping.</strong>
-        )}
-        <div className="shipping-progress__bar" aria-hidden="true">
-          <span style={{ width: `${progress}%` }} />
-        </div>
-      </div>
       <div className="summary-rows">
         <div>
           <span className="muted">Subtotal ({cart.totalItems} item{cart.totalItems === 1 ? '' : 's'})</span>
@@ -139,6 +124,13 @@ export function CartView() {
                     ) : null}
                   </div>
                   <div className="price">{formatPrice(line.product.price)}</div>
+                  {line.product.shippingFee > 0 ? (
+                    <div className="muted" style={{ fontSize: 12, marginTop: 3 }}>
+                      Delivery: {formatMoney(line.product.shippingFee)} each
+                    </div>
+                  ) : (
+                    <div className="muted" style={{ fontSize: 12, marginTop: 3 }}>Shipping included</div>
+                  )}
                 </div>
                 <div className="cart-line__side">
                   <div className="qty qty--sm" role="group" aria-label={`Quantity of ${line.product.name}`}>

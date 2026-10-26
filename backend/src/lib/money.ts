@@ -5,6 +5,15 @@ export function roundMoney(value: number) {
   return Math.round((value + Number.EPSILON) * 100) / 100;
 }
 
+/** Adds the optional, per-item shipping fees selected by the admin. */
+export function shippingFeeForLines(
+  lines: ReadonlyArray<{ shippingFee: number; quantity: number }>,
+) {
+  return roundMoney(
+    lines.reduce((total, line) => total + line.shippingFee * line.quantity, 0),
+  );
+}
+
 /**
  * Formats without Intl so server-rendered and hydrated output always match.
  */

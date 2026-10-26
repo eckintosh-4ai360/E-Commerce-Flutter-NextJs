@@ -22,7 +22,7 @@ const faqs = [
   },
   {
     question: 'How much is shipping?',
-    answer: `Shipping is a flat ${storeConfig.currencySymbol}${storeConfig.flatShippingFee}, and free on orders of ${storeConfig.currencySymbol}${storeConfig.freeShippingThreshold} or more.`,
+    answer: 'Shipping is set per product. Any applicable fee is shown on the product, in your cart, and at checkout; products with no fee include shipping.',
   },
   {
     question: 'How do I pay?',
