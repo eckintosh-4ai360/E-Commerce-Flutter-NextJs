@@ -63,6 +63,8 @@ export function SiteFooter() {
               <li><Link href="/track">Track an order</Link></li>
               <li><Link href="/account/returns">Returns &amp; refunds</Link></li>
               <li><Link href="/help">FAQ &amp; help centre</Link></li>
+              <li><Link href="/privacy">Privacy policy</Link></li>
+              <li><Link href="/terms">Terms &amp; conditions</Link></li>
               <li><a href={storeConfig.supportPhoneHref}>Call {storeConfig.supportPhone}</a></li>
               <li><a href={storeConfig.secondaryPhoneHref}>Call {storeConfig.secondaryPhone}</a></li>
               <li><a href={storeConfig.whatsappHref} target="_blank" rel="noopener noreferrer">WhatsApp us</a></li>
