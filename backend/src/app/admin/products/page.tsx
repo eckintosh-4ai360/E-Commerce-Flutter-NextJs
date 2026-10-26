@@ -1,6 +1,6 @@
 'use client';
 
-import { ArchiveRestore, Check, ImageIcon, PackageX, Pencil, Plus, Search, Trash2, X } from 'lucide-react';
+import { ArchiveRestore, Check, ImageIcon, Package, PackageX, Pencil, Plus, Search, Trash2, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState, type DragEvent, type ReactNode } from 'react';
 
 import { useAuth } from '@/components/providers/AuthProvider';
@@ -41,6 +41,7 @@ type FormState = {
   rating: string;
   reviewCount: string;
   stockQuantity: string;
+  inStock: boolean;
   sizes: string;
   colors: string;
   isNew: boolean;
@@ -58,7 +59,8 @@ const createEmptyForm = (): FormState => ({
   tags: '',
   rating: '4.5',
   reviewCount: '0',
-  stockQuantity: '0',
+  stockQuantity: '50',
+  inStock: true,
   sizes: '',
   colors: '',
   isNew: false,
@@ -326,7 +328,8 @@ export default function ProductsPage() {
       tags: parseList(product.tags).join(', '),
       rating: String(product.rating),
       reviewCount: String(product.reviewCount),
-      stockQuantity: String(product.stockQuantity),
+      stockQuantity: String(product.stockQuantity || (product.inStock ? 50 : 0)),
+      inStock: product.inventoryManaged ? product.stockQuantity > 0 : product.inStock,
       sizes: parseList(product.sizes).join(', '),
       colors: parseList(product.colors).join(', '),
       isNew: product.isNew,
@@ -339,6 +342,7 @@ export default function ProductsPage() {
   const save = async () => {
     setSaving(true);
     setFormError(null);
+    const stockQty = form.inStock ? Math.max(0, Number(form.stockQuantity) || 0) : 0;
     const payload = {
       name: form.name,
       description: form.description,
@@ -352,7 +356,7 @@ export default function ProductsPage() {
       colors: splitList(form.colors),
       rating: Number(form.rating),
       reviewCount: Number(form.reviewCount),
-      stockQuantity: Number(form.stockQuantity),
+      stockQuantity: stockQty,
       isNew: form.isNew,
       isBestSeller: form.isBestSeller,
       isArchived: form.isArchived,
@@ -505,9 +509,60 @@ export default function ProductsPage() {
             <div className="admin-field"><label htmlFor="p-category">Category</label><input id="p-category" className="admin-input" value={form.category} onChange={(e) => set('category', e.target.value)} /></div>
             <div className="admin-field"><label htmlFor="p-price">Price (GH₵)</label><input id="p-price" className="admin-input" type="number" min="0" step="0.01" value={form.price} onChange={(e) => set('price', e.target.value)} /></div>
             <div className="admin-field"><label htmlFor="p-original">Original price (optional)</label><input id="p-original" className="admin-input" type="number" min="0" step="0.01" value={form.originalPrice} onChange={(e) => set('originalPrice', e.target.value)} /></div>
+
+            <div className="admin-field" style={{ gridColumn: '1 / -1' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, background: 'rgba(255, 176, 0, 0.06)', padding: '16px', borderRadius: 12, border: '1px solid rgba(255, 176, 0, 0.25)' }}>
+                <div>
+                  <label htmlFor="p-stock" style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, color: 'var(--a-gold)', fontSize: 13, textTransform: 'none', letterSpacing: 0 }}>
+                    <Package size={17} /> Stock Quantity
+                  </label>
+                  <input
+                    id="p-stock"
+                    className="admin-input"
+                    type="number"
+                    min="0"
+                    step="1"
+                    placeholder="e.g. 50"
+                    value={form.stockQuantity}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setForm((current) => ({
+                        ...current,
+                        stockQuantity: val,
+                        inStock: Number(val) > 0,
+                      }));
+                    }}
+                    style={{ marginTop: 8 }}
+                  />
+                  <span style={{ fontSize: 12, color: 'var(--a-text-3)', display: 'block', marginTop: 4 }}>
+                    Decreases automatically as customers make purchases.
+                  </span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', color: 'var(--a-text)', fontWeight: 600, fontSize: 14 }}>
+                    <input
+                      type="checkbox"
+                      checked={form.inStock}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setForm((current) => ({
+                          ...current,
+                          inStock: checked,
+                          stockQuantity: checked ? (Number(current.stockQuantity) > 0 ? current.stockQuantity : '50') : '0',
+                        }));
+                      }}
+                    />
+                    In Stock (Available for sale)
+                  </label>
+                  <span style={{ fontSize: 12, color: 'var(--a-text-3)', marginTop: 4 }}>
+                    {form.inStock ? '✓ Available for customers to purchase.' : '✕ Marked out of stock across the store.'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
             <div className="admin-field"><label htmlFor="p-rating">Rating (0-5)</label><input id="p-rating" className="admin-input" type="number" min="0" max="5" step="0.1" value={form.rating} onChange={(e) => set('rating', e.target.value)} /></div>
             <div className="admin-field"><label htmlFor="p-reviews">Review count</label><input id="p-reviews" className="admin-input" type="number" min="0" step="1" value={form.reviewCount} onChange={(e) => set('reviewCount', e.target.value)} /></div>
-            <div className="admin-field"><label htmlFor="p-stock">Stock quantity</label><input id="p-stock" className="admin-input" type="number" min="0" step="1" value={form.stockQuantity} onChange={(e) => set('stockQuantity', e.target.value)} /><span style={{ fontSize: 12, color: 'var(--a-text-3)' }}>This decreases automatically when an order is placed. Set 0 to mark it out of stock.</span></div>
           </div>
           <div className="admin-field"><label htmlFor="p-description">Description</label><textarea id="p-description" className="admin-textarea" value={form.description} onChange={(e) => set('description', e.target.value)} /></div>
           <div className="admin-field"><label htmlFor="p-tags">Tags (comma-separated)</label><input id="p-tags" className="admin-input" placeholder="Fashion, Top, Summer" value={form.tags} onChange={(e) => set('tags', e.target.value)} /></div>
@@ -516,6 +571,7 @@ export default function ProductsPage() {
 
           <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', margin: '8px 0 18px' }}>
             {([
+              ['inStock', 'In stock (Available for sale)'],
               ['isNew', 'Mark as new'],
               ['isBestSeller', 'Best seller'],
               ...(editing ? [['isArchived', 'Archived (hidden from store)']] : []),
