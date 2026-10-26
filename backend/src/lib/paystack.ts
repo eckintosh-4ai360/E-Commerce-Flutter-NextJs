@@ -82,6 +82,7 @@ export function paystackCheckoutForOrder(order: OrderWithRelations) {
   return {
     publicKey: getPaystackLivePublicKey(),
     email: order.customerEmail,
+    phone: order.customerPhone,
     amount: toPaystackAmount(order.total),
     currency: storeConfig.currencyCode,
     reference: order.paymentReference,

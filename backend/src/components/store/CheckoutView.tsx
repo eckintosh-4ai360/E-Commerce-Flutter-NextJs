@@ -40,6 +40,7 @@ type FormState = {
 type PaystackCheckout = {
   publicKey: string;
   email: string;
+  phone: string;
   amount: number;
   currency: string;
   reference: string;
@@ -52,6 +53,7 @@ type PaystackPopup = {
   newTransaction: (options: {
     key: string;
     email: string;
+    phone: string;
     amount: number;
     currency: string;
     reference: string;
@@ -125,6 +127,7 @@ async function openPaystackCheckout(checkout: PaystackCheckout) {
       popup.newTransaction({
         key: checkout.publicKey,
         email: checkout.email,
+        phone: checkout.phone,
         amount: checkout.amount,
         currency: checkout.currency,
         reference: checkout.reference,
