@@ -32,6 +32,8 @@ export const POST = route(async (request) => {
 
   const data = {
     ...input,
+    inventoryManaged: true,
+    inStock: input.stockQuantity > 0,
     originalPrice: input.originalPrice ?? null,
     galleryImages: JSON.stringify(input.galleryImages),
     tags: JSON.stringify(input.tags),

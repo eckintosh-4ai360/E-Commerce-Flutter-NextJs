@@ -19,6 +19,8 @@ type Product = {
   tags: string;
   rating: number;
   reviewCount: number;
+  stockQuantity: number;
+  inventoryManaged: boolean;
   inStock: boolean;
   sizes: string;
   colors: string;
@@ -38,7 +40,7 @@ type FormState = {
   tags: string;
   rating: string;
   reviewCount: string;
-  inStock: boolean;
+  stockQuantity: string;
   sizes: string;
   colors: string;
   isNew: boolean;
@@ -56,7 +58,7 @@ const createEmptyForm = (): FormState => ({
   tags: '',
   rating: '4.5',
   reviewCount: '0',
-  inStock: true,
+  stockQuantity: '0',
   sizes: '',
   colors: '',
   isNew: false,
@@ -324,7 +326,7 @@ export default function ProductsPage() {
       tags: parseList(product.tags).join(', '),
       rating: String(product.rating),
       reviewCount: String(product.reviewCount),
-      inStock: product.inStock,
+      stockQuantity: String(product.stockQuantity),
       sizes: parseList(product.sizes).join(', '),
       colors: parseList(product.colors).join(', '),
       isNew: product.isNew,
@@ -350,7 +352,7 @@ export default function ProductsPage() {
       colors: splitList(form.colors),
       rating: Number(form.rating),
       reviewCount: Number(form.reviewCount),
-      inStock: form.inStock,
+      stockQuantity: Number(form.stockQuantity),
       isNew: form.isNew,
       isBestSeller: form.isBestSeller,
       isArchived: form.isArchived,
@@ -453,8 +455,8 @@ export default function ProductsPage() {
                     {product.originalPrice ? <div style={{ fontSize: 11, color: 'var(--a-text-3)', textDecoration: 'line-through', fontWeight: 400 }}>{formatMoney(product.originalPrice)}</div> : null}
                   </td>
                   <td>
-                    <span className="admin-tag" style={product.inStock ? { background: 'rgba(74,222,128,0.1)', color: 'var(--a-green)' } : { background: 'rgba(248,113,113,0.1)', color: 'var(--a-red)' }}>
-                      {product.inStock ? 'In stock' : 'Out of stock'}
+                    <span className="admin-tag" style={product.inventoryManaged && product.stockQuantity > 0 ? { background: 'rgba(74,222,128,0.1)', color: 'var(--a-green)' } : { background: 'rgba(248,113,113,0.1)', color: 'var(--a-red)' }}>
+                      {product.inventoryManaged ? `${product.stockQuantity} in stock` : product.inStock ? 'Not tracked' : 'Out of stock'}
                     </span>
                   </td>
                   <td>
@@ -505,6 +507,7 @@ export default function ProductsPage() {
             <div className="admin-field"><label htmlFor="p-original">Original price (optional)</label><input id="p-original" className="admin-input" type="number" min="0" step="0.01" value={form.originalPrice} onChange={(e) => set('originalPrice', e.target.value)} /></div>
             <div className="admin-field"><label htmlFor="p-rating">Rating (0-5)</label><input id="p-rating" className="admin-input" type="number" min="0" max="5" step="0.1" value={form.rating} onChange={(e) => set('rating', e.target.value)} /></div>
             <div className="admin-field"><label htmlFor="p-reviews">Review count</label><input id="p-reviews" className="admin-input" type="number" min="0" step="1" value={form.reviewCount} onChange={(e) => set('reviewCount', e.target.value)} /></div>
+            <div className="admin-field"><label htmlFor="p-stock">Stock quantity</label><input id="p-stock" className="admin-input" type="number" min="0" step="1" value={form.stockQuantity} onChange={(e) => set('stockQuantity', e.target.value)} /><span style={{ fontSize: 12, color: 'var(--a-text-3)' }}>This decreases automatically when an order is placed. Set 0 to mark it out of stock.</span></div>
           </div>
           <div className="admin-field"><label htmlFor="p-description">Description</label><textarea id="p-description" className="admin-textarea" value={form.description} onChange={(e) => set('description', e.target.value)} /></div>
           <div className="admin-field"><label htmlFor="p-tags">Tags (comma-separated)</label><input id="p-tags" className="admin-input" placeholder="Fashion, Top, Summer" value={form.tags} onChange={(e) => set('tags', e.target.value)} /></div>
@@ -513,7 +516,6 @@ export default function ProductsPage() {
 
           <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', margin: '8px 0 18px' }}>
             {([
-              ['inStock', 'In stock'],
               ['isNew', 'Mark as new'],
               ['isBestSeller', 'Best seller'],
               ...(editing ? [['isArchived', 'Archived (hidden from store)']] : []),

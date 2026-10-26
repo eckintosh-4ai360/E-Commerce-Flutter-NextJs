@@ -57,6 +57,12 @@ export function productImagePaths(
     .map((path) => resolveImageUrl(path, { absolute }));
 }
 
+export function productIsInStock(
+  product: Pick<Product, 'inStock' | 'isArchived' | 'inventoryManaged' | 'stockQuantity'>,
+) {
+  return !product.isArchived && (product.inventoryManaged ? product.stockQuantity > 0 : product.inStock);
+}
+
 export function serialiseProduct(
   product: Product,
   { absoluteImages = true } = {},
@@ -72,7 +78,7 @@ export function serialiseProduct(
     tags: parseList(product.tags),
     rating: product.rating,
     reviewCount: product.reviewCount,
-    inStock: product.inStock && !product.isArchived,
+    inStock: productIsInStock(product),
     sizes: parseList(product.sizes),
     colors: parseList(product.colors),
     isNew: product.isNew,

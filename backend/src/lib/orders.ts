@@ -6,11 +6,13 @@ import type { AuthenticatedUser } from './auth';
 import { HttpError, isPrismaError } from './errors';
 import { roundMoney } from './money';
 import { getPrisma } from './prisma';
+import { revalidateStorefront } from './revalidate';
 import {
   hasOpenReturn,
   isWithinReturnWindow,
   orderInclude,
   parseList,
+  productIsInStock,
   trackingCodeFor,
   type OrderWithRelations,
 } from './serializers';
@@ -80,6 +82,12 @@ type OrderLine = {
   selectedSize: string | null;
 };
 
+type StockReservation = {
+  productId: number;
+  productName: string;
+  quantity: number;
+};
+
 function mergeLines(items: CreateOrderInput['items']): OrderLine[] {
   const merged = new Map<string, OrderLine>();
   for (const item of items) {
@@ -125,10 +133,18 @@ export async function priceOrder(input: CreateOrderInput) {
 
   const orderItems = lines.map((line) => {
     const product = productsById.get(line.productId)!;
-    if (!product.inStock) {
+    if (!productIsInStock(product)) {
       throw new HttpError(409, `${product.name} is out of stock.`, {}, {
         unavailableProductIds: [product.id],
       });
+    }
+    if (product.inventoryManaged && product.stockQuantity < line.quantity) {
+      throw new HttpError(
+        409,
+        `Only ${product.stockQuantity} of ${product.name} remain in stock.`,
+        {},
+        { unavailableProductIds: [product.id] },
+      );
     }
 
     const colors = parseList(product.colors);
@@ -145,6 +161,7 @@ export async function priceOrder(input: CreateOrderInput) {
       productName: product.name,
       unitPrice: product.price,
       quantity: line.quantity,
+      stockReserved: product.inventoryManaged,
       selectedColor: line.selectedColor,
       selectedSize: line.selectedSize,
     };
@@ -154,7 +171,89 @@ export async function priceOrder(input: CreateOrderInput) {
     orderItems.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0),
   );
   const shippingFee = shippingFeeFor(subtotal);
-  return { orderItems, subtotal, shippingFee, total: roundMoney(subtotal + shippingFee) };
+  return {
+    orderItems,
+    stockReservations: lines.map((line) => ({
+      productId: line.productId,
+      productName: productsById.get(line.productId)!.name,
+      quantity: line.quantity,
+    })),
+    subtotal,
+    shippingFee,
+    total: roundMoney(subtotal + shippingFee),
+  };
+}
+
+async function reserveInventory(tx: Prisma.TransactionClient, lines: StockReservation[]) {
+  let reserved = false;
+
+  for (const line of lines) {
+    const result = await tx.product.updateMany({
+      where: {
+        id: line.productId,
+        isArchived: false,
+        inventoryManaged: true,
+        inStock: true,
+        stockQuantity: { gte: line.quantity },
+      },
+      data: { stockQuantity: { decrement: line.quantity } },
+    });
+
+    if (result.count === 1) {
+      reserved = true;
+      await tx.product.updateMany({
+        where: { id: line.productId, inventoryManaged: true, stockQuantity: 0 },
+        data: { inStock: false },
+      });
+      continue;
+    }
+
+    const product = await tx.product.findUnique({
+      where: { id: line.productId },
+      select: { name: true, inventoryManaged: true, stockQuantity: true, inStock: true, isArchived: true },
+    });
+    // Legacy products still use the prior availability switch until the admin
+    // supplies an initial quantity; they have no quantity to reserve yet.
+    if (product && !product.inventoryManaged && product.inStock && !product.isArchived) {
+      continue;
+    }
+
+    throw new HttpError(
+      409,
+      product?.inventoryManaged
+        ? `Only ${product.stockQuantity} of ${product.name} remain in stock.`
+        : `${product?.name ?? 'This product'} is out of stock.`,
+      {},
+      { unavailableProductIds: [line.productId] },
+    );
+  }
+
+  return reserved;
+}
+
+type ReservableOrder = {
+  items: Array<{ productId: number; quantity: number; stockReserved: boolean }>;
+};
+
+async function restoreInventory(tx: Prisma.TransactionClient, order: ReservableOrder) {
+  for (const item of order.items) {
+    if (!item.stockReserved) continue;
+    // inventoryManaged is intentionally included: only quantities that this
+    // system managed at order time are restored, never legacy products that
+    // might later be converted to quantity tracking.
+    await tx.product.updateMany({
+      where: { id: item.productId, inventoryManaged: true },
+      data: { stockQuantity: { increment: item.quantity }, inStock: true },
+    });
+  }
+}
+
+async function claimInventoryRelease(tx: Prisma.TransactionClient, orderId: string) {
+  const claimed = await tx.order.updateMany({
+    where: { id: orderId, inventoryReserved: true },
+    data: { inventoryReserved: false },
+  });
+  return claimed.count === 1;
 }
 
 async function findByClientRequestId(clientRequestId: string) {
@@ -200,28 +299,35 @@ export async function createOrder(
     const id = createOrderId();
     const isPaystack = input.paymentMethod === 'PAYSTACK';
     try {
-      const order = await getPrisma().order.create({
-        data: {
-          id,
-          trackingCode: trackingCodeFor(id),
-          customerUid: user.uid,
-          customerName: input.customerName,
-          customerEmail: user.email,
-          customerPhone: input.customerPhone,
-          deliveryAddress: input.deliveryAddress,
-          notes: input.notes,
-          paymentMethod: input.paymentMethod,
-          paymentStatus: isPaystack ? 'PENDING' : 'PAY_ON_DELIVERY',
-          paymentReference: isPaystack ? paystackReferenceForOrder(id) : null,
-          clientRequestId,
-          subtotal: priced.subtotal,
-          shippingFee: priced.shippingFee,
-          total: priced.total,
-          items: { create: priced.orderItems },
-          events: { create: { status: 'PENDING', note: 'Order placed' } },
-        },
-        include: orderInclude,
+      const order = await getPrisma().$transaction(async (tx) => {
+        const inventoryReserved = await reserveInventory(tx, priced.stockReservations);
+        return tx.order.create({
+          data: {
+            id,
+            trackingCode: trackingCodeFor(id),
+            customerUid: user.uid,
+            customerName: input.customerName,
+            customerEmail: user.email,
+            customerPhone: input.customerPhone,
+            deliveryAddress: input.deliveryAddress,
+            notes: input.notes,
+            paymentMethod: input.paymentMethod,
+            paymentStatus: isPaystack ? 'PENDING' : 'PAY_ON_DELIVERY',
+            paymentReference: isPaystack ? paystackReferenceForOrder(id) : null,
+            inventoryReserved,
+            clientRequestId,
+            subtotal: priced.subtotal,
+            shippingFee: priced.shippingFee,
+            total: priced.total,
+            items: { create: priced.orderItems },
+            events: { create: { status: 'PENDING', note: 'Order placed' } },
+          },
+          include: orderInclude,
+        });
       });
+      if (order.inventoryReserved) {
+        revalidateStorefront();
+      }
       return { order, created: true };
     } catch (error) {
       if (!isPrismaError(error, 'P2002')) {
@@ -311,16 +417,24 @@ export async function cancelOrder(user: AuthenticatedUser, reference: string) {
       where: { id: order.id, status: 'PENDING' },
       data: { status: 'CANCELLED' },
     });
+    let inventoryRestored = false;
     if (updated.count === 1) {
+      if (await claimInventoryRelease(tx, order.id)) {
+        await restoreInventory(tx, order);
+        inventoryRestored = true;
+      }
       await tx.orderEvent.create({
         data: { orderId: order.id, status: 'CANCELLED', note: 'Cancelled by customer' },
       });
     }
-    return updated.count;
+    return { cancelled: updated.count === 1, inventoryRestored };
   });
 
-  if (result === 0) {
+  if (!result.cancelled) {
     throw new HttpError(409, 'This order is already being processed and can no longer be cancelled. Contact support for help.');
+  }
+  if (result.inventoryRestored) {
+    revalidateStorefront();
   }
 
   return prisma.order.findUniqueOrThrow({ where: { id: order.id }, include: orderInclude });
@@ -328,7 +442,16 @@ export async function cancelOrder(user: AuthenticatedUser, reference: string) {
 
 export async function updateOrderStatus(id: string, status: OrderStatus, note: string | null) {
   const prisma = getPrisma();
-  const existing = await prisma.order.findUnique({ where: { id } });
+  const existing = await prisma.order.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      status: true,
+      paymentMethod: true,
+      paymentStatus: true,
+      items: { select: { productId: true, quantity: true, stockReserved: true } },
+    },
+  });
   if (!existing) {
     throw new HttpError(404, 'Order not found.');
   }
@@ -344,15 +467,24 @@ export async function updateOrderStatus(id: string, status: OrderStatus, note: s
     return { order: null, previousStatus: existing.status };
   }
 
-  const [order] = await prisma.$transaction([
-    prisma.order.update({
+  const result = await prisma.$transaction(async (tx) => {
+    let inventoryRestored = false;
+    if (status === 'CANCELLED' && (await claimInventoryRelease(tx, existing.id))) {
+      await restoreInventory(tx, existing);
+      inventoryRestored = true;
+    }
+    const order = await tx.order.update({
       where: { id },
       data: { status },
       include: orderInclude,
-    }),
-    prisma.orderEvent.create({ data: { orderId: id, status, note } }),
-  ]);
-  return { order, previousStatus: existing.status };
+    });
+    await tx.orderEvent.create({ data: { orderId: id, status, note } });
+    return { order, inventoryRestored };
+  });
+  if (result.inventoryRestored) {
+    revalidateStorefront();
+  }
+  return { order: result.order, previousStatus: existing.status };
 }
 
 export async function createReturnRequest(

@@ -43,7 +43,15 @@ export const GET = route(async (request) => {
       _sum: { total: true },
       where: { AND: [revenueWhere, { createdAt: { gte: monthStart } }] },
     }),
-    prisma.product.count({ where: { inStock: false, isArchived: false } }),
+    prisma.product.count({
+      where: {
+        isArchived: false,
+        OR: [
+          { inventoryManaged: true, stockQuantity: 0 },
+          { inventoryManaged: false, inStock: false },
+        ],
+      },
+    }),
     prisma.returnRequest.count({ where: { status: { in: ['REQUESTED', 'APPROVED'] } } }),
     prisma.order.groupBy({ by: ['status'], _count: { _all: true } }),
     prisma.order.findMany({

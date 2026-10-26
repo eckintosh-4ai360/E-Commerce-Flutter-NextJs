@@ -47,6 +47,10 @@ model Product {
   tags          String         @default("[]")
   rating        Float          @default(4.5)
   reviewCount   Int            @default(0)
+  // Products created before quantity tracking use the old boolean availability
+  // flag until an admin sets an initial quantity.
+  stockQuantity Int            @default(0)
+  inventoryManaged Boolean     @default(true)
   inStock       Boolean        @default(true)
   sizes         String         @default("[]")
   colors        String         @default("[]")
@@ -120,6 +124,9 @@ model Order {
   paymentStatus           PaymentStatus   @default(PAY_ON_DELIVERY)
   paymentReference        String?
   paymentAuthorizationUrl String?
+  // True when stock quantities were reserved for this order. It lets a
+  // cancellation restore stock exactly once.
+  inventoryReserved       Boolean         @default(false)
   paidAt                  DateTime?
   // Client-generated key that makes checkout retries return the same order.
   clientRequestId         String?         @unique
@@ -147,6 +154,9 @@ model OrderItem {
   productName   String
   unitPrice     Float
   quantity      Int
+  // Records whether the product's managed quantity was reserved for this line,
+  // so a later cancellation can restore exactly the quantity that was held.
+  stockReserved Boolean  @default(false)
   selectedColor String?
   selectedSize  String?
   order         Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)

@@ -6,6 +6,7 @@ import { createOrderId, normaliseTrackingInput, ownsOrder } from '@/lib/orders';
 import {
   hasOpenReturn,
   isWithinReturnWindow,
+  productIsInStock,
   productImagePaths,
   resolveImageUrl,
   serialiseOrder,
@@ -37,6 +38,7 @@ function order(overrides: Partial<OrderWithRelations> = {}): OrderWithRelations 
     paymentStatus: 'PAY_ON_DELIVERY',
     paymentReference: null,
     paymentAuthorizationUrl: null,
+    inventoryReserved: false,
     paidAt: null,
     clientRequestId: null,
     subtotal: 100,
@@ -53,6 +55,7 @@ function order(overrides: Partial<OrderWithRelations> = {}): OrderWithRelations 
         productName: 'Tote',
         unitPrice: 100,
         quantity: 1,
+        stockReserved: false,
         selectedColor: 'Black',
         selectedSize: null,
         product: { imagePath: '/products/tote.jpg' },
@@ -181,5 +184,35 @@ test('product galleries keep the main image first and remove duplicates', () => 
       '/products/side.jpg',
       'https://cdn.example.com/detail.jpg',
     ],
+  );
+});
+
+test('managed stock quantities determine product availability', () => {
+  assert.equal(
+    productIsInStock({
+      isArchived: false,
+      inventoryManaged: true,
+      stockQuantity: 0,
+      inStock: true,
+    }),
+    false,
+  );
+  assert.equal(
+    productIsInStock({
+      isArchived: false,
+      inventoryManaged: true,
+      stockQuantity: 3,
+      inStock: true,
+    }),
+    true,
+  );
+  assert.equal(
+    productIsInStock({
+      isArchived: false,
+      inventoryManaged: false,
+      stockQuantity: 0,
+      inStock: true,
+    }),
+    true,
   );
 });

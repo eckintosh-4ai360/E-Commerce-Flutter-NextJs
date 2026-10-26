@@ -96,9 +96,10 @@ const validProduct = {
 test('product defaults are filled and lists de-duplicated', () => {
   const parsed = createProductSchema.parse({ ...validProduct, colors: ['Black', 'Black', ' Tan '] });
   assert.deepEqual(parsed.colors, ['Black', 'Tan']);
-  assert.equal(parsed.inStock, true);
+  assert.equal(parsed.stockQuantity, 0);
   assert.equal(parsed.rating, 4.5);
   assert.deepEqual(parsed.galleryImages, []);
+  assert.equal(createProductSchema.safeParse({ ...validProduct, stockQuantity: -1 }).success, false);
 });
 
 test('original price must exceed the price', () => {

@@ -70,9 +70,23 @@ export const PUT = route<Context>(async (request, { params }) => {
     );
   }
 
-  const { tags, sizes, colors, galleryImages: nextGalleryImages, ...fields } = input;
+  const {
+    tags,
+    sizes,
+    colors,
+    galleryImages: nextGalleryImages,
+    stockQuantity,
+    ...fields
+  } = input;
   const data: Prisma.ProductUpdateInput = {
     ...fields,
+    ...(stockQuantity !== undefined
+      ? {
+          stockQuantity,
+          inventoryManaged: true,
+          inStock: stockQuantity > 0,
+        }
+      : {}),
     ...(nextGalleryImages !== undefined
       ? { galleryImages: JSON.stringify(nextGalleryImages) }
       : {}),

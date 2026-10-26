@@ -182,7 +182,11 @@ const productFields = {
   tags: listOfLabels('Tags'),
   rating: z.number().min(0, 'Rating must be between 0 and 5.').max(5, 'Rating must be between 0 and 5.'),
   reviewCount: z.number().int().min(0).max(10_000_000),
-  inStock: z.boolean(),
+  stockQuantity: z
+    .number({ error: 'Stock quantity must be a number.' })
+    .int('Stock quantity must be a whole number.')
+    .min(0, 'Stock quantity cannot be negative.')
+    .max(10_000_000, 'Stock quantity is too large.'),
   sizes: listOfLabels('Sizes'),
   colors: listOfLabels('Colors'),
   isNew: z.boolean(),
@@ -232,7 +236,7 @@ export const createProductSchema = z
     colors: productFields.colors.default([]),
     rating: productFields.rating.default(4.5),
     reviewCount: productFields.reviewCount.default(0),
-    inStock: productFields.inStock.default(true),
+    stockQuantity: productFields.stockQuantity.default(0),
     isNew: productFields.isNew.default(false),
     isBestSeller: productFields.isBestSeller.default(false),
     isArchived: productFields.isArchived.default(false),

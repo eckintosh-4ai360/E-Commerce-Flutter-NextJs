@@ -55,6 +55,7 @@ type PaystackPopup = {
     amount: number;
     currency: string;
     reference: string;
+    channels: Array<'card' | 'mobile_money'>;
     onSuccess: (transaction: PaystackTransaction) => void;
     onCancel: () => void;
     onError: (error: { message?: string }) => void;
@@ -127,6 +128,7 @@ async function openPaystackCheckout(checkout: PaystackCheckout) {
         amount: checkout.amount,
         currency: checkout.currency,
         reference: checkout.reference,
+        channels: ['card', 'mobile_money'],
         onSuccess: (transaction) => {
           if (transaction.reference !== checkout.reference) {
             reject(new Error('Paystack returned an unexpected payment reference.'));
@@ -529,7 +531,9 @@ export function CheckoutView({ paymentError = false }: { paymentError?: boolean 
             <h2>Payment</h2>
             {payingWithPaystack ? (
               <div className="alert alert--info" style={{ marginBottom: 14 }}>
-                Paystack will open a secure checkout where you can pay by card or Mobile Money.
+                Paystack will open a secure checkout where you can pay by card or Mobile Money. For
+                Mobile Money, use the number registered to the provider you select and approve the
+                prompt or OTP sent to that phone.
               </div>
             ) : null}
             <div className="radio-list">
