@@ -21,7 +21,7 @@ test('Paystack order references are deterministic and gateway-safe', () => {
 });
 
 test('Paystack webhook signatures must match the raw request body', () => {
-  const secret = 'sk_test_example';
+  const secret = 'sk_live_example';
   const payload = JSON.stringify({ event: 'charge.success', data: { reference: 'ref' } });
   const signature = createHmac('sha512', secret).update(payload).digest('hex');
 

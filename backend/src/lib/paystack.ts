@@ -29,21 +29,16 @@ type PaystackVerification = {
   customer?: { email?: string };
 };
 
-function getPaystackTestSecret() {
+function getPaystackLiveSecret() {
   const secret = process.env.PAYSTACK_SECRET_KEY?.trim();
   if (!secret) {
     throw new HttpError(
       503,
-      'Paystack test payments are not configured. Set PAYSTACK_SECRET_KEY in backend/.env.',
+      'Online payments are not configured. Set a Paystack live secret key.',
     );
   }
-  if (!secret.startsWith('sk_test_')) {
-    throw new HttpError(503, 'Paystack is locked to test mode. Use an sk_test_ secret key.');
-  }
-
-  const publicKey = process.env.PAYSTACK_PUBLIC_KEY?.trim();
-  if (publicKey && !publicKey.startsWith('pk_test_')) {
-    throw new HttpError(503, 'Paystack is locked to test mode. Use a pk_test_ public key.');
+  if (!secret.startsWith('sk_live_')) {
+    throw new HttpError(503, 'Online payments require a Paystack live secret key.');
   }
   return secret;
 }
@@ -54,7 +49,7 @@ async function paystackRequest<T>(path: string, init?: RequestInit): Promise<T> 
     response = await fetch(`${paystackApiBase}${path}`, {
       ...init,
       headers: {
-        Authorization: `Bearer ${getPaystackTestSecret()}`,
+        Authorization: `Bearer ${getPaystackLiveSecret()}`,
         'Content-Type': 'application/json',
         ...init?.headers,
       },
@@ -116,8 +111,8 @@ function callbackUrl(publicBaseUrl: string) {
   } catch {
     throw new HttpError(503, 'PAYSTACK_CALLBACK_URL must be a fully qualified URL.');
   }
-  if (url.protocol !== 'https:' && url.protocol !== 'http:') {
-    throw new HttpError(503, 'PAYSTACK_CALLBACK_URL must use http or https.');
+  if (url.protocol !== 'https:') {
+    throw new HttpError(503, 'PAYSTACK_CALLBACK_URL must use HTTPS for live payments.');
   }
   return url.toString();
 }
@@ -157,7 +152,7 @@ export async function initializePaystackPayment(
       metadata: JSON.stringify({
         orderId: order.id,
         trackingCode: order.trackingCode ?? trackingCodeFor(order.id),
-        testMode: true,
+        environment: 'live',
       }),
     }),
   });
@@ -207,7 +202,7 @@ export async function settlePaystackPayment(
   const expectedEmail = existing.customerEmail?.trim().toLowerCase();
   const actualEmail = payment.customer?.email?.trim().toLowerCase();
   if (
-    payment.domain !== 'test' ||
+    payment.domain !== 'live' ||
     payment.reference !== reference ||
     payment.amount !== toPaystackAmount(existing.total) ||
     payment.currency.toUpperCase() !== storeConfig.currencyCode ||
@@ -234,7 +229,7 @@ export async function settlePaystackPayment(
 export function verifyPaystackSignature(
   rawBody: string,
   signature: string | null,
-  secret = getPaystackTestSecret(),
+  secret = getPaystackLiveSecret(),
 ) {
   if (!signature || !/^[a-f0-9]{128}$/i.test(signature)) {
     return false;

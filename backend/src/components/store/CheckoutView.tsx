@@ -157,7 +157,7 @@ export function CheckoutView({ paymentError = false }: { paymentError?: boolean 
       };
 
       if (payingWithPaystack) {
-        const payment = await authedFetch<{ authorizationUrl: string; testMode: true }>(
+        const payment = await authedFetch<{ authorizationUrl: string }>(
           '/api/payments/paystack/initialize',
           {
             method: 'POST',
@@ -249,7 +249,7 @@ export function CheckoutView({ paymentError = false }: { paymentError?: boolean 
       ) : null}
       <p className="small muted" style={{ margin: '12px 0 0' }}>
         {payingWithPaystack
-          ? 'Paystack is in test mode. No real money will be charged.'
+          ? 'You will be redirected to Paystack to complete your secure payment.'
           : 'You pay on delivery. We\'ll email your confirmation and every status update.'}
       </p>
     </CartSummary>
@@ -416,7 +416,7 @@ export function CheckoutView({ paymentError = false }: { paymentError?: boolean 
             <h2>Payment</h2>
             {payingWithPaystack ? (
               <div className="alert alert--info" style={{ marginBottom: 14 }}>
-                Test mode is active. Paystack will show its test checkout after you continue.
+                Paystack will open a secure checkout where you can pay by card or Mobile Money.
               </div>
             ) : null}
             <div className="radio-list">

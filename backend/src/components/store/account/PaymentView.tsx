@@ -64,8 +64,8 @@ function PaymentPreference() {
       <div className="alert alert--info" style={{ marginTop: 16 }}>
         <Info size={18} />
         <span>
-          We don&apos;t store card details. All orders are paid on delivery by cash or Mobile
-          Money, and your choice is pre-selected at checkout.
+          We don&apos;t store card details. You can choose cash or Mobile Money on delivery, or use
+          Paystack at checkout to pay online.
         </span>
       </div>
     </>
@@ -79,7 +79,7 @@ export function PaymentView() {
         <ArrowLeft size={16} /> Account
       </Link>
       <h1 className="page-title">Payment Methods</h1>
-      <p className="page-subtitle">How you&apos;d like to pay when your order arrives.</p>
+      <p className="page-subtitle">Choose your preferred payment method for delivery orders.</p>
       <RequireAuth title="Sign in to manage payment preferences">
         <PaymentPreference />
       </RequireAuth>

@@ -89,8 +89,8 @@ export const paymentMethods = [
   ...paymentOnDeliveryMethods,
   {
     value: 'PAYSTACK',
-    label: 'Paystack online payment · Test mode',
-    description: 'Test card or Mobile Money checkout. No real money will be charged.',
+    label: 'Paystack online payment',
+    description: 'Pay securely by card or Mobile Money through Paystack.',
   },
 ] as const;
 

@@ -43,10 +43,9 @@ export const POST = route(async (request) => {
 
   return jsonResponse(
     {
-      message: 'Paystack test checkout initialized.',
+      message: 'Paystack checkout initialized.',
       authorizationUrl: payment.authorizationUrl,
       reference: payment.reference,
-      testMode: true,
     },
     { status: created ? 201 : 200, headers: privateNoStoreHeaders },
   );
