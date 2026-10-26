@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import {
+  isPaystackWebhookPayment,
   paystackReferenceForOrder,
   toPaystackAmount,
   verifyPaystackSignature,
@@ -28,4 +29,28 @@ test('Paystack webhook signatures must match the raw request body', () => {
   assert.equal(verifyPaystackSignature(payload, signature, secret), true);
   assert.equal(verifyPaystackSignature(`${payload} `, signature, secret), false);
   assert.equal(verifyPaystackSignature(payload, null, secret), false);
+});
+
+test('only complete Paystack webhook payment data is accepted for settlement', () => {
+  assert.equal(
+    isPaystackWebhookPayment({
+      domain: 'live',
+      status: 'success',
+      reference: 'globacart-cm1234567890abcdefghijkl',
+      amount: 17_500,
+      currency: 'GHS',
+      customer: { email: '[email protected]' },
+    }),
+    true,
+  );
+  assert.equal(
+    isPaystackWebhookPayment({
+      domain: 'live',
+      status: 'success',
+      reference: 'globacart-cm1234567890abcdefghijkl',
+      amount: 17_500.5,
+      currency: 'GHS',
+    }),
+    false,
+  );
 });

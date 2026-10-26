@@ -21,7 +21,13 @@ function PaymentPreference() {
 
   useEffect(() => {
     authedFetch<{ profile: CustomerProfile }>('/api/me')
-      .then(({ profile }) => setSelected(profile.preferredPaymentMethod))
+      .then(({ profile }) =>
+        setSelected(
+          profile.preferredPaymentMethod === 'MOBILE_MONEY'
+            ? 'CASH_ON_DELIVERY'
+            : profile.preferredPaymentMethod,
+        ),
+      )
       .catch((caught) => setError(errorMessage(caught)));
   }, [authedFetch]);
 
@@ -64,8 +70,8 @@ function PaymentPreference() {
       <div className="alert alert--info" style={{ marginTop: 16 }}>
         <Info size={18} />
         <span>
-          We don&apos;t store card details. You can choose cash or Mobile Money on delivery, or use
-          Paystack at checkout to pay online.
+          We don&apos;t store card details. You can pay in cash or with Mobile Money on delivery, or
+          use Paystack at checkout to pay online.
         </span>
       </div>
     </>

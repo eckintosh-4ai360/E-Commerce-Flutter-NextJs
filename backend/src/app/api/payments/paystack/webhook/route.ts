@@ -1,13 +1,17 @@
 import { after } from 'next/server';
 
 import { sendOrderConfirmationEmail } from '@/lib/email';
-import { settlePaystackPayment, verifyPaystackSignature } from '@/lib/paystack';
+import {
+  isPaystackWebhookPayment,
+  settlePaystackPayment,
+  verifyPaystackSignature,
+} from '@/lib/paystack';
 
 export const runtime = 'nodejs';
 
 type PaystackWebhook = {
-  event?: string;
-  data?: { reference?: string };
+  event?: unknown;
+  data?: unknown;
 };
 
 export async function POST(request: Request) {
@@ -22,11 +26,11 @@ export async function POST(request: Request) {
     }
 
     const event = JSON.parse(rawBody) as PaystackWebhook;
-    if (event.event !== 'charge.success' || !event.data?.reference) {
+    if (event.event !== 'charge.success' || !isPaystackWebhookPayment(event.data)) {
       return Response.json({ received: true });
     }
 
-    const settlement = await settlePaystackPayment(event.data.reference);
+    const settlement = await settlePaystackPayment(event.data);
     if (settlement?.newlyPaid) {
       after(() => sendOrderConfirmationEmail(settlement.order));
     }

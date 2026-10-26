@@ -50,10 +50,18 @@ function OrderPanel({
   useEffect(load, [load]);
 
   useEffect(() => {
-    if (paymentResult === 'success') {
+    if (paymentResult === 'success' || order?.paymentStatus === 'PAID') {
       clearCart();
     }
-  }, [clearCart, paymentResult]);
+  }, [clearCart, order?.paymentStatus, paymentResult]);
+
+  useEffect(() => {
+    if (paymentResult !== 'pending' || order?.paymentStatus === 'PAID') return;
+    // Paystack sends the signed confirmation asynchronously. Refresh briefly
+    // so a customer sees the confirmed state without having to reload.
+    const interval = window.setInterval(load, 4_000);
+    return () => window.clearInterval(interval);
+  }, [load, order?.paymentStatus, paymentResult]);
 
   const cancel = async () => {
     if (!order) return;
@@ -120,18 +128,23 @@ function OrderPanel({
       {paymentResult === 'cancelled' ? (
         <div className="alert alert--error" role="status" style={{ marginBottom: 16 }}>
           This order was cancelled before Paystack confirmed payment. Contact support if you need
-          help with the test transaction.
+          help with the payment.
         </div>
-      ) : paymentResult === 'pending' ? (
+      ) : paymentResult === 'pending' && order.paymentStatus !== 'PAID' ? (
         <div className="alert alert--warn" role="status" style={{ marginBottom: 16 }}>
           Paystack has not confirmed this payment yet. The order will remain on hold until payment
           succeeds.
+        </div>
+      ) : paymentResult === 'pending' && order.paymentStatus === 'PAID' ? (
+        <div className="alert alert--success" role="status" style={{ marginBottom: 16 }}>
+          <CheckCircle2 size={18} />
+          <span>Paystack payment confirmed! Your order is now being prepared.</span>
         </div>
       ) : justPlaced ? (
         <div className="alert alert--success" role="status" style={{ marginBottom: 16 }}>
           <CheckCircle2 size={18} />
           <span>
-            {paymentResult === 'success' ? 'Test payment confirmed!' : 'Order placed!'} A
+            {paymentResult === 'success' ? 'Payment confirmed!' : 'Order placed!'} A
             confirmation has been sent to <strong>{user?.email}</strong>. Your tracking code is{' '}
             <strong>{order.trackingCode}</strong>.
           </span>

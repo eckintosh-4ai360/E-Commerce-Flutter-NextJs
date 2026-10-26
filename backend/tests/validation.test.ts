@@ -50,6 +50,14 @@ test('Paystack is allowed at checkout but not stored as an on-delivery preferenc
     updateProfileSchema.safeParse({ preferredPaymentMethod: 'PAYSTACK' }).success,
     false,
   );
+  assert.equal(
+    createOrderSchema.safeParse({ ...validOrder, paymentMethod: 'MOBILE_MONEY' }).success,
+    false,
+  );
+  assert.equal(
+    updateProfileSchema.safeParse({ preferredPaymentMethod: 'MOBILE_MONEY' }).success,
+    false,
+  );
 });
 
 test('phone numbers allow common formats only', () => {

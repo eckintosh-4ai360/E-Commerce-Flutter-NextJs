@@ -75,13 +75,8 @@ export const ghanaRegions = [
 export const paymentOnDeliveryMethods = [
   {
     value: 'CASH_ON_DELIVERY',
-    label: 'Cash on delivery',
-    description: 'Pay the rider in cash when your order arrives.',
-  },
-  {
-    value: 'MOBILE_MONEY',
-    label: 'Mobile Money on delivery',
-    description: 'Pay with MTN, Telecel or AirtelTigo MoMo when your order arrives.',
+    label: 'Payment on delivery',
+    description: 'Pay the rider in cash or with Mobile Money when your order arrives.',
   },
 ] as const;
 
@@ -97,6 +92,9 @@ export const paymentMethods = [
 export type PaymentMethodValue = (typeof paymentMethods)[number]['value'];
 
 export function paymentMethodLabel(value: string) {
+  // Preserve a clear label for orders created before cash and MoMo delivery
+  // options were consolidated.
+  if (value === 'MOBILE_MONEY') return 'Payment on delivery';
   return paymentMethods.find((method) => method.value === value)?.label ?? value;
 }
 

@@ -1,8 +1,7 @@
-import { after, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
-import { sendOrderConfirmationEmail } from '@/lib/email';
 import { getPublicBaseUrl } from '@/lib/http';
-import { settlePaystackPayment } from '@/lib/paystack';
+import { getPaystackOrderByReference } from '@/lib/paystack';
 import { trackingCodeFor } from '@/lib/serializers';
 
 export const runtime = 'nodejs';
@@ -18,23 +17,26 @@ export async function GET(request: Request) {
   }
 
   try {
-    const settlement = await settlePaystackPayment(reference);
-    if (!settlement) {
+    const order = await getPaystackOrderByReference(reference);
+    if (!order) {
       return NextResponse.redirect(new URL('/checkout?payment=error', baseUrl), 303);
     }
-    if (settlement.newlyPaid) {
-      after(() => sendOrderConfirmationEmail(settlement.order));
-    }
 
-    const code = settlement.order.trackingCode ?? trackingCodeFor(settlement.order.id);
+    const code = order.trackingCode ?? trackingCodeFor(order.id);
     const target = new URL(`/account/orders/${code}`, baseUrl);
-    target.searchParams.set('payment', settlement.outcome);
-    if (settlement.outcome === 'success') {
+    const outcome =
+      order.status === 'CANCELLED'
+        ? 'cancelled'
+        : order.paymentStatus === 'PAID'
+          ? 'success'
+          : 'pending';
+    target.searchParams.set('payment', outcome);
+    if (outcome === 'success') {
       target.searchParams.set('placed', '1');
     }
     return NextResponse.redirect(target, 303);
   } catch (error) {
-    console.error('[paystack] Callback verification failed', error);
+    console.error('[paystack] Callback lookup failed', error);
     return NextResponse.redirect(new URL('/checkout?payment=error', baseUrl), 303);
   }
 }

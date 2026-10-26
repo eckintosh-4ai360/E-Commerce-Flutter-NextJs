@@ -27,7 +27,7 @@ const faqs = [
   {
     question: 'How do I pay?',
     answer:
-      'At checkout, choose cash or Mobile Money on delivery, or use Paystack to pay online by card or Mobile Money. We never store your card details.',
+      'At checkout, choose Payment on delivery to pay in cash or with Mobile Money, or use Paystack to pay online by card or Mobile Money. We never store your card details.',
   },
   {
     question: 'Can I cancel my order?',

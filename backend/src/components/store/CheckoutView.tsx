@@ -37,6 +37,112 @@ type FormState = {
   paymentMethod: PaymentMethod;
 };
 
+type PaystackCheckout = {
+  publicKey: string;
+  email: string;
+  amount: number;
+  currency: string;
+  reference: string;
+  trackingCode: string;
+};
+
+type PaystackTransaction = { reference: string };
+
+type PaystackPopup = {
+  newTransaction: (options: {
+    key: string;
+    email: string;
+    amount: number;
+    currency: string;
+    reference: string;
+    onSuccess: (transaction: PaystackTransaction) => void;
+    onCancel: () => void;
+    onError: (error: { message?: string }) => void;
+  }) => void;
+};
+
+type PaystackPopupConstructor = new () => PaystackPopup;
+
+declare global {
+  interface Window {
+    PaystackPop?: PaystackPopupConstructor;
+  }
+}
+
+const paystackInlineScriptUrl = 'https://js.paystack.co/v2/inline.js';
+let paystackInlinePromise: Promise<PaystackPopupConstructor> | null = null;
+
+function loadPaystackInline() {
+  if (window.PaystackPop) return Promise.resolve(window.PaystackPop);
+  if (paystackInlinePromise) return paystackInlinePromise;
+
+  paystackInlinePromise = new Promise<PaystackPopupConstructor>((resolve, reject) => {
+    const complete = () => {
+      if (window.PaystackPop) {
+        resolve(window.PaystackPop);
+      } else {
+        reject(new Error('Paystack checkout did not load.'));
+      }
+    };
+    const fail = () => reject(new Error('Paystack checkout could not be loaded.'));
+    const existing = document.querySelector<HTMLScriptElement>(
+      `script[src="${paystackInlineScriptUrl}"]`,
+    );
+
+    if (existing) {
+      existing.addEventListener('load', complete, { once: true });
+      existing.addEventListener('error', fail, { once: true });
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = paystackInlineScriptUrl;
+    script.async = true;
+    script.onload = complete;
+    script.onerror = fail;
+    document.head.append(script);
+  }).catch((error: unknown) => {
+    paystackInlinePromise = null;
+    throw error;
+  });
+
+  return paystackInlinePromise;
+}
+
+async function openPaystackCheckout(checkout: PaystackCheckout) {
+  const PaystackPop = await loadPaystackInline();
+  return new Promise<'success' | 'cancelled'>((resolve, reject) => {
+    let settled = false;
+    const finish = (result: 'success' | 'cancelled') => {
+      if (settled) return;
+      settled = true;
+      resolve(result);
+    };
+
+    try {
+      const popup = new PaystackPop();
+      popup.newTransaction({
+        key: checkout.publicKey,
+        email: checkout.email,
+        amount: checkout.amount,
+        currency: checkout.currency,
+        reference: checkout.reference,
+        onSuccess: (transaction) => {
+          if (transaction.reference !== checkout.reference) {
+            reject(new Error('Paystack returned an unexpected payment reference.'));
+            return;
+          }
+          finish('success');
+        },
+        onCancel: () => finish('cancelled'),
+        onError: (error) => reject(new Error(error.message || 'Paystack checkout could not open.')),
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
+
 const initialForm: FormState = {
   name: '',
   phone: '',
@@ -96,7 +202,10 @@ export function CheckoutView({ paymentError = false }: { paymentError?: boolean 
           name: current.name || profile.name || user.displayName || '',
           phone: current.phone || profile.phone || '',
           addressId: preferred ? preferred.id : 'new',
-          paymentMethod: profile.preferredPaymentMethod,
+          paymentMethod:
+            profile.preferredPaymentMethod === 'MOBILE_MONEY'
+              ? 'CASH_ON_DELIVERY'
+              : profile.preferredPaymentMethod,
         }));
       })
       .catch(() => {
@@ -157,7 +266,7 @@ export function CheckoutView({ paymentError = false }: { paymentError?: boolean 
       };
 
       if (payingWithPaystack) {
-        const payment = await authedFetch<{ authorizationUrl: string }>(
+        const payment = await authedFetch<PaystackCheckout>(
           '/api/payments/paystack/initialize',
           {
             method: 'POST',
@@ -165,7 +274,11 @@ export function CheckoutView({ paymentError = false }: { paymentError?: boolean 
             body: checkoutBody,
           },
         );
-        window.location.assign(payment.authorizationUrl);
+        const result = await openPaystackCheckout(payment);
+        if (result === 'success') {
+          cart.clear();
+          router.replace(`/account/orders/${payment.trackingCode}?placed=1&payment=pending`);
+        }
         return;
       }
 
@@ -249,8 +362,8 @@ export function CheckoutView({ paymentError = false }: { paymentError?: boolean 
       ) : null}
       <p className="small muted" style={{ margin: '12px 0 0' }}>
         {payingWithPaystack
-          ? 'You will be redirected to Paystack to complete your secure payment.'
-          : 'You pay on delivery. We\'ll email your confirmation and every status update.'}
+          ? 'A secure Paystack payment window will open to complete your payment.'
+          : 'Pay the rider in cash or with Mobile Money on delivery. We\'ll email every status update.'}
       </p>
     </CartSummary>
   );

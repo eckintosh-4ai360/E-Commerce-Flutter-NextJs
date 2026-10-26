@@ -4,7 +4,6 @@ import { requireUser } from '@/lib/auth';
 import { rememberCheckoutDetails } from '@/lib/customers';
 import { HttpError } from '@/lib/errors';
 import {
-  getPublicBaseUrl,
   jsonResponse,
   preflight,
   privateNoStoreHeaders,
@@ -12,7 +11,7 @@ import {
   route,
 } from '@/lib/http';
 import { createOrder, readIdempotencyKey } from '@/lib/orders';
-import { initializePaystackPayment } from '@/lib/paystack';
+import { paystackCheckoutForOrder } from '@/lib/paystack';
 import { rateLimit, rateLimitByIp } from '@/lib/rate-limit';
 import { createOrderSchema } from '@/lib/validation';
 
@@ -29,8 +28,7 @@ export const POST = route(async (request) => {
   }
 
   const { order, created } = await createOrder(user, input, readIdempotencyKey(request));
-  const publicBaseUrl = getPublicBaseUrl() ?? new URL(request.url).origin;
-  const payment = await initializePaystackPayment(order, publicBaseUrl);
+  const payment = paystackCheckoutForOrder(order);
 
   if (created) {
     after(() =>
@@ -43,9 +41,8 @@ export const POST = route(async (request) => {
 
   return jsonResponse(
     {
-      message: 'Paystack checkout initialized.',
-      authorizationUrl: payment.authorizationUrl,
-      reference: payment.reference,
+      message: 'Paystack checkout is ready.',
+      ...payment,
     },
     { status: created ? 201 : 200, headers: privateNoStoreHeaders },
   );
