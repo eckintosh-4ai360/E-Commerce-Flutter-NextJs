@@ -1,4 +1,3 @@
-import 'package:device_preview/device_preview.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -31,12 +30,7 @@ Future<void> main() async {
     ),
   );
 
-  runApp(
-    DevicePreview(
-      enabled: !kReleaseMode,
-      builder: (_) => GlobaCartApp(store: store),
-    ),
-  );
+  runApp(GlobaCartApp(store: store));
 }
 
 class GlobaCartApp extends StatefulWidget {
@@ -105,23 +99,17 @@ class _GlobaCartAppState extends State<GlobaCartApp> {
           child: MaterialApp(
             title: 'GlobaCart GH',
             debugShowCheckedModeBanner: false,
-            locale: DevicePreview.locale(context),
             theme: AppTheme.lightTheme,
-            builder: (context, child) {
-              return DevicePreview.appBuilder(
-                context,
-                Container(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [AppTheme.gradientStart, AppTheme.gradientEnd],
-                    ),
-                  ),
-                  child: child,
+            builder: (context, child) => Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [AppTheme.gradientStart, AppTheme.gradientEnd],
                 ),
-              );
-            },
+              ),
+              child: child,
+            ),
             home: const SplashScreen(),
           ),
         ),
