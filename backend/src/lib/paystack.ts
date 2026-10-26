@@ -7,6 +7,7 @@ import { storeConfig } from './store-config';
 
 const paystackApiBase = 'https://api.paystack.co';
 const paystackReferencePattern = /^globacart-[a-z0-9]{20,64}$/;
+const paystackUserAgent = 'GlobaCartGH/1.0 (+https://www.globacartgh.com)';
 
 type PaystackEnvelope<T> = {
   status: boolean;
@@ -50,7 +51,11 @@ async function paystackRequest<T>(path: string, init?: RequestInit): Promise<T> 
       ...init,
       headers: {
         Authorization: `Bearer ${getPaystackLiveSecret()}`,
+        Accept: 'application/json',
         'Content-Type': 'application/json',
+        // Paystack can reject requests at its Cloudflare edge when the caller
+        // has no identifiable user agent, particularly from serverless hosts.
+        'User-Agent': paystackUserAgent,
         ...init?.headers,
       },
       cache: 'no-store',
@@ -73,6 +78,21 @@ async function paystackRequest<T>(path: string, init?: RequestInit): Promise<T> 
       status: response.status,
       message: payload?.message,
     });
+    if (response.status === 401) {
+      throw new HttpError(
+        503,
+        'Online payment is temporarily unavailable. The payment gateway configuration needs attention.',
+      );
+    }
+    if (response.status === 403) {
+      throw new HttpError(
+        503,
+        'Online payment is temporarily unavailable. Please try again shortly or choose pay on delivery.',
+      );
+    }
+    if (response.status === 429) {
+      throw new HttpError(503, 'Paystack is busy. Please wait a moment and try again.');
+    }
     throw new HttpError(502, 'Paystack could not process the payment. Please try again.');
   }
   return payload.data;
