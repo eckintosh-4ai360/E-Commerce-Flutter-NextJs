@@ -1,5 +1,4 @@
-import { cert, getApps, initializeApp, type App } from 'firebase-admin/app';
-import { getAuth } from 'firebase-admin/auth';
+import type { App } from 'firebase-admin/app';
 
 import { HttpError } from './errors';
 import { firebaseWebConfig } from './store-config';
@@ -11,6 +10,32 @@ export type AuthenticatedUser = {
   picture: string | null;
   emailVerified: boolean;
 };
+
+let firebaseAdminAppModule: Promise<typeof import('firebase-admin/app')> | undefined;
+let firebaseAdminAuthModule: Promise<typeof import('firebase-admin/auth')> | undefined;
+
+/**
+ * Firebase Admin uses Node-only modules. Loading it only for an authenticated
+ * request prevents a packaging/runtime issue from crashing every route module
+ * before the route's normal error handling can respond.
+ */
+function loadFirebaseAdminApp() {
+  firebaseAdminAppModule ??= import('firebase-admin/app').catch((error: unknown) => {
+    firebaseAdminAppModule = undefined;
+    console.error('[auth] Failed to load Firebase Admin app module', error);
+    throw new HttpError(503, 'Authentication is temporarily unavailable. Please try again.');
+  });
+  return firebaseAdminAppModule;
+}
+
+function loadFirebaseAdminAuth() {
+  firebaseAdminAuthModule ??= import('firebase-admin/auth').catch((error: unknown) => {
+    firebaseAdminAuthModule = undefined;
+    console.error('[auth] Failed to load Firebase Admin auth module', error);
+    throw new HttpError(503, 'Authentication is temporarily unavailable. Please try again.');
+  });
+  return firebaseAdminAuthModule;
+}
 
 function cleanPrivateKey(raw?: string) {
   if (!raw) return undefined;
@@ -24,7 +49,8 @@ function cleanPrivateKey(raw?: string) {
   return key.replace(/\\n/g, '\n').trim();
 }
 
-function getFirebaseAdminApp(): App {
+async function getFirebaseAdminApp(): Promise<App> {
+  const { cert, getApps, initializeApp } = await loadFirebaseAdminApp();
   const existing = getApps()[0];
   if (existing) {
     return existing;
@@ -78,8 +104,12 @@ export async function getAuthenticatedUser(
 
   let decoded;
   try {
-    decoded = await getAuth(getFirebaseAdminApp()).verifyIdToken(idToken);
-  } catch {
+    const [{ getAuth }, app] = await Promise.all([loadFirebaseAdminAuth(), getFirebaseAdminApp()]);
+    decoded = await getAuth(app).verifyIdToken(idToken);
+  } catch (error) {
+    if (error instanceof HttpError) {
+      throw error;
+    }
     throw new HttpError(401, 'Your session has expired. Please sign in again.');
   }
 
