@@ -361,7 +361,7 @@ export function CheckoutView({ paymentError = false }: { paymentError?: boolean 
               ? 'Opening Paystack…'
               : 'Placing order…'
             : payingWithPaystack
-              ? `Pay with Paystack · ${formatMoney(cart.total)}`
+              ? `Make payment · ${formatMoney(cart.total)}`
               : `Place order · ${formatMoney(cart.total)}`}
         </button>
       ) : null}
