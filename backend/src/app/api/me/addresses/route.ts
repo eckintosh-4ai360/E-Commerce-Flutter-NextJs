@@ -10,6 +10,8 @@ import {
 import { serialiseAddress } from '@/lib/serializers';
 import { addressSchema } from '@/lib/validation';
 
+export const runtime = 'nodejs';
+
 export const GET = route(async (request) => {
   const user = await requireUser(request);
   const addresses = await listAddresses(user);

@@ -16,6 +16,8 @@ import { rateLimit, rateLimitByIp } from '@/lib/rate-limit';
 import { serialiseOrder } from '@/lib/serializers';
 import { createOrderSchema } from '@/lib/validation';
 
+export const runtime = 'nodejs';
+
 /** The signed-in customer's own orders. */
 export const GET = route(async (request) => {
   const user = await requireUser(request);

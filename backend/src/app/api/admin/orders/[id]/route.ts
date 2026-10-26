@@ -7,6 +7,8 @@ import { getPrisma } from '@/lib/prisma';
 import { orderInclude, serialiseOrder } from '@/lib/serializers';
 import { updateOrderStatusSchema } from '@/lib/validation';
 
+export const runtime = 'nodejs';
+
 type Context = { params: Promise<{ id: string }> };
 
 export const GET = route<Context>(async (request, { params }) => {

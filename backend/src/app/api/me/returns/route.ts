@@ -11,6 +11,8 @@ import { rateLimit } from '@/lib/rate-limit';
 import { serialiseReturnRequest } from '@/lib/serializers';
 import { createReturnSchema } from '@/lib/validation';
 
+export const runtime = 'nodejs';
+
 export const GET = route(async (request) => {
   const user = await requireUser(request);
   const returns = await listCustomerReturns(user);

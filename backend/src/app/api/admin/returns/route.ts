@@ -6,6 +6,8 @@ import { getPrisma } from '@/lib/prisma';
 import { serialiseReturnRequest, trackingCodeFor } from '@/lib/serializers';
 import { returnStatuses } from '@/lib/store-config';
 
+export const runtime = 'nodejs';
+
 export const GET = route(async (request) => {
   await requireAdmin(request);
   const status = new URL(request.url).searchParams.get('status');

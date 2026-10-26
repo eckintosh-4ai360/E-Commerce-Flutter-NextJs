@@ -10,6 +10,8 @@ import {
 
 type Context = { params: Promise<{ productId: string }> };
 
+export const runtime = 'nodejs';
+
 export const DELETE = route<Context>(async (request, { params }) => {
   const user = await requireUser(request);
   const { productId } = await params;

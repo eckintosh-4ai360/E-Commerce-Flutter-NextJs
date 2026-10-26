@@ -16,6 +16,8 @@ import { initializePaystackPayment } from '@/lib/paystack';
 import { rateLimit, rateLimitByIp } from '@/lib/rate-limit';
 import { createOrderSchema } from '@/lib/validation';
 
+export const runtime = 'nodejs';
+
 export const POST = route(async (request) => {
   rateLimitByIp(request, 'paystack:initialize', { limit: 30, windowMs: 60_000 });
   const user = await requireUser(request);

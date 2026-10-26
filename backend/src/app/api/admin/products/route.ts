@@ -5,6 +5,8 @@ import { getPrisma } from '@/lib/prisma';
 import { revalidateStorefront } from '@/lib/revalidate';
 import { createProductSchema } from '@/lib/validation';
 
+export const runtime = 'nodejs';
+
 export const GET = route(async (request) => {
   await requireAdmin(request);
   const products = await getPrisma().product.findMany({

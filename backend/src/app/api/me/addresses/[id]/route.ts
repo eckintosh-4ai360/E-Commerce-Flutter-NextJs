@@ -10,6 +10,8 @@ import {
 import { serialiseAddress } from '@/lib/serializers';
 import { addressSchema } from '@/lib/validation';
 
+export const runtime = 'nodejs';
+
 type Context = { params: Promise<{ id: string }> };
 
 export const PUT = route<Context>(async (request, { params }) => {

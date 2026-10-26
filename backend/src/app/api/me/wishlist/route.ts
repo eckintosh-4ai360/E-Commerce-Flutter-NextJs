@@ -18,6 +18,8 @@ async function respondWithWishlist(user: Awaited<ReturnType<typeof requireUser>>
   );
 }
 
+export const runtime = 'nodejs';
+
 export const GET = route(async (request) => {
   const user = await requireUser(request);
   return respondWithWishlist(user);

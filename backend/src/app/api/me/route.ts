@@ -10,6 +10,8 @@ import {
 import { serialiseProfile } from '@/lib/serializers';
 import { updateProfileSchema } from '@/lib/validation';
 
+export const runtime = 'nodejs';
+
 export const GET = route(async (request) => {
   const user = await requireUser(request);
   const customer = await ensureCustomer(user);

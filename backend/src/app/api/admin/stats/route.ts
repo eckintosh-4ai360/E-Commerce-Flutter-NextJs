@@ -5,6 +5,8 @@ import { jsonResponse, privateNoStoreHeaders, route } from '@/lib/http';
 import { getPrisma } from '@/lib/prisma';
 import { trackingCodeFor } from '@/lib/serializers';
 
+export const runtime = 'nodejs';
+
 export const GET = route(async (request) => {
   await requireAdmin(request);
   const prisma = getPrisma();

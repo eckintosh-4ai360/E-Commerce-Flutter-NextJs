@@ -12,6 +12,18 @@ export type AuthenticatedUser = {
   emailVerified: boolean;
 };
 
+function cleanPrivateKey(raw?: string) {
+  if (!raw) return undefined;
+  let key = raw.trim();
+  if (
+    (key.startsWith('"') && key.endsWith('"')) ||
+    (key.startsWith("'") && key.endsWith("'"))
+  ) {
+    key = key.slice(1, -1);
+  }
+  return key.replace(/\\n/g, '\n').trim();
+}
+
 function getFirebaseAdminApp(): App {
   const existing = getApps()[0];
   if (existing) {
@@ -21,15 +33,22 @@ function getFirebaseAdminApp(): App {
   const projectId =
     process.env.FIREBASE_ADMIN_PROJECT_ID?.trim() || firebaseWebConfig.projectId;
   const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL?.trim();
-  const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, '\n');
+  const privateKey = cleanPrivateKey(process.env.FIREBASE_ADMIN_PRIVATE_KEY);
 
   // Verifying ID tokens only needs the project id (Google's signing keys are
   // public). A service account is optional and enables other Admin features.
   if (clientEmail && privateKey) {
-    return initializeApp({
-      credential: cert({ projectId, clientEmail, privateKey }),
-      projectId,
-    });
+    try {
+      return initializeApp({
+        credential: cert({ projectId, clientEmail, privateKey }),
+        projectId,
+      });
+    } catch (error) {
+      console.error(
+        '[auth] Warning: Failed to initialize Firebase Admin with service account credentials, falling back to public key token verification:',
+        error,
+      );
+    }
   }
 
   return initializeApp({ projectId });

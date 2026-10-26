@@ -1,6 +1,8 @@
 import { requireAdmin } from '@/lib/auth';
 import { jsonResponse, privateNoStoreHeaders, route } from '@/lib/http';
 
+export const runtime = 'nodejs';
+
 export const GET = route(async (request) => {
   const admin = await requireAdmin(request);
   return jsonResponse(

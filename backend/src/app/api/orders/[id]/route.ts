@@ -5,6 +5,8 @@ import { findOrderByReference, ownsOrder } from '@/lib/orders';
 import { rateLimitByIp } from '@/lib/rate-limit';
 import { serialiseOrder } from '@/lib/serializers';
 
+export const runtime = 'nodejs';
+
 type Context = { params: Promise<{ id: string }> };
 
 /**

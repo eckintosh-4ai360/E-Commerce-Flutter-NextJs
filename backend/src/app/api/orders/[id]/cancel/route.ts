@@ -7,6 +7,8 @@ import { cancelOrder } from '@/lib/orders';
 import { rateLimit } from '@/lib/rate-limit';
 import { serialiseOrder } from '@/lib/serializers';
 
+export const runtime = 'nodejs';
+
 type Context = { params: Promise<{ id: string }> };
 
 export const POST = route<Context>(async (request, { params }) => {

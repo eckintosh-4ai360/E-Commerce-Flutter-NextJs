@@ -11,6 +11,8 @@ import { serialiseProduct } from '@/lib/serializers';
 
 type Context = { params: Promise<{ id: string }> };
 
+export const runtime = 'nodejs';
+
 export const GET = route<Context>(async (_request, { params }) => {
   const { id } = await params;
   const product = await getProduct(parseIntParam(id, 'product id'));

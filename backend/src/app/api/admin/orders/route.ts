@@ -11,6 +11,8 @@ function readPage(value: string | null, fallback: number, max: number) {
   return Number.isInteger(parsed) && parsed >= 1 ? Math.min(parsed, max) : fallback;
 }
 
+export const runtime = 'nodejs';
+
 export const GET = route(async (request) => {
   await requireAdmin(request);
   const params = new URL(request.url).searchParams;

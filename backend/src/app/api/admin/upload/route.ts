@@ -39,6 +39,8 @@ function detectImageType(bytes: Uint8Array) {
   return null;
 }
 
+export const runtime = 'nodejs';
+
 export const POST = route(async (request) => {
   const admin = await requireAdmin(request);
   rateLimit(`admin:upload:${admin.email}`, { limit: 30, windowMs: 60_000 });

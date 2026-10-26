@@ -6,6 +6,8 @@ import { getPrisma } from '@/lib/prisma';
 import { serialiseReturnRequest } from '@/lib/serializers';
 import { updateReturnSchema } from '@/lib/validation';
 
+export const runtime = 'nodejs';
+
 type Context = { params: Promise<{ id: string }> };
 
 export const PATCH = route<Context>(async (request, { params }) => {

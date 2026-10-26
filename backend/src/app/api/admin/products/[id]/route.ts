@@ -18,6 +18,8 @@ import {
 } from '@/lib/validation';
 import { parseList } from '@/lib/serializers';
 
+export const runtime = 'nodejs';
+
 type Context = { params: Promise<{ id: string }> };
 
 async function findProduct(id: string) {
