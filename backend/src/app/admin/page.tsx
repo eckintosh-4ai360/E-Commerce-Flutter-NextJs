@@ -89,14 +89,14 @@ export default function AdminDashboard() {
       </div>
 
       <div className="admin-grid admin-grid--kpi">
-        <Kpi icon={<TrendingUp size={22} />} label="Revenue (excl. cancelled)" value={formatMoney(stats.totalRevenue, { decimals: 0 })} sub={`${formatMoney(stats.revenueThisMonth, { decimals: 0 })} this month`} color="#d4af37" />
-        <Kpi icon={<ShoppingBag size={22} />} label="Total orders" value={stats.totalOrders} sub={`${stats.ordersThisMonth} this month`} color="#60a5fa" href="/admin/orders" />
-        <Kpi icon={<Clock size={22} />} label="Pending orders" value={stats.pendingOrders} sub="Awaiting action" color="#facc15" href="/admin/orders?status=PENDING" />
-        <Kpi icon={<RotateCcw size={22} />} label="Open returns" value={stats.openReturns} sub="Requested or approved" color="#fb923c" href="/admin/returns" />
-        <Kpi icon={<Package size={22} />} label="Products" value={stats.totalProducts} sub={`${stats.outOfStockCount} out of stock`} color="#a78bfa" href="/admin/products" />
-        <Kpi icon={<AlertCircle size={22} />} label="Out of stock" value={stats.outOfStockCount} sub="Need restocking" color="#f87171" />
-        <Kpi icon={<CheckCircle size={22} />} label="Delivered" value={countFor('DELIVERED')} sub="Completed orders" color="#4ade80" />
-        <Kpi icon={<Wallet size={22} />} label="Average order" value={formatMoney(stats.totalOrders > 0 ? stats.totalRevenue / Math.max(1, stats.totalOrders - countFor('CANCELLED')) : 0, { decimals: 0 })} sub="Excluding cancelled" color="#22d3ee" />
+        <Kpi icon={<TrendingUp size={22} />} label="Revenue (excl. cancelled)" value={formatMoney(stats.totalRevenue, { decimals: 0 })} sub={`${formatMoney(stats.revenueThisMonth, { decimals: 0 })} this month`} color="#9a5200" />
+        <Kpi icon={<ShoppingBag size={22} />} label="Total orders" value={stats.totalOrders} sub={`${stats.ordersThisMonth} this month`} color="#2563c9" href="/admin/orders" />
+        <Kpi icon={<Clock size={22} />} label="Pending orders" value={stats.pendingOrders} sub="Awaiting action" color="#9a5b00" href="/admin/orders?status=PENDING" />
+        <Kpi icon={<RotateCcw size={22} />} label="Open returns" value={stats.openReturns} sub="Requested or approved" color="#c65d1b" href="/admin/returns" />
+        <Kpi icon={<Package size={22} />} label="Products" value={stats.totalProducts} sub={`${stats.outOfStockCount} out of stock`} color="#7551b5" href="/admin/products" />
+        <Kpi icon={<AlertCircle size={22} />} label="Out of stock" value={stats.outOfStockCount} sub="Need restocking" color="#c43d3d" />
+        <Kpi icon={<CheckCircle size={22} />} label="Delivered" value={countFor('DELIVERED')} sub="Completed orders" color="#167a3f" />
+        <Kpi icon={<Wallet size={22} />} label="Average order" value={formatMoney(stats.totalOrders > 0 ? stats.totalRevenue / Math.max(1, stats.totalOrders - countFor('CANCELLED')) : 0, { decimals: 0 })} sub="Excluding cancelled" color="#187d91" />
       </div>
 
       <div className="admin-grid admin-grid--2">
@@ -137,7 +137,7 @@ export default function AdminDashboard() {
                 <Link
                   key={order.id}
                   href={`/admin/orders/${order.id}`}
-                  style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: 12, background: '#161616', borderRadius: 8, textDecoration: 'none', border: '1px solid rgba(255,255,255,0.04)' }}
+                  style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: 12, background: 'var(--a-surface-2)', borderRadius: 8, textDecoration: 'none', border: '1px solid var(--a-line)' }}
                 >
                   <div>
                     <div style={{ fontWeight: 600 }}>{order.customerName}</div>

@@ -102,18 +102,18 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
           <div className="admin-stepper">
             {flow.map((step, index) => {
               const done = index <= currentStep;
-              const color = done ? statusColors[step] : '#2a2a2a';
+              const color = done ? statusColors[step] : 'var(--a-line-strong)';
               const Icon = statusIcons[step];
               return (
                 <div key={step} style={{ display: 'flex', alignItems: 'center', flex: index < flow.length - 1 ? 1 : 0 }}>
                   <div style={{ display: 'grid', justifyItems: 'center', gap: 8 }}>
-                    <div style={{ width: 40, height: 40, borderRadius: '50%', border: `2px solid ${color}`, background: done ? `${color}22` : '#08284f', display: 'grid', placeItems: 'center', color }}>
+                    <div style={{ width: 40, height: 40, borderRadius: '50%', border: `2px solid ${color}`, background: done ? `${color}1c` : 'var(--a-surface-2)', display: 'grid', placeItems: 'center', color }}>
                       <Icon size={16} />
                     </div>
-                    <span style={{ fontSize: 11, color: done ? color : '#555', fontWeight: done ? 600 : 400 }}>{step}</span>
+                    <span style={{ fontSize: 11, color: done ? color : 'var(--a-text-3)', fontWeight: done ? 600 : 400 }}>{step}</span>
                   </div>
                   {index < flow.length - 1 ? (
-                    <div style={{ flex: 1, height: 2, margin: '0 8px 24px', background: index < currentStep ? statusColors[flow[index + 1]] : '#2a2a2a' }} />
+                    <div style={{ flex: 1, height: 2, margin: '0 8px 24px', background: index < currentStep ? statusColors[flow[index + 1]] : 'var(--a-line-strong)' }} />
                   ) : null}
                 </div>
               );
@@ -145,7 +145,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
             ['Shipping', order.shippingFee === 0 ? 'Free' : formatMoney(order.shippingFee)],
             ['Total', formatMoney(order.total)],
           ].map(([label, value], index) => (
-            <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+            <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid var(--a-line)' }}>
               <span style={{ color: 'var(--a-text-3)' }}>{label}</span>
               <strong style={{ color: index === 2 ? 'var(--a-gold)' : undefined }}>{value}</strong>
             </div>

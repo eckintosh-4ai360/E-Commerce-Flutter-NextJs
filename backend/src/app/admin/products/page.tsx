@@ -199,10 +199,10 @@ function ImageUploader({ values, onChange }: { values: string[]; onChange: (path
       {values.length > 0 ? (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 10 }}>
           {values.map((value, index) => (
-            <div key={value} style={{ border: index === 0 ? '2px solid var(--a-gold)' : '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: 8, background: '#08284f' }}>
-              <div style={{ position: 'relative', aspectRatio: '1 / 1', borderRadius: 7, overflow: 'hidden', background: '#111' }}>
+            <div key={value} style={{ border: index === 0 ? '2px solid var(--a-gold)' : '1px solid var(--a-line)', borderRadius: 10, padding: 8, background: 'var(--a-surface-2)' }}>
+              <div style={{ position: 'relative', aspectRatio: '1 / 1', borderRadius: 7, overflow: 'hidden', background: '#eef2f7' }}>
                 <img src={value} alt={`Product image ${index + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                {index === 0 ? <span className="admin-tag" style={{ position: 'absolute', top: 6, left: 6, background: 'var(--a-gold)', color: '#111' }}>Main</span> : null}
+                {index === 0 ? <span className="admin-tag" style={{ position: 'absolute', top: 6, left: 6, background: 'var(--a-gold)', color: '#fff' }}>Main</span> : null}
               </div>
               <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
                 {index > 0 ? (
@@ -232,9 +232,9 @@ function ImageUploader({ values, onChange }: { values: string[]; onChange: (path
           onDragLeave={() => setDragging(false)}
           onDrop={onDrop}
           style={{
-            border: `2px dashed ${dragging ? '#d4af37' : 'rgba(255,255,255,0.12)'}`,
+            border: `2px dashed ${dragging ? 'var(--a-gold)' : 'var(--a-line-strong)'}`,
             borderRadius: 12,
-            background: dragging ? 'rgba(255,176,0,0.08)' : '#08284f',
+            background: dragging ? '#fff7ed' : 'var(--a-surface-2)',
             cursor: uploading ? 'progress' : 'pointer',
             minHeight: 110,
             display: 'grid',
@@ -451,28 +451,28 @@ export default function ProductsPage() {
                 <tr key={product.id} className={product.isArchived ? 'is-muted' : undefined}>
                   <td style={{ width: 60 }}>
                     <div className="admin-thumb">
-                      {product.imagePath ? <img src={product.imagePath} alt="" /> : <ImageIcon size={18} color="#333" />}
+                      {product.imagePath ? <img src={product.imagePath} alt="" /> : <ImageIcon size={18} color="var(--a-text-3)" />}
                     </div>
                   </td>
                   <td>
                     <div style={{ fontWeight: 600 }}>{product.name}</div>
                     <div style={{ fontSize: 12, color: 'var(--a-text-3)' }}>ID {product.id} · {product.orderCount} order line{product.orderCount === 1 ? '' : 's'}</div>
                   </td>
-                  <td><span className="admin-tag" style={{ background: 'rgba(255,176,0,0.1)', color: 'var(--a-gold)' }}>{product.category}</span></td>
+                  <td><span className="admin-tag" style={{ background: '#fff7ed', color: 'var(--a-gold)' }}>{product.category}</span></td>
                   <td style={{ fontWeight: 600 }}>
                     {formatMoney(product.price)}
                     {product.originalPrice ? <div style={{ fontSize: 11, color: 'var(--a-text-3)', textDecoration: 'line-through', fontWeight: 400 }}>{formatMoney(product.originalPrice)}</div> : null}
                   </td>
                   <td>
-                    <span className="admin-tag" style={product.inventoryManaged && product.stockQuantity > 0 ? { background: 'rgba(74,222,128,0.1)', color: 'var(--a-green)' } : { background: 'rgba(248,113,113,0.1)', color: 'var(--a-red)' }}>
+                    <span className="admin-tag" style={product.inventoryManaged && product.stockQuantity > 0 ? { background: '#f0fbf3', color: 'var(--a-green)' } : { background: '#fff5f5', color: 'var(--a-red)' }}>
                       {product.inventoryManaged ? `${product.stockQuantity} in stock` : product.inStock ? 'Not tracked' : 'Out of stock'}
                     </span>
                   </td>
                   <td>
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                      {product.isArchived ? <span className="admin-tag" style={{ background: 'rgba(255,255,255,0.08)', color: 'var(--a-text-2)' }}>Archived</span> : null}
-                      {product.isNew ? <span className="admin-tag" style={{ background: 'rgba(96,165,250,0.12)', color: 'var(--a-blue)' }}>New</span> : null}
-                      {product.isBestSeller ? <span className="admin-tag" style={{ background: 'rgba(255,176,0,0.12)', color: 'var(--a-gold)' }}>Best seller</span> : null}
+                      {product.isArchived ? <span className="admin-tag" style={{ background: '#f1f5f9', color: 'var(--a-text-2)' }}>Archived</span> : null}
+                      {product.isNew ? <span className="admin-tag" style={{ background: '#eff6ff', color: 'var(--a-blue)' }}>New</span> : null}
+                      {product.isBestSeller ? <span className="admin-tag" style={{ background: '#fff7ed', color: 'var(--a-gold)' }}>Best seller</span> : null}
                     </div>
                   </td>
                   <td>
@@ -521,7 +521,7 @@ export default function ProductsPage() {
             <div className="admin-field"><label htmlFor="p-original">Original price (optional)</label><input id="p-original" className="admin-input" type="number" min="0" step="0.01" value={form.originalPrice} onChange={(e) => set('originalPrice', e.target.value)} /></div>
 
             <div className="admin-field" style={{ gridColumn: '1 / -1' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, background: 'rgba(255, 176, 0, 0.06)', padding: '16px', borderRadius: 12, border: '1px solid rgba(255, 176, 0, 0.25)' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, background: '#fff9f1', padding: '16px', borderRadius: 12, border: '1px solid #f0d7aa' }}>
                 <div>
                   <label htmlFor="p-stock" style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, color: 'var(--a-gold)', fontSize: 13, textTransform: 'none', letterSpacing: 0 }}>
                     <Package size={17} /> Stock Quantity

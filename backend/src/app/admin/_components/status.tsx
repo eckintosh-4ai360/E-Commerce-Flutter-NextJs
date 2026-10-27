@@ -1,15 +1,15 @@
 import { AlertCircle, CheckCircle, Clock, RotateCcw, Truck, XCircle, type LucideIcon } from 'lucide-react';
 
 export const statusColors: Record<string, string> = {
-  PENDING: '#facc15',
-  PROCESSING: '#60a5fa',
-  SHIPPED: '#a78bfa',
-  DELIVERED: '#4ade80',
-  CANCELLED: '#f87171',
-  REQUESTED: '#facc15',
-  APPROVED: '#60a5fa',
-  REJECTED: '#f87171',
-  REFUNDED: '#4ade80',
+  PENDING: '#9a5b00',
+  PROCESSING: '#2563c9',
+  SHIPPED: '#7551b5',
+  DELIVERED: '#167a3f',
+  CANCELLED: '#c43d3d',
+  REQUESTED: '#9a5b00',
+  APPROVED: '#2563c9',
+  REJECTED: '#c43d3d',
+  REFUNDED: '#167a3f',
 };
 
 export const statusIcons: Record<string, LucideIcon> = {
@@ -29,7 +29,7 @@ export function StatusBadge({ status }: { status: string }) {
   return (
     <span
       className="admin-pill"
-      style={{ ['--pill-color' as string]: statusColors[status] ?? '#a0a0a0' }}
+      style={{ ['--pill-color' as string]: statusColors[status] ?? '#5c6b82' }}
     >
       <Icon size={12} /> {status}
     </span>

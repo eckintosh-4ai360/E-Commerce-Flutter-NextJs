@@ -1,10 +1,9 @@
-import { ArrowRight, BadgeCheck, Headset, RotateCcw, Truck } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, BadgeCheck, Globe2, Headset, RotateCcw, ShoppingCart, Truck } from 'lucide-react';
 import Link from 'next/link';
 
 import { CategoryBanners } from '@/components/store/CategoryBanners';
 import { HomeProductTabs } from '@/components/store/HomeProductTabs';
 import { ProductCard } from '@/components/store/ProductCard';
-import { ProductImage } from '@/components/store/ProductImage';
 import { StoreBadges } from '@/components/store/StoreBadges';
 import { getActiveProducts, getCategories } from '@/lib/catalog';
 import { discountPercent } from '@/lib/money';
@@ -20,8 +19,6 @@ export default async function HomePage() {
   const onSale = items.filter(
     (product) => discountPercent(product.price, product.originalPrice) !== null,
   );
-  const collage = items.filter((product) => product.images[0]).slice(0, 3);
-
   return (
     <div className="container">
       <section className="hero" aria-labelledby="hero-heading">
@@ -29,13 +26,13 @@ export default async function HomePage() {
         <div className="hero__content">
           <span className="hero__tag">{storeConfig.tagline}</span>
           <h1 id="hero-heading">
-            The world in
+            Shop global.
             <br />
-            your cart
+            <span>Pay local.</span>
           </h1>
           <p>
-            Discover global finds with local payment and dependable delivery across Ghana.
-            Delivery fees are set per product and shown at checkout.
+            Discover global finds, pay your way, and get dependable delivery across Ghana.
+            Delivery fees are shown clearly at checkout.
           </p>
           <div className="hero__actions">
             <Link href="/shop" className="btn btn-accent">
@@ -48,22 +45,16 @@ export default async function HomePage() {
             ) : null}
           </div>
         </div>
-        {collage.length > 0 ? (
-          <div className="hero__visual" aria-hidden="true">
-            <div className="hero__collage">
-              {collage.map((product, index) => (
-                <div key={product.id}>
-                  <ProductImage
-                    src={product.images[0]}
-                    alt=""
-                    priority={index === 0}
-                    sizes="(min-width: 900px) 280px, 0px"
-                  />
-                </div>
-              ))}
-            </div>
+        <div className="hero__visual" aria-hidden="true">
+          <div className="hero__globe">
+            <Globe2 strokeWidth={1.4} />
           </div>
-        ) : null}
+          <div className="hero__cart">
+            <ShoppingCart strokeWidth={1.9} />
+          </div>
+          <div className="hero__flight-path" />
+          <ArrowUpRight className="hero__flight-arrow" strokeWidth={3} />
+        </div>
       </section>
 
       <div className="feature-strip">
