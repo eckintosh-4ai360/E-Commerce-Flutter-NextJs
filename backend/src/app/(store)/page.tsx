@@ -1,4 +1,5 @@
-import { ArrowRight, ArrowUpRight, BadgeCheck, Globe2, Headset, RotateCcw, ShoppingCart, Truck } from 'lucide-react';
+import { ArrowRight, BadgeCheck, Headset, RotateCcw, Truck } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 
 import { CategoryBanners } from '@/components/store/CategoryBanners';
@@ -46,14 +47,14 @@ export default async function HomePage() {
           </div>
         </div>
         <div className="hero__visual" aria-hidden="true">
-          <div className="hero__globe">
-            <Globe2 strokeWidth={1.4} />
-          </div>
-          <div className="hero__cart">
-            <ShoppingCart strokeWidth={1.9} />
-          </div>
-          <div className="hero__flight-path" />
-          <ArrowUpRight className="hero__flight-arrow" strokeWidth={3} />
+          <Image
+            src="/logo.jpeg"
+            alt=""
+            fill
+            priority
+            sizes="(min-width: 900px) 42vw, 0px"
+            className="hero__logo-art"
+          />
         </div>
       </section>
 
