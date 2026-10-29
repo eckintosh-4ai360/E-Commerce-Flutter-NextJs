@@ -11,17 +11,18 @@ export async function ensureCustomer(user: AuthenticatedUser) {
   const existing = await prisma.customer.findUnique({ where: { uid: user.uid } });
 
   if (existing) {
-    return existing.email === user.email
+    const data: Prisma.CustomerUpdateInput = {};
+    if (existing.email !== user.email) data.email = user.email;
+    if (!existing.phone && user.phone) data.phone = user.phone;
+    if (!existing.name && user.name) data.name = user.name;
+    return Object.keys(data).length === 0
       ? existing
-      : prisma.customer.update({
-          where: { uid: user.uid },
-          data: { email: user.email },
-        });
+      : prisma.customer.update({ where: { uid: user.uid }, data });
   }
 
   try {
     return await prisma.customer.create({
-      data: { uid: user.uid, email: user.email, name: user.name },
+      data: { uid: user.uid, email: user.email, phone: user.phone, name: user.name },
     });
   } catch (error) {
     // Two first requests raced; the other one created the row.

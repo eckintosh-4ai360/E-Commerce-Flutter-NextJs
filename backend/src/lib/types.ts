@@ -102,7 +102,7 @@ export type AddressView = {
 
 export type CustomerProfile = {
   uid: string;
-  email: string;
+  email: string | null;
   name: string | null;
   phone: string | null;
   preferredPaymentMethod: PaymentMethod;

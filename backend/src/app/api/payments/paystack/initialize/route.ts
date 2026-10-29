@@ -26,6 +26,12 @@ export const POST = route(async (request) => {
   if (input.paymentMethod !== 'PAYSTACK') {
     throw new HttpError(400, 'Choose Paystack before starting an online payment.');
   }
+  if (!user.email) {
+    throw new HttpError(
+      400,
+      'Paystack requires an email address. Sign in with an account that has an email address or choose payment on delivery.',
+    );
+  }
 
   const { order, created } = await createOrder(user, input, readIdempotencyKey(request));
   const payment = paystackCheckoutForOrder(order);

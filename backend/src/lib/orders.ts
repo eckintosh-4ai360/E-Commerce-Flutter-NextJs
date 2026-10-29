@@ -44,6 +44,7 @@ export function ownsOrder(
   // Orders placed before uids were stored are matched by verified email.
   return (
     user.emailVerified &&
+    user.email !== null &&
     order.customerEmail?.trim().toLowerCase() === user.email
   );
 }
@@ -63,7 +64,7 @@ function ownedOrdersWhere(user: AuthenticatedUser): Prisma.OrderWhereInput {
   return {
     OR: [
       { customerUid: user.uid },
-      ...(user.emailVerified
+      ...(user.emailVerified && user.email !== null
         ? [
             {
               customerUid: null,

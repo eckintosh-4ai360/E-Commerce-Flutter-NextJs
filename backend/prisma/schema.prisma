@@ -71,7 +71,7 @@ model Product {
 // One row per Firebase user, created lazily on first authenticated request.
 model Customer {
   uid                    String         @id
-  email                  String
+  email                  String?
   name                   String?
   phone                  String?
   preferredPaymentMethod PaymentMethod  @default(CASH_ON_DELIVERY)

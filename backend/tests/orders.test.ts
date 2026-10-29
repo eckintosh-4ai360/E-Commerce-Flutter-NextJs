@@ -17,6 +17,7 @@ import {
 const user = (overrides: Partial<AuthenticatedUser> = {}): AuthenticatedUser => ({
   uid: 'uid-1',
   email: 'ama@example.com',
+  phone: null,
   name: 'Ama',
   picture: null,
   emailVerified: true,

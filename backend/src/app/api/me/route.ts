@@ -19,7 +19,7 @@ export const GET = route(async (request) => {
   return jsonResponse(
     {
       profile: serialiseProfile(customer),
-      isAdmin: user.emailVerified && isAdminEmail(user.email),
+      isAdmin: user.emailVerified && user.email !== null && isAdminEmail(user.email),
     },
     { headers: privateNoStoreHeaders },
   );

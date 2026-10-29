@@ -5,7 +5,8 @@ import { firebaseWebConfig } from './store-config';
 
 export type AuthenticatedUser = {
   uid: string;
-  email: string;
+  email: string | null;
+  phone: string | null;
   name: string | null;
   picture: string | null;
   emailVerified: boolean;
@@ -82,17 +83,17 @@ export async function getAuthenticatedUser(
     throw new HttpError(401, 'Your session has expired. Please sign in again.');
   }
 
-  const email = typeof payload.email === 'string' ? payload.email.trim().toLowerCase() : '';
-  if (!email) {
-    throw new HttpError(
-      401,
-      'Your account does not have an email address. Sign in with Google to continue.',
-    );
-  }
+  const email = typeof payload.email === 'string' && payload.email.trim()
+    ? payload.email.trim().toLowerCase()
+    : null;
+  const phone = typeof payload.phone_number === 'string' && payload.phone_number.trim()
+    ? payload.phone_number.trim()
+    : null;
 
   return {
     uid,
     email,
+    phone,
     name: typeof payload.name === 'string' && payload.name.trim() ? payload.name.trim() : null,
     picture: typeof payload.picture === 'string' ? payload.picture : null,
     emailVerified: payload.email_verified === true,
@@ -102,7 +103,7 @@ export async function getAuthenticatedUser(
 export async function requireUser(request: Request) {
   const user = await getAuthenticatedUser(request);
   if (!user) {
-    throw new HttpError(401, 'Sign in with Google to continue.');
+    throw new HttpError(401, 'Sign in to continue.');
   }
   return user;
 }
@@ -114,8 +115,8 @@ function adminEmails() {
     .filter(Boolean);
 }
 
-export function isAdminEmail(email: string) {
-  return adminEmails().includes(email.trim().toLowerCase());
+export function isAdminEmail(email: string | null) {
+  return email !== null && adminEmails().includes(email.trim().toLowerCase());
 }
 
 export async function requireAdmin(request: Request) {
@@ -128,8 +129,8 @@ export async function requireAdmin(request: Request) {
     );
   }
 
-  if (!user.emailVerified || !isAdminEmail(user.email)) {
-    throw new HttpError(403, `${user.email} is not allowed to manage this store.`);
+  if (!user.email || !user.emailVerified || !isAdminEmail(user.email)) {
+    throw new HttpError(403, `${user.email ?? 'This account'} is not allowed to manage this store.`);
   }
 
   return user;
