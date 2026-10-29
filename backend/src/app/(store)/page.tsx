@@ -3,6 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 import { CategoryBanners } from '@/components/store/CategoryBanners';
+import { HeroSignInButton } from '@/components/store/HeroSignInButton';
 import { HomeProductTabs } from '@/components/store/HomeProductTabs';
 import { ProductCard } from '@/components/store/ProductCard';
 import { StoreBadges } from '@/components/store/StoreBadges';
@@ -39,11 +40,7 @@ export default async function HomePage() {
             <Link href="/shop" className="btn btn-accent">
               Shop now
             </Link>
-            {onSale.length > 0 ? (
-              <Link href="/shop?featured=sale" className="btn btn-outline">
-                View deals
-              </Link>
-            ) : null}
+            <HeroSignInButton />
           </div>
         </div>
         <div className="hero__visual" aria-hidden="true">
