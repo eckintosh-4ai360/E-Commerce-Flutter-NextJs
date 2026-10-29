@@ -21,6 +21,7 @@ import { useAuth } from '@/components/providers/AuthProvider';
 import { storeConfig } from '@/lib/store-config';
 
 import { Avatar } from '../Avatar';
+import { SignInCard } from '../RequireAuth';
 import {
   FacebookIcon,
   InstagramIcon,
@@ -67,7 +68,7 @@ function MenuSection({ title, items }: { title: string; items: MenuItem[] }) {
 }
 
 export function AccountView() {
-  const { user, status, busy, signIn, signOut, error, authedFetch } = useAuth();
+  const { user, status, busy, signOut, error, authedFetch } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
   const uid = user?.uid ?? null;
 
@@ -118,24 +119,21 @@ export function AccountView() {
           <div className="profile-card">
             {user ? <Avatar user={user} /> : <span className="avatar"><User size={28} /></span>}
             <div style={{ minWidth: 0 }}>
-              <h2>{user ? user.displayName ?? user.email : 'Welcome!'}</h2>
+              <h2>{user ? user.displayName ?? user.email ?? user.phoneNumber : 'Welcome!'}</h2>
               <p>
                 {user
-                  ? user.email
-                  : 'Sign in for personalised checkout and tracking emails'}
+                  ? user.email ?? user.phoneNumber
+                  : 'Sign in for personalised checkout and order tracking'}
               </p>
               {status === 'loading' ? null : user ? (
                 <button type="button" className="btn btn-sm" style={{ background: '#fff', color: '#001a3a' }} onClick={() => void signOut()} disabled={busy}>
                   {busy ? 'Please wait' : 'Sign out'}
                 </button>
-              ) : (
-                <button type="button" className="btn btn-accent btn-sm" onClick={() => void signIn()} disabled={busy}>
-                  {busy ? 'Please wait' : 'Sign in with Google'}
-                </button>
-              )}
+              ) : null}
             </div>
           </div>
           {error ? <div className="alert alert--error" role="alert">{error}</div> : null}
+          {!user && status === 'ready' ? <SignInCard /> : null}
 
           <Link href="/track" className="track-cta">
             <Truck size={28} color="#0b4aa2" />

@@ -22,7 +22,7 @@ import type {
 import { Avatar } from './Avatar';
 import { CartSummary, useFreshCart } from './CartView';
 import { ProductImage } from './ProductImage';
-import { GoogleSignInCard } from './RequireAuth';
+import { SignInCard } from './RequireAuth';
 import { EmptyState, Spinner } from './ui';
 
 type FormState = {
@@ -378,11 +378,10 @@ export function CheckoutView({ paymentError = false }: { paymentError?: boolean 
       <>
         <h1 className="page-title">Checkout</h1>
         <p className="page-subtitle">
-          Sign in with Google before placing your order so we can send tracking updates to your
-          email.
+          Sign in before placing your order so you can track it from your account.
         </p>
         <div className="cart-layout">
-          <GoogleSignInCard description="Checkout uses your Google account email for order confirmations and tracking updates." />
+          <SignInCard description="Sign in with Google, Facebook or your phone number to track your order and save your details." />
           {summary}
         </div>
       </>
@@ -398,10 +397,12 @@ export function CheckoutView({ paymentError = false }: { paymentError?: boolean 
           <div className="user-card">
             <Avatar user={user} />
             <div className="user-card__text">
-              <strong>{user.displayName ?? user.email}</strong>
-              {user.email}
+              <strong>{user.displayName ?? user.email ?? user.phoneNumber}</strong>
+              {user.email ?? user.phoneNumber}
               <div className="muted" style={{ fontSize: 11 }}>
-                We will send order status updates to this Google account.
+                {user.email
+                  ? 'We will send order status updates to this email address.'
+                  : 'Use your tracking code to follow order status. Add an email account to receive email updates.'}
               </div>
             </div>
             <button type="button" className="text-btn" onClick={() => void signOut()} disabled={busy}>
@@ -540,7 +541,9 @@ export function CheckoutView({ paymentError = false }: { paymentError?: boolean 
               </div>
             ) : null}
             <div className="radio-list">
-              {paymentMethods.map((method) => (
+              {paymentMethods
+                .filter((method) => method.value !== 'PAYSTACK' || user.email)
+                .map((method) => (
                 <label key={method.value} className="radio-card">
                   <input
                     type="radio"

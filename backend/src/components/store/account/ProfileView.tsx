@@ -77,7 +77,7 @@ function ProfileForm() {
       <div className="field">
         <label htmlFor="profile-email">Email address</label>
         <input id="profile-email" className="input" value={profile?.email ?? user?.email ?? ''} readOnly />
-        <span className="field-hint">Your email comes from your Google account.</span>
+        <span className="field-hint">Your email comes from your sign-in account. Phone-only accounts may not have one.</span>
       </div>
       <div className="field">
         <label htmlFor="profile-phone">Phone number</label>
