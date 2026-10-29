@@ -23,11 +23,11 @@ class AppConfig {
   static const String supportPhoneUri = 'tel:+233243073148';
   static const String secondaryPhone = '054 134 1263';
   static const String secondaryPhoneUri = 'tel:+233541341263';
-  static const String instagramUrl = 'https://www.instagram.com/globacart_gh';
-  static const String facebookUrl = 'https://www.facebook.com/GlobaCartGH';
-  static const String tiktokUrl = 'https://www.tiktok.com/@globacart_gh';
-  static const String whatsappUrl = 'https://wa.me/233243073148';
-  static const String telegramUrl = 'https://t.me/globacart_gh';
+  static const String instagramUrl = 'https://www.instagram.com/globacartgh?igsh=azVkNnBuamNidXI0';
+  static const String facebookUrl = 'https://www.facebook.com/share/1d8ryVyhhK/';
+  static const String tiktokUrl = 'https://www.tiktok.com/@globacart.gh';
+  static const String whatsappUrl = 'https://whatsapp.com/channel/0029VbCeBSQGU3BEzkzs2h2l';
+  static const String telegramUrl = 'https://t.me/GlobaCart_GH';
 
   static const double freeShippingThreshold = 300;
   static const double flatShippingFee = 25;

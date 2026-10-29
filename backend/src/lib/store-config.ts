@@ -17,32 +17,32 @@ export const storeConfig = {
   supportPhoneHref: 'tel:+233243073148',
   secondaryPhone: '054 134 1263',
   secondaryPhoneHref: 'tel:+233541341263',
-  whatsappHref: 'https://wa.me/233243073148',
+  whatsappHref: 'https://whatsapp.com/channel/0029VbCeBSQGU3BEzkzs2h2l',
   socials: [
     {
       label: 'Facebook',
       handle: 'GlobaCart GH',
-      href: 'https://www.facebook.com/GlobaCartGH',
+      href: 'https://www.facebook.com/share/1d8ryVyhhK/',
     },
     {
       label: 'Instagram',
-      handle: '@globacart_gh',
-      href: 'https://www.instagram.com/globacart_gh',
+      handle: '@globacartgh',
+      href: 'https://www.instagram.com/globacartgh?igsh=azVkNnBuamNidXI0',
     },
     {
       label: 'TikTok',
-      handle: '@globacart_gh',
-      href: 'https://www.tiktok.com/@globacart_gh',
+      handle: '@globacart.gh',
+      href: 'https://www.tiktok.com/@globacart.gh',
     },
     {
       label: 'WhatsApp',
-      handle: '024 307 3148',
-      href: 'https://wa.me/233243073148',
+      handle: 'GlobaCart Channel',
+      href: 'https://whatsapp.com/channel/0029VbCeBSQGU3BEzkzs2h2l',
     },
     {
       label: 'Telegram',
-      handle: '@globacart_gh',
-      href: 'https://t.me/globacart_gh',
+      handle: '@GlobaCart_GH',
+      href: 'https://t.me/GlobaCart_GH',
     },
   ],
   appLinks: {
