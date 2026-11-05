@@ -14,14 +14,23 @@ export function PurchasePanel({ product }: { product: StoreProduct }) {
   const cart = useCart();
   const wishlist = useWishlist();
   const toast = useToast();
-  const [color, setColor] = useState<string | null>(product.colors[0] ?? null);
-  const [size, setSize] = useState<string | null>(product.sizes[0] ?? null);
+  const [colors, setColors] = useState<string[]>(product.colors[0] ? [product.colors[0]] : []);
+  const [sizes, setSizes] = useState<string[]>(product.sizes[0] ? [product.sizes[0]] : []);
   const [quantity, setQuantity] = useState(1);
   const [justAdded, setJustAdded] = useState(false);
   const wished = wishlist.hydrated && wishlist.contains(product.id);
 
+  const toggleColor = (value: string) =>
+    setColors((prev) => prev.includes(value) ? prev.filter((c) => c !== value) : [...prev, value]);
+
+  const toggleSize = (value: string) =>
+    setSizes((prev) => prev.includes(value) ? prev.filter((s) => s !== value) : [...prev, value]);
+
+  const selectedColor = colors.length > 0 ? colors.join(', ') : null;
+  const selectedSize = sizes.length > 0 ? sizes.join(', ') : null;
+
   const addToCart = () => {
-    const result = cart.add(product, { quantity, selectedColor: color, selectedSize: size });
+    const result = cart.add(product, { quantity, selectedColor, selectedSize });
     if (result === 'unavailable') {
       toast('This product is out of stock.', 'error');
       return;
@@ -55,7 +64,7 @@ export function PurchasePanel({ product }: { product: StoreProduct }) {
       {product.colors.length > 0 ? (
         <div className="option-group" role="group" aria-label="Colour">
           <div className="option-group__label">
-            Colour <span>{color}</span>
+            Colour <span>{colors.length > 0 ? colors.join(', ') : 'None'}</span>
           </div>
           <div className="option-list">
             {product.colors.map((value) => (
@@ -63,8 +72,8 @@ export function PurchasePanel({ product }: { product: StoreProduct }) {
                 key={value}
                 type="button"
                 className="chip"
-                aria-pressed={color === value}
-                onClick={() => setColor(value)}
+                aria-pressed={colors.includes(value)}
+                onClick={() => toggleColor(value)}
               >
                 {value}
               </button>
@@ -76,7 +85,7 @@ export function PurchasePanel({ product }: { product: StoreProduct }) {
       {product.sizes.length > 0 ? (
         <div className="option-group" role="group" aria-label="Size">
           <div className="option-group__label">
-            Size <span>{size}</span>
+            Size <span>{sizes.length > 0 ? sizes.join(', ') : 'None'}</span>
           </div>
           <div className="option-list">
             {product.sizes.map((value) => (
@@ -84,8 +93,8 @@ export function PurchasePanel({ product }: { product: StoreProduct }) {
                 key={value}
                 type="button"
                 className="size-pill"
-                aria-pressed={size === value}
-                onClick={() => setSize(value)}
+                aria-pressed={sizes.includes(value)}
+                onClick={() => toggleSize(value)}
               >
                 {value}
               </button>

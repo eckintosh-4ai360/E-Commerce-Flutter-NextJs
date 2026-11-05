@@ -37,8 +37,8 @@ class ProductDetailScreen extends StatefulWidget {
 }
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
-  String? _selectedColor;
-  String? _selectedSize;
+  final Set<String> _selectedColors = {};
+  final Set<String> _selectedSizes = {};
   int _quantity = 1;
   int _selectedImageIndex = 0;
   late final PageController _imagePageController;
@@ -48,10 +48,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     super.initState();
     _imagePageController = PageController();
     if (widget.product.colors.isNotEmpty) {
-      _selectedColor = widget.product.colors.first;
+      _selectedColors.add(widget.product.colors.first);
     }
     if (widget.product.sizes.isNotEmpty) {
-      _selectedSize = widget.product.sizes.first;
+      _selectedSizes.add(widget.product.sizes.first);
     }
   }
 
@@ -408,20 +408,30 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     fontWeight: FontWeight.w600,
                     color: AppTheme.textDark)),
             const SizedBox(width: 8),
-            Text(
-              _selectedColor ?? '',
-              style:
-                  GoogleFonts.kumbhSans(fontSize: 13, color: AppTheme.textMed),
+            Expanded(
+              child: Text(
+                _selectedColors.isEmpty ? 'None' : _selectedColors.join(', '),
+                style:
+                    GoogleFonts.kumbhSans(fontSize: 13, color: AppTheme.textMed),
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ],
         ),
         const SizedBox(height: 10),
         Wrap(
           spacing: 8,
+          runSpacing: 8,
           children: p.colors.map((color) {
-            final selected = _selectedColor == color;
+            final selected = _selectedColors.contains(color);
             return GestureDetector(
-              onTap: () => setState(() => _selectedColor = color),
+              onTap: () => setState(() {
+                if (selected) {
+                  _selectedColors.remove(color);
+                } else {
+                  _selectedColors.add(color);
+                }
+              }),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 150),
                 padding:
@@ -454,27 +464,49 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Size',
-            style: GoogleFonts.kumbhSans(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: AppTheme.textDark)),
+        Row(
+          children: [
+            Text('Size',
+                style: GoogleFonts.kumbhSans(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textDark)),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                _selectedSizes.isEmpty ? 'None' : _selectedSizes.join(', '),
+                style:
+                    GoogleFonts.kumbhSans(fontSize: 13, color: AppTheme.textMed),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
         const SizedBox(height: 10),
         Wrap(
           spacing: 8,
+          runSpacing: 8,
           children: p.sizes.map((size) {
-            final selected = _selectedSize == size;
+            final selected = _selectedSizes.contains(size);
             return GestureDetector(
-              onTap: () => setState(() => _selectedSize = size),
+              onTap: () => setState(() {
+                if (selected) {
+                  _selectedSizes.remove(size);
+                } else {
+                  _selectedSizes.add(size);
+                }
+              }),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 150),
-                width: 48,
+                constraints: const BoxConstraints(minWidth: 48),
                 height: 48,
+                padding: const EdgeInsets.symmetric(horizontal: 10),
                 decoration: BoxDecoration(
                   color: selected ? AppTheme.primary : AppTheme.surface,
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
                     color: selected ? AppTheme.primary : AppTheme.divider,
+                    width: selected ? 2 : 1,
                   ),
                 ),
                 child: Center(
@@ -637,7 +669,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       child: BlocBuilder<CartBloc, CartState>(
         builder: (context, state) {
           final line = state
-              .itemFor(CartItem.keyFor(p.id, _selectedColor, _selectedSize));
+              .itemFor(CartItem.keyFor(p.id, _selectedColors.isEmpty ? null : _selectedColors.join(', '), _selectedSizes.isEmpty ? null : _selectedSizes.join(', ')));
           final inCart = line != null;
           return Row(
             children: [
@@ -716,8 +748,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     context.read<CartBloc>().add(AddToCart(
           p,
           quantity: _quantity,
-          selectedColor: _selectedColor,
-          selectedSize: _selectedSize,
+          selectedColor: _selectedColors.isEmpty ? null : _selectedColors.join(', '),
+          selectedSize: _selectedSizes.isEmpty ? null : _selectedSizes.join(', '),
         ));
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
