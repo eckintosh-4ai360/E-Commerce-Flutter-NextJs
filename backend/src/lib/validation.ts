@@ -160,7 +160,7 @@ const imagePathSchema = z
 
 const galleryImagesSchema = z
   .array(imagePathSchema)
-  .max(4, 'A product can have at most 5 images including the main image.')
+  .max(99, 'A product can have at most 100 images including the main image.')
   .transform((values) => Array.from(new Set(values)));
 
 const productFields = {

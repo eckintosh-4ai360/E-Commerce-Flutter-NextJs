@@ -106,7 +106,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   Widget _buildSliverAppBar(BuildContext context, Product p) {
-    final images = p.images.take(5).toList(growable: false);
+    final images = p.images.take(100).toList(growable: false);
 
     return SliverAppBar(
       expandedHeight: images.length > 1 ? 430 : 380,

@@ -17,7 +17,7 @@ export function ProductGallery({
   discount,
   isNew,
 }: ProductGalleryProps) {
-  const availableImages = images.filter(Boolean).slice(0, 5);
+  const availableImages = images.filter(Boolean).slice(0, 100);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const selectedImage = availableImages[selectedIndex] ?? availableImages[0];
 

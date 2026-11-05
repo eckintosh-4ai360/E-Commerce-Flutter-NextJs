@@ -53,7 +53,7 @@ export function productImagePaths(
     new Set([product.imagePath, ...parseList(product.galleryImages)].map((path) => path.trim())),
   )
     .filter(Boolean)
-    .slice(0, 5)
+    .slice(0, 100)
     .map((path) => resolveImageUrl(path, { absolute }));
 }
 

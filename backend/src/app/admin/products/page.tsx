@@ -151,7 +151,7 @@ function ImageUploader({ values, onChange }: { values: string[]; onChange: (path
     } catch (caught) {
       setError(errorMessage(caught, 'One of the images could not be uploaded.'));
     } finally {
-      if (uploaded.length > 0) onChange([...values, ...uploaded].slice(0, 5));
+      if (uploaded.length > 0) onChange([...values, ...uploaded].slice(0, 100));
       setUploading(false);
     }
   };
@@ -175,8 +175,8 @@ function ImageUploader({ values, onChange }: { values: string[]; onChange: (path
       setError('That image is already in the product gallery.');
       return;
     }
-    if (values.length >= 5) {
-      setError('A product can have at most 5 images.');
+    if (values.length >= 100) {
+      setError('A product can have at most 100 images.');
       return;
     }
     onChange([...values, next]);
@@ -191,9 +191,9 @@ function ImageUploader({ values, onChange }: { values: string[]; onChange: (path
 
   return (
     <div className="admin-field">
-      <span className="admin-label">Product images ({values.length}/5)</span>
+      <span className="admin-label">Product images ({values.length}/100)</span>
       <span style={{ fontSize: 12, color: 'var(--a-text-3)' }}>
-        The first image is the main image used on product cards. Add up to four alternate views or variants.
+        The first image is the main image used on product cards. Add up to 99 alternate views or variants.
       </span>
 
       {values.length > 0 ? (
@@ -219,7 +219,7 @@ function ImageUploader({ values, onChange }: { values: string[]; onChange: (path
         </div>
       ) : null}
 
-      {values.length < 5 ? (
+      {values.length < 100 ? (
         <div
           role="button"
           tabIndex={0}
@@ -253,7 +253,7 @@ function ImageUploader({ values, onChange }: { values: string[]; onChange: (path
             <div>
               <ImageIcon size={32} style={{ opacity: 0.3, margin: '0 auto 8px' }} />
               <div style={{ fontWeight: 500, color: 'var(--a-text-2)' }}>Drop images here or click to browse</div>
-              <div style={{ fontSize: 12 }}>Select up to {5 - values.length} · JPG, PNG, WebP, GIF · Max 5 MB each</div>
+              <div style={{ fontSize: 12 }}>Select up to {100 - values.length} · JPG, PNG, WebP, GIF · Max 5 MB each</div>
             </div>
           )}
           <input ref={fileRef} type="file" multiple accept="image/jpeg,image/png,image/webp,image/gif" style={{ display: 'none' }} onChange={(event) => {
@@ -263,7 +263,7 @@ function ImageUploader({ values, onChange }: { values: string[]; onChange: (path
         </div>
       ) : null}
 
-      {values.length < 5 ? (
+      {values.length < 100 ? (
         <div style={{ display: 'flex', gap: 8 }}>
           <input
             className="admin-input"
@@ -327,7 +327,7 @@ export default function ProductsPage() {
       price: String(product.price),
       shippingFee: product.shippingFee === 0 ? '' : String(product.shippingFee),
       originalPrice: product.originalPrice ? String(product.originalPrice) : '',
-      images: Array.from(new Set([product.imagePath, ...parseList(product.galleryImages)])).filter(Boolean).slice(0, 5),
+      images: Array.from(new Set([product.imagePath, ...parseList(product.galleryImages)])).filter(Boolean).slice(0, 100),
       category: product.category,
       tags: parseList(product.tags).join(', '),
       rating: String(product.rating),
