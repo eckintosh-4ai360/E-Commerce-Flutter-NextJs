@@ -149,12 +149,20 @@ export async function priceOrder(input: CreateOrderInput) {
     }
 
     const colors = parseList(product.colors);
-    if (line.selectedColor && !colors.includes(line.selectedColor)) {
-      throw new HttpError(400, `${line.selectedColor} is not available for ${product.name}.`);
+    if (line.selectedColor) {
+      const parts = line.selectedColor.split(',').map((c) => c.trim()).filter(Boolean);
+      const invalid = parts.find((c) => !colors.includes(c));
+      if (invalid) {
+        throw new HttpError(400, `${invalid} is not available for ${product.name}.`);
+      }
     }
     const sizes = parseList(product.sizes);
-    if (line.selectedSize && !sizes.includes(line.selectedSize)) {
-      throw new HttpError(400, `Size ${line.selectedSize} is not available for ${product.name}.`);
+    if (line.selectedSize) {
+      const parts = line.selectedSize.split(',').map((s) => s.trim()).filter(Boolean);
+      const invalid = parts.find((s) => !sizes.includes(s));
+      if (invalid) {
+        throw new HttpError(400, `Size ${invalid} is not available for ${product.name}.`);
+      }
     }
 
     return {

@@ -123,13 +123,8 @@ test('product images must be https URLs or local paths', () => {
   );
 });
 
-test('products allow one main image and up to four distinct gallery images', () => {
-  const galleryImages = [
-    '/products/tote-side.jpg',
-    '/products/tote-back.jpg',
-    'https://res.cloudinary.com/demo/image/upload/tote-detail.jpg',
-    '/products/tote-inside.jpg',
-  ];
+test('products allow one main image and up to 99 distinct gallery images', () => {
+  const galleryImages = Array.from({ length: 99 }, (_, i) => `/products/tote-${i}.jpg`);
   assert.equal(
     createProductSchema.safeParse({ ...validProduct, galleryImages }).success,
     true,

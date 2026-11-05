@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { useCart } from '@/components/providers/CartProvider';
 import { useToast } from '@/components/providers/ToastProvider';
 import { useWishlist } from '@/components/providers/WishlistProvider';
+import { formatPrice } from '@/lib/money';
 import { storeConfig } from '@/lib/store-config';
 import type { StoreProduct } from '@/lib/types';
 
@@ -21,26 +22,72 @@ export function PurchasePanel({ product }: { product: StoreProduct }) {
   const wished = wishlist.hydrated && wishlist.contains(product.id);
 
   const toggleColor = (value: string) =>
-    setColors((prev) => prev.includes(value) ? prev.filter((c) => c !== value) : [...prev, value]);
+    setColors((prev) => {
+      if (prev.includes(value)) {
+        if (prev.length === 1) return prev;
+        return prev.filter((c) => c !== value);
+      }
+      return [...prev, value];
+    });
 
   const toggleSize = (value: string) =>
-    setSizes((prev) => prev.includes(value) ? prev.filter((s) => s !== value) : [...prev, value]);
+    setSizes((prev) => {
+      if (prev.includes(value)) {
+        if (prev.length === 1) return prev;
+        return prev.filter((s) => s !== value);
+      }
+      return [...prev, value];
+    });
 
-  const selectedColor = colors.length > 0 ? colors.join(', ') : null;
-  const selectedSize = sizes.length > 0 ? sizes.join(', ') : null;
+  const effectiveColors: (string | null)[] =
+    product.colors.length > 0
+      ? colors.length > 0
+        ? colors
+        : [product.colors[0]]
+      : [null];
+
+  const effectiveSizes: (string | null)[] =
+    product.sizes.length > 0
+      ? sizes.length > 0
+        ? sizes
+        : [product.sizes[0]]
+      : [null];
+
+  const combinations: { color: string | null; size: string | null }[] = [];
+  for (const c of effectiveColors) {
+    for (const s of effectiveSizes) {
+      combinations.push({ color: c, size: s });
+    }
+  }
+
+  const totalItems = combinations.length * quantity;
+  const totalPrice = product.price * totalItems;
+  const totalOriginalPrice = product.originalPrice ? product.originalPrice * totalItems : null;
 
   const addToCart = () => {
-    const result = cart.add(product, { quantity, selectedColor, selectedSize });
-    if (result === 'unavailable') {
+    let anyUnavailable = false;
+    let anyLimit = false;
+
+    for (const combo of combinations) {
+      const result = cart.add(product, {
+        quantity,
+        selectedColor: combo.color,
+        selectedSize: combo.size,
+      });
+      if (result === 'unavailable') anyUnavailable = true;
+      if (result === 'limit') anyLimit = true;
+    }
+
+    if (anyUnavailable) {
       toast('This product is out of stock.', 'error');
       return;
     }
-    if (result === 'limit') {
+    if (anyLimit) {
       toast(`You can order at most ${storeConfig.maxQuantityPerLine} of one item.`, 'error');
       return;
     }
     setJustAdded(true);
-    toast(`Added ${quantity} × ${product.name} to cart`, 'success');
+    toast(`Added ${totalItems} × ${product.name} to cart (${formatPrice(totalPrice)})`, 'success');
   };
 
   const share = async () => {
@@ -130,6 +177,46 @@ export function PurchasePanel({ product }: { product: StoreProduct }) {
         </div>
       </div>
 
+      <div
+        style={{
+          margin: '18px 0 16px',
+          padding: '14px 18px',
+          background: 'var(--a-surface-2)',
+          borderRadius: 12,
+          border: '1px solid var(--a-line)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <div>
+          <div style={{ fontSize: 13, color: 'var(--a-text-2)', fontWeight: 500 }}>
+            {totalItems > 1 ? (
+              <span>
+                Total for <strong>{totalItems} items</strong> ({combinations.length} selections × {quantity} qty)
+              </span>
+            ) : (
+              <span>Total:</span>
+            )}
+          </div>
+          {combinations.length > 1 ? (
+            <div style={{ fontSize: 11, color: 'var(--a-text-3)', marginTop: 2 }}>
+              Multiple selections applied to total price
+            </div>
+          ) : null}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+          <span style={{ fontSize: 24, fontWeight: 700, color: 'var(--a-gold)' }}>
+            {formatPrice(totalPrice)}
+          </span>
+          {totalOriginalPrice ? (
+            <span style={{ fontSize: 14, textDecoration: 'line-through', color: 'var(--a-text-3)' }}>
+              {formatPrice(totalOriginalPrice)}
+            </span>
+          ) : null}
+        </div>
+      </div>
+
       <div className="pdp__actions">
         <button
           type="button"
@@ -137,7 +224,11 @@ export function PurchasePanel({ product }: { product: StoreProduct }) {
           disabled={!product.inStock}
           onClick={addToCart}
         >
-          {product.inStock ? 'Add to cart' : 'Out of stock'}
+          {!product.inStock
+            ? 'Out of stock'
+            : totalItems > 1
+              ? `Add ${totalItems} to cart · ${formatPrice(totalPrice)}`
+              : `Add to cart · ${formatPrice(totalPrice)}`}
         </button>
         <button
           type="button"

@@ -356,39 +356,77 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
+  List<({String? color, String? size})> _getCombinations(Product p) {
+    final colors = p.colors.isNotEmpty
+        ? (_selectedColors.isNotEmpty ? _selectedColors.toList() : [p.colors.first])
+        : <String?>[null];
+    final sizes = p.sizes.isNotEmpty
+        ? (_selectedSizes.isNotEmpty ? _selectedSizes.toList() : [p.sizes.first])
+        : <String?>[null];
+
+    final list = <({String? color, String? size})>[];
+    for (final c in colors) {
+      for (final s in sizes) {
+        list.add((color: c, size: s));
+      }
+    }
+    return list;
+  }
+
   Widget _buildPriceRow(Product p) {
-    return Row(
+    final combos = _getCombinations(p);
+    final totalCount = combos.length * _quantity;
+    final totalPrice = p.price * totalCount;
+    final originalPrice = p.originalPrice != null ? p.originalPrice! * totalCount : null;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          '₵${p.price.toStringAsFixed(0)}',
-          style: GoogleFonts.kumbhSans(
-              fontSize: 36,
-              fontWeight: FontWeight.w700,
-              color: AppTheme.primary),
-        ),
-        if (p.originalPrice != null) ...[
-          const SizedBox(width: 12),
-          Text(
-            '₵${p.originalPrice!.toStringAsFixed(0)}',
-            style: GoogleFonts.kumbhSans(
-              fontSize: 18,
-              color: AppTheme.textLight,
-              decoration: TextDecoration.lineThrough,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-            decoration: BoxDecoration(
-              color: AppTheme.accentLight,
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Text(
-              'Save ₵${(p.originalPrice! - p.price).toStringAsFixed(0)}',
+        Row(
+          children: [
+            Text(
+              '₵${totalPrice.toStringAsFixed(0)}',
               style: GoogleFonts.kumbhSans(
-                  fontSize: 11,
+                  fontSize: 36,
                   fontWeight: FontWeight.w700,
-                  color: const Color(0xFF946300)),
+                  color: AppTheme.primary),
+            ),
+            if (originalPrice != null) ...[
+              const SizedBox(width: 12),
+              Text(
+                '₵${originalPrice.toStringAsFixed(0)}',
+                style: GoogleFonts.kumbhSans(
+                  fontSize: 18,
+                  color: AppTheme.textLight,
+                  decoration: TextDecoration.lineThrough,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: AppTheme.accentLight,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  'Save ₵${(originalPrice - totalPrice).toStringAsFixed(0)}',
+                  style: GoogleFonts.kumbhSans(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF946300)),
+                ),
+              ),
+            ],
+          ],
+        ),
+        if (totalCount > 1) ...[
+          const SizedBox(height: 6),
+          Text(
+            '$totalCount items (${combos.length} selections × $_quantity qty)',
+            style: GoogleFonts.kumbhSans(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.accent,
             ),
           ),
         ],
@@ -427,7 +465,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             return GestureDetector(
               onTap: () => setState(() {
                 if (selected) {
-                  _selectedColors.remove(color);
+                  if (_selectedColors.length > 1) {
+                    _selectedColors.remove(color);
+                  }
                 } else {
                   _selectedColors.add(color);
                 }
@@ -491,7 +531,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             return GestureDetector(
               onTap: () => setState(() {
                 if (selected) {
-                  _selectedSizes.remove(size);
+                  if (_selectedSizes.length > 1) {
+                    _selectedSizes.remove(size);
+                  }
                 } else {
                   _selectedSizes.add(size);
                 }
@@ -654,6 +696,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   Widget _buildBottomBar(BuildContext context, Product p) {
+    final combos = _getCombinations(p);
+    final totalCount = combos.length * _quantity;
+    final totalPrice = p.price * totalCount;
+
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
       decoration: BoxDecoration(
@@ -668,14 +714,16 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       ),
       child: BlocBuilder<CartBloc, CartState>(
         builder: (context, state) {
-          final line = state
-              .itemFor(CartItem.keyFor(p.id, _selectedColors.isEmpty ? null : _selectedColors.join(', '), _selectedSizes.isEmpty ? null : _selectedSizes.join(', ')));
-          final inCart = line != null;
+          final inCartTotal = combos.fold<int>(0, (sum, combo) {
+            final line = state.itemFor(CartItem.keyFor(p.id, combo.color, combo.size));
+            return sum + (line?.quantity ?? 0);
+          });
+          final inCart = inCartTotal > 0;
           return Row(
             children: [
               Expanded(
                 child: GestureDetector(
-                  onTap: p.inStock ? () => _addToCart(context, p, line) : null,
+                  onTap: p.inStock ? () => _addToCart(context, p) : null,
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     height: 54,
@@ -697,12 +745,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         !p.inStock
                             ? 'OUT OF STOCK'
                             : inCart
-                                ? '${line.quantity} IN CART · ADD $_quantity MORE'
-                                : 'ADD $_quantity TO CART',
+                                ? '$inCartTotal IN CART · ADD $totalCount MORE (₵${totalPrice.toStringAsFixed(0)})'
+                                : 'ADD $totalCount TO CART · ₵${totalPrice.toStringAsFixed(0)}',
                         style: GoogleFonts.kumbhSans(
-                          fontSize: 13,
+                          fontSize: 12,
                           fontWeight: FontWeight.w700,
-                          letterSpacing: 1.2,
+                          letterSpacing: 1.1,
                           color: !p.inStock
                               ? AppTheme.textLight
                               : inCart
@@ -735,27 +783,26 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
-  void _addToCart(BuildContext context, Product p, CartItem? existing) {
-    final current = existing?.quantity ?? 0;
-    if (current >= AppConfig.maxQuantityPerLine) {
-      showAppSnack(
-        context,
-        'You can order at most ${AppConfig.maxQuantityPerLine} of one item.',
-        error: true,
-      );
-      return;
+  void _addToCart(BuildContext context, Product p) {
+    final combos = _getCombinations(p);
+    final totalCount = combos.length * _quantity;
+    final totalPrice = p.price * totalCount;
+
+    for (final combo in combos) {
+      context.read<CartBloc>().add(AddToCart(
+            p,
+            quantity: _quantity,
+            selectedColor: combo.color,
+            selectedSize: combo.size,
+          ));
     }
-    context.read<CartBloc>().add(AddToCart(
-          p,
-          quantity: _quantity,
-          selectedColor: _selectedColors.isEmpty ? null : _selectedColors.join(', '),
-          selectedSize: _selectedSizes.isEmpty ? null : _selectedSizes.join(', '),
-        ));
+
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          content: Text('Added $_quantity × ${p.name} to cart',
+          content: Text(
+              'Added $totalCount × ${p.name} to cart (₵${totalPrice.toStringAsFixed(0)})',
               style: GoogleFonts.kumbhSans()),
           backgroundColor: AppTheme.primary,
           behavior: SnackBarBehavior.floating,
