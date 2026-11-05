@@ -152,17 +152,18 @@ class _FaqHelpScreenState extends State<FaqHelpScreen> {
       IconData icon, String title, String subtitle, VoidCallback onTap) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
+      child: Material(
         color: AppTheme.surface,
         borderRadius: BorderRadius.circular(12),
-      ),
-      child: ListTile(
-        leading: Icon(icon, color: AppTheme.primary),
-        title: Text(title,
-            style: GoogleFonts.kumbhSans(fontWeight: FontWeight.w600)),
-        subtitle: Text(subtitle, style: GoogleFonts.kumbhSans(fontSize: 12)),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: onTap,
+        clipBehavior: Clip.antiAlias,
+        child: ListTile(
+          leading: Icon(icon, color: AppTheme.primary),
+          title: Text(title,
+              style: GoogleFonts.kumbhSans(fontWeight: FontWeight.w600)),
+          subtitle: Text(subtitle, style: GoogleFonts.kumbhSans(fontSize: 12)),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: onTap,
+        ),
       ),
     );
   }

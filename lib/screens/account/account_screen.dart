@@ -327,7 +327,6 @@ class AccountScreen extends StatelessWidget {
         ),
         Container(
           decoration: BoxDecoration(
-            color: AppTheme.surface,
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
@@ -336,29 +335,34 @@ class AccountScreen extends StatelessWidget {
               ),
             ],
           ),
-          child: Column(
-            children: [
-              for (var i = 0; i < items.length; i++) ...[
-                ListTile(
-                  leading: Container(
-                    width: 38,
-                    height: 38,
-                    decoration: BoxDecoration(
-                      color: AppTheme.cardBg,
-                      borderRadius: BorderRadius.circular(8),
+          child: Material(
+            color: AppTheme.surface,
+            borderRadius: BorderRadius.circular(12),
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              children: [
+                for (var i = 0; i < items.length; i++) ...[
+                  ListTile(
+                    leading: Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: AppTheme.cardBg,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(items[i].$1, size: 18, color: AppTheme.primary),
                     ),
-                    child: Icon(items[i].$1, size: 18, color: AppTheme.primary),
+                    title: Text(items[i].$2,
+                        style: GoogleFonts.kumbhSans(
+                            fontSize: 13, fontWeight: FontWeight.w500)),
+                    trailing: const Icon(Icons.chevron_right,
+                        size: 18, color: AppTheme.textLight),
+                    onTap: items[i].$3,
                   ),
-                  title: Text(items[i].$2,
-                      style: GoogleFonts.kumbhSans(
-                          fontSize: 13, fontWeight: FontWeight.w500)),
-                  trailing: const Icon(Icons.chevron_right,
-                      size: 18, color: AppTheme.textLight),
-                  onTap: items[i].$3,
-                ),
-                if (i < items.length - 1) const Divider(indent: 66, height: 1),
+                  if (i < items.length - 1) const Divider(indent: 66, height: 1),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ],

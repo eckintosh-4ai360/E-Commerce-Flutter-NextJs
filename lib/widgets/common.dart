@@ -428,9 +428,7 @@ class SectionCard extends StatelessWidget {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppTheme.surface,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -440,17 +438,25 @@ class SectionCard extends StatelessWidget {
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (title != null) ...[
-            Text(title!,
-                style: GoogleFonts.kumbhSans(
-                    fontSize: 16, fontWeight: FontWeight.w700)),
-            const SizedBox(height: 12),
-          ],
-          child,
-        ],
+      child: Material(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        clipBehavior: Clip.antiAlias,
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (title != null) ...[
+                Text(title!,
+                    style: GoogleFonts.kumbhSans(
+                        fontSize: 16, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 12),
+              ],
+              child,
+            ],
+          ),
+        ),
       ),
     );
   }
