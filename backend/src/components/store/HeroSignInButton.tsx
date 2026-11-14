@@ -1,15 +1,31 @@
 'use client';
 
-import { LogIn } from 'lucide-react';
+import { LogIn, UserRound } from 'lucide-react';
+import Link from 'next/link';
 
 import { useAuth } from '@/components/providers/AuthProvider';
 
-/** Sign-in button rendered in the hero section. Triggers Google OAuth popup/redirect. */
+/** Hero account action once Firebase has resolved the current session. */
 export function HeroSignInButton() {
-  const { user, signIn, busy } = useAuth();
+  const { user, status, signIn, busy } = useAuth();
 
-  // Hide once the user is already signed in
-  if (user) return null;
+  if (status === 'loading') {
+    return (
+      <span className="btn btn-outline hero__auth-placeholder" aria-hidden="true">
+        <LogIn size={16} />
+        Sign in
+      </span>
+    );
+  }
+
+  if (user) {
+    return (
+      <Link href="/account" className="btn btn-outline">
+        <UserRound size={16} aria-hidden="true" />
+        Account
+      </Link>
+    );
+  }
 
   return (
     <button
@@ -18,7 +34,7 @@ export function HeroSignInButton() {
       onClick={() => void signIn()}
       disabled={busy}
     >
-      {busy ? <span className="spinner spinner--sm" /> : <LogIn size={16} />}
+      {busy ? <span className="spinner spinner--sm" /> : <LogIn size={16} aria-hidden="true" />}
       {busy ? 'Signing in…' : 'Sign in'}
     </button>
   );

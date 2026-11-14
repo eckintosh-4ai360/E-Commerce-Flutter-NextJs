@@ -1343,6 +1343,10 @@
   margin-top: 6px;
 }
 
+.hero__auth-placeholder {
+  visibility: hidden;
+}
+
 .hero .btn-outline {
   border-color: rgba(255, 255, 255, 0.6);
   color: #fff;
