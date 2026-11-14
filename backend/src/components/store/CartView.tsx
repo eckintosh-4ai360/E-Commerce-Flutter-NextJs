@@ -1,6 +1,6 @@
 'use client';
 
-import { Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react';
+import { Minus, Plus, ShoppingCart, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 
@@ -74,7 +74,7 @@ export function CartView() {
       <>
         {notice ? <div className="alert alert--warn" style={{ marginTop: 16 }}>{notice}</div> : null}
         <EmptyState
-          icon={<ShoppingBag size={44} />}
+          icon={<ShoppingCart size={44} />}
           title="Your cart is empty"
           action={
             <Link href="/shop" className="btn btn-primary">

@@ -772,7 +772,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     color: AppTheme.accent,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(Icons.shopping_bag_outlined,
+                  child: const Icon(Icons.shopping_cart_outlined,
                       color: AppTheme.primary, size: 22),
                 ),
               ),

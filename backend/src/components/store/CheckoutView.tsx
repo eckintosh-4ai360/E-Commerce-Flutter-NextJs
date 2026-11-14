@@ -1,6 +1,6 @@
 'use client';
 
-import { AlertCircle, ShoppingBag } from 'lucide-react';
+import { AlertCircle, ShoppingCart } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
@@ -316,7 +316,7 @@ export function CheckoutView({ paymentError = false }: { paymentError?: boolean 
   if (cart.lines.length === 0) {
     return (
       <EmptyState
-        icon={<ShoppingBag size={44} />}
+        icon={<ShoppingCart size={44} />}
         title="Your cart is empty"
         action={
           <Link href="/shop" className="btn btn-primary">

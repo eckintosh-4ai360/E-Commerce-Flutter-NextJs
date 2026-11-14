@@ -313,7 +313,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               const SizedBox(height: 10),
               OutlinedButton.icon(
                 onPressed: _buyAgain,
-                icon: const Icon(Icons.shopping_bag_outlined),
+                icon: const Icon(Icons.shopping_cart_outlined),
                 label: const Text('BUY AGAIN'),
               ),
               if (order.canCancel) ...[

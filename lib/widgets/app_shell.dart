@@ -63,7 +63,7 @@ class AppShell extends StatelessWidget {
               _navItem(context, 1, currentIndex, Icons.storefront_rounded),
               _navItem(
                   context, 2, currentIndex, Icons.favorite_outline_rounded),
-              _navItem(context, 3, currentIndex, Icons.shopping_bag_outlined),
+              _navItem(context, 3, currentIndex, Icons.shopping_cart_outlined),
               _navItem(context, 4, currentIndex, Icons.person_outline_rounded),
             ],
           ),
@@ -145,7 +145,7 @@ class AppShell extends StatelessWidget {
     } else if (index == 3) {
       // Cart
       iconWidget = Icon(
-        isActive ? Icons.shopping_bag_rounded : Icons.shopping_bag_outlined,
+        isActive ? Icons.shopping_cart_rounded : Icons.shopping_cart_outlined,
         color: Colors.white,
         size: 26,
       );

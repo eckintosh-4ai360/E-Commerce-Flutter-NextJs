@@ -57,7 +57,7 @@ class CartScreen extends StatelessWidget {
           builder: (context, state) {
             if (state.items.isEmpty) {
               return EmptyView(
-                icon: Icons.shopping_bag_outlined,
+                icon: Icons.shopping_cart_outlined,
                 title: 'Your cart is empty',
                 message: 'Discover our beautiful collection',
                 action: ElevatedButton(

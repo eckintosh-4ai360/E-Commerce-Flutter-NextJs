@@ -1,6 +1,6 @@
 'use client';
 
-import { Heart, Search, ShoppingBag, User } from 'lucide-react';
+import { Heart, Search, ShoppingCart, User } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -65,7 +65,7 @@ export function SiteHeader() {
             ) : null}
           </Link>
           <Link href="/cart" className="icon-btn" aria-label={`Cart, ${cart.totalItems} items`}>
-            <ShoppingBag size={21} />
+            <ShoppingCart size={21} />
             {cart.hydrated && cart.totalItems > 0 ? (
               <span className="count-badge">{cart.totalItems}</span>
             ) : null}
