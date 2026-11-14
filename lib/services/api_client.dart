@@ -56,8 +56,10 @@ class ApiClient {
     Object? body,
     bool auth = false,
     Map<String, String>? headers,
+    Duration? timeout,
   }) =>
-      _send('POST', path, body: body, auth: auth, headers: headers);
+      _send('POST', path,
+          body: body, auth: auth, headers: headers, timeout: timeout);
 
   Future<Map<String, dynamic>> put(String path, {Object? body}) =>
       _send('PUT', path, body: body, auth: true);
@@ -75,6 +77,7 @@ class ApiClient {
     Object? body,
     bool auth = false,
     Map<String, String>? headers,
+    Duration? timeout,
   }) async {
     final requestHeaders = <String, String>{
       'Accept': 'application/json',
@@ -104,8 +107,9 @@ class ApiClient {
 
     late http.Response response;
     try {
-      final streamed = await _client.send(request).timeout(_timeout);
-      response = await http.Response.fromStream(streamed).timeout(_timeout);
+      final streamed = await _client.send(request).timeout(timeout ?? _timeout);
+      response =
+          await http.Response.fromStream(streamed).timeout(timeout ?? _timeout);
     } on TimeoutException {
       throw const ApiException(
         'The store is taking too long to respond. Check your connection and try again.',

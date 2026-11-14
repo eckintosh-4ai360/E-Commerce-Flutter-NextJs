@@ -14,10 +14,7 @@ export const GET = route(async (request) => {
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const revenueWhere: Prisma.OrderWhereInput = {
     status: { not: 'CANCELLED' },
-    OR: [
-      { paymentMethod: { not: 'PAYSTACK' } },
-      { paymentStatus: 'PAID' },
-    ],
+    paymentStatus: 'PAID',
   };
 
   const [

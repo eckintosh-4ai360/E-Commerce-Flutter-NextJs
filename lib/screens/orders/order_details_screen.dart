@@ -27,7 +27,8 @@ class OrderDetailsScreen extends StatefulWidget {
   State<OrderDetailsScreen> createState() => _OrderDetailsScreenState();
 }
 
-class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
+class _OrderDetailsScreenState extends State<OrderDetailsScreen>
+    with WidgetsBindingObserver {
   late AppOrder _order = widget.order;
   bool _changed = false;
   bool _busy = false;
@@ -35,15 +36,38 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _refresh();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _refresh();
+    }
   }
 
   Future<void> _refresh() async {
     try {
-      final latest =
-          await context.read<OrderService>().trackOrder(_order.id);
+      final latest = await context
+          .read<OrderService>()
+          .trackOrder(_order.id, requireAuth: true);
       if (mounted && !latest.isRedacted) {
-        setState(() => _order = latest);
+        if (widget.justPlaced &&
+            latest.paymentStatus == 'PAID' &&
+            _order.paymentStatus != 'PAID') {
+          context.read<CartBloc>().add(const ClearCart());
+        }
+        setState(() {
+          _changed = _changed || latest.paymentStatus != _order.paymentStatus;
+          _order = latest;
+        });
       }
     } catch (_) {
       // Keep showing what we have; this is only a freshness check.
@@ -109,7 +133,8 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       }
     }
     if (added == 0) {
-      showAppSnack(context, 'These items are no longer available.', error: true);
+      showAppSnack(context, 'These items are no longer available.',
+          error: true);
       return;
     }
     showAppSnack(
@@ -146,7 +171,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
           child: ListView(
             padding: const EdgeInsets.all(20),
             children: [
-              if (widget.justPlaced)
+              if (widget.justPlaced && order.paymentStatus == 'PAID')
                 Container(
                   margin: const EdgeInsets.only(bottom: 16),
                   padding: const EdgeInsets.all(14),
@@ -169,6 +194,32 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                     ],
                   ),
                 ),
+              if (order.paymentMethod == 'PAYSTACK' &&
+                  order.paymentStatus != 'PAID' &&
+                  !order.isCancelled)
+                SectionCard(
+                  title: 'Payment pending',
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Your order will be prepared after Paystack confirms payment.',
+                        style: GoogleFonts.kumbhSans(fontSize: 13),
+                      ),
+                      const SizedBox(height: 12),
+                      if (order.paymentAuthorizationUrl != null)
+                        ElevatedButton(
+                          onPressed: () => openExternal(
+                              context, order.paymentAuthorizationUrl!),
+                          child: const Text('CONTINUE PAYMENT'),
+                        ),
+                      TextButton(
+                        onPressed: _refresh,
+                        child: const Text('CHECK PAYMENT STATUS'),
+                      ),
+                    ],
+                  ),
+                ),
               SectionCard(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -181,7 +232,8 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                             children: [
                               Text('Order #${order.trackingCode}',
                                   style: GoogleFonts.kumbhSans(
-                                      fontWeight: FontWeight.w700, fontSize: 18)),
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 18)),
                               const SizedBox(height: 4),
                               Text(
                                 'Placed ${formatter.format(order.createdAt.toLocal())}',
@@ -211,7 +263,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                             ClipRRect(
                               borderRadius: BorderRadius.circular(8),
                               child: ProductThumb(
-                                  imageUrl: item.imageUrl, width: 54, height: 54),
+                                  imageUrl: item.imageUrl,
+                                  width: 54,
+                                  height: 54),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
@@ -224,8 +278,10 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                                   Text(
                                     [
                                       'Qty ${item.quantity}',
-                                      if (item.selectedColor != null) item.selectedColor!,
-                                      if (item.selectedSize != null) 'Size ${item.selectedSize}',
+                                      if (item.selectedColor != null)
+                                        item.selectedColor!,
+                                      if (item.selectedSize != null)
+                                        'Size ${item.selectedSize}',
                                     ].join(' · '),
                                     style: GoogleFonts.kumbhSans(
                                         fontSize: 12, color: AppTheme.textMed),
@@ -241,8 +297,11 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                       ),
                     const Divider(height: 20),
                     _summaryRow('Subtotal', formatMoney(order.subtotal)),
-                    _summaryRow('Shipping',
-                        order.shippingFee == 0 ? 'Free' : formatMoney(order.shippingFee)),
+                    _summaryRow(
+                        'Shipping',
+                        order.shippingFee == 0
+                            ? 'Free'
+                            : formatMoney(order.shippingFee)),
                     _summaryRow('Total', formatMoney(order.total), bold: true),
                   ],
                 ),
@@ -254,7 +313,8 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                   children: [
                     _detailRow(Icons.person_outline, order.customerName),
                     if (order.deliveryAddress != null)
-                      _detailRow(Icons.location_on_outlined, order.deliveryAddress!),
+                      _detailRow(
+                          Icons.location_on_outlined, order.deliveryAddress!),
                     _detailRow(Icons.phone_outlined, order.customerPhone),
                     if (order.customerEmail != null)
                       _detailRow(Icons.email_outlined, order.customerEmail!),
@@ -320,7 +380,8 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 const SizedBox(height: 10),
                 TextButton.icon(
                   onPressed: _busy ? null : _cancel,
-                  icon: const Icon(Icons.cancel_outlined, color: AppTheme.error),
+                  icon:
+                      const Icon(Icons.cancel_outlined, color: AppTheme.error),
                   label: Text(
                     _busy ? 'CANCELLING...' : 'CANCEL ORDER',
                     style: GoogleFonts.kumbhSans(
@@ -362,7 +423,8 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         children: [
           Icon(icon, size: 18, color: AppTheme.textLight),
           const SizedBox(width: 10),
-          Expanded(child: Text(value, style: GoogleFonts.kumbhSans(fontSize: 14))),
+          Expanded(
+              child: Text(value, style: GoogleFonts.kumbhSans(fontSize: 14))),
         ],
       ),
     );

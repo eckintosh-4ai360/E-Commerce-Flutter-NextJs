@@ -311,7 +311,6 @@ export async function createOrder(
 
   for (let attempt = 0; attempt < 3; attempt += 1) {
     const id = createOrderId();
-    const isPaystack = input.paymentMethod === 'PAYSTACK';
     try {
       const order = await getPrisma().$transaction(async (tx) => {
         const inventoryReserved = await reserveInventory(tx, priced.stockReservations);
@@ -326,8 +325,8 @@ export async function createOrder(
             deliveryAddress: input.deliveryAddress,
             notes: input.notes,
             paymentMethod: input.paymentMethod,
-            paymentStatus: isPaystack ? 'PENDING' : 'PAY_ON_DELIVERY',
-            paymentReference: isPaystack ? paystackReferenceForOrder(id) : null,
+            paymentStatus: 'PENDING',
+            paymentReference: paystackReferenceForOrder(id),
             inventoryReserved,
             clientRequestId,
             subtotal: priced.subtotal,

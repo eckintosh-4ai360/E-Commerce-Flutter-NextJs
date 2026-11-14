@@ -12,14 +12,22 @@ import type { OrderView } from '@/lib/types';
 import { OrderDetail } from './OrderDetail';
 import { Spinner } from './ui';
 
-export function TrackOrderView({ initialCode }: { initialCode: string }) {
+export function TrackOrderView({
+  initialCode,
+  paymentError = false,
+}: {
+  initialCode: string;
+  paymentError?: boolean;
+}) {
   const { authedFetch, status } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [code, setCode] = useState(initialCode);
   const [order, setOrder] = useState<OrderView | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(
+    paymentError ? 'We could not confirm that payment. Return to the app and check your order.' : null,
+  );
 
   const lookup = useCallback(
     async (value: string) => {

@@ -2,6 +2,13 @@ import '../models/app_order.dart';
 import '../models/cart_item.dart';
 import 'api_client.dart';
 
+class HostedCheckout {
+  const HostedCheckout({required this.order, required this.authorizationUrl});
+
+  final AppOrder order;
+  final String authorizationUrl;
+}
+
 class OrderService {
   OrderService(this._api);
 
@@ -16,25 +23,25 @@ class OrderService {
         .toList();
   }
 
-  Future<AppOrder> createOrder({
+  Future<HostedCheckout> initializePayment({
     required String requestId,
     required String customerName,
     required String customerPhone,
     required String deliveryAddress,
-    required String paymentMethod,
     required List<CartItem> items,
     required double expectedTotal,
     String? notes,
   }) async {
     final payload = await _api.post(
-      '/orders',
+      '/payments/paystack/hosted',
       auth: true,
+      timeout: const Duration(seconds: 30),
       headers: {'Idempotency-Key': requestId},
       body: {
         'customerName': customerName,
         'customerPhone': customerPhone,
         'deliveryAddress': deliveryAddress,
-        'paymentMethod': paymentMethod,
+        'paymentMethod': 'PAYSTACK',
         'notes': notes,
         'expectedTotal': expectedTotal,
         'items': items
@@ -50,14 +57,19 @@ class OrderService {
       },
     );
 
-    return AppOrder.fromJson(payload['order'] as Map<String, dynamic>);
+    return HostedCheckout(
+      order: AppOrder.fromJson(payload['order'] as Map<String, dynamic>),
+      authorizationUrl: payload['authorizationUrl'] as String,
+    );
   }
 
   /// Looks an order up by tracking code. Signed-in owners get full details;
   /// everyone else gets the public view.
-  Future<AppOrder> trackOrder(String reference) async {
+  Future<AppOrder> trackOrder(String reference,
+      {bool requireAuth = false}) async {
     final cleaned = reference.trim().replaceFirst('#', '');
-    final payload = await _api.get('/orders/${Uri.encodeComponent(cleaned)}');
+    final payload = await _api.get('/orders/${Uri.encodeComponent(cleaned)}',
+        auth: requireAuth);
     return AppOrder.fromJson(payload['order'] as Map<String, dynamic>);
   }
 

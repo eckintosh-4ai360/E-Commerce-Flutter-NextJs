@@ -27,7 +27,7 @@ export const storeFaqs: StoreFaq[] = [
   {
     question: 'How do I pay?',
     answer:
-      'At checkout, choose Payment on delivery to pay in cash or with Mobile Money, or use Paystack to pay online by card or Mobile Money. We never store your card details.',
+      'At checkout, pay online by card or Mobile Money through Paystack. We never store your card details or Mobile Money PIN.',
   },
   {
     question: 'Can I cancel my order?',

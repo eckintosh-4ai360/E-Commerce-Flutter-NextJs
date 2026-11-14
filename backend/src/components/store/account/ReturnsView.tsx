@@ -75,8 +75,8 @@ function Returns({ initialOrder }: { initialOrder: string }) {
         <p className="muted small" style={{ margin: 0, lineHeight: 1.7 }}>
           You have {storeConfig.returnWindowDays} days from delivery to request a return. Items must
           be unused, in the same condition you received them, and in their original packaging.
-          Keep your receipt or order confirmation as proof of purchase. Approved refunds are paid
-          back via Mobile Money or cash.
+          Keep your receipt or order confirmation as proof of purchase. Contact support to arrange
+          an approved refund.
         </p>
       </div>
 

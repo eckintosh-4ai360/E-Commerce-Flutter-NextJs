@@ -71,16 +71,7 @@ export const ghanaRegions = [
   'Ahafo',
 ] as const;
 
-export const paymentOnDeliveryMethods = [
-  {
-    value: 'CASH_ON_DELIVERY',
-    label: 'Payment on delivery',
-    description: 'Pay the rider in cash or with Mobile Money when your order arrives.',
-  },
-] as const;
-
 export const paymentMethods = [
-  ...paymentOnDeliveryMethods,
   {
     value: 'PAYSTACK',
     label: 'Paystack online payment',
@@ -91,9 +82,9 @@ export const paymentMethods = [
 export type PaymentMethodValue = (typeof paymentMethods)[number]['value'];
 
 export function paymentMethodLabel(value: string) {
-  // Preserve a clear label for orders created before cash and MoMo delivery
-  // options were consolidated.
-  if (value === 'MOBILE_MONEY') return 'Payment on delivery';
+  // Historical orders retain their original method in the database.
+  if (value === 'MOBILE_MONEY') return 'Mobile Money on delivery';
+  if (value === 'CASH_ON_DELIVERY') return 'Cash on delivery';
   return paymentMethods.find((method) => method.value === value)?.label ?? value;
 }
 

@@ -20,14 +20,14 @@ export const revalidate = 300;
 export const metadata: Metadata = {
   title: `${storeConfig.name} — ${storeConfig.tagline} | Online Shopping Ghana`,
   description:
-    'Discover global finds, pay local with Mobile Money or Cash on Delivery, and get dependable delivery across Accra and all of Ghana. Shop electronics, fashion, and home goods.',
+    'Discover global finds, pay online with card or Mobile Money, and get dependable delivery across Accra and all of Ghana. Shop electronics, fashion, and home goods.',
   alternates: {
     canonical: '/',
   },
   openGraph: {
     title: `${storeConfig.name} — ${storeConfig.tagline}`,
     description:
-      'Shop global, pay local with GlobaCart GH. Enjoy fast delivery across Accra and Ghana with Mobile Money or Pay on Delivery.',
+      'Shop global, pay local with GlobaCart GH. Enjoy fast delivery across Accra and Ghana with secure online card or Mobile Money payment.',
     url: '/',
     type: 'website',
     images: [
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: `${storeConfig.name} — ${storeConfig.tagline}`,
     description:
-      'Shop global, pay local with GlobaCart GH. Fast delivery across Ghana with Mobile Money or Pay on Delivery.',
+      'Shop global, pay local with GlobaCart GH. Fast delivery across Ghana with secure online card or Mobile Money payment.',
     images: ['/logo.jpeg'],
   },
 };
@@ -86,7 +86,7 @@ export default async function HomePage() {
     description: storeConfig.description,
     telephone: storeConfig.supportPhone,
     currenciesAccepted: storeConfig.currencyCode,
-    paymentAccepted: 'Cash, Mobile Money, Debit Card, Credit Card, Paystack',
+    paymentAccepted: 'Mobile Money, Debit Card, Credit Card, Paystack',
     priceRange: 'GH₵',
     address: {
       '@type': 'PostalAddress',

@@ -14,6 +14,8 @@ String titleCaseStatus(String status) {
 
 String paymentMethodLabel(String value) {
   switch (value) {
+    case 'PAYSTACK':
+      return 'Paystack online payment';
     case 'MOBILE_MONEY':
       return 'Mobile Money on delivery';
     case 'CASH_ON_DELIVERY':
@@ -108,7 +110,9 @@ class AppOrder extends Equatable {
     this.customerEmail,
     this.deliveryAddress,
     this.notes,
-    this.paymentMethod = 'CASH_ON_DELIVERY',
+    this.paymentMethod = 'PAYSTACK',
+    this.paymentStatus = 'PENDING',
+    this.paymentAuthorizationUrl,
     this.events = const [],
     this.isRedacted = false,
     this.canCancel = false,
@@ -130,6 +134,8 @@ class AppOrder extends Equatable {
   final String? deliveryAddress;
   final String? notes;
   final String paymentMethod;
+  final String paymentStatus;
+  final String? paymentAuthorizationUrl;
   final List<AppOrderItem> items;
   final List<OrderEvent> events;
 
@@ -165,8 +171,8 @@ class AppOrder extends Equatable {
       trackingCode: json['trackingCode'] as String?,
       status: json['status'] as String,
       createdAt: createdAt,
-      updatedAt: DateTime.tryParse(json['updatedAt'] as String? ?? '') ??
-          createdAt,
+      updatedAt:
+          DateTime.tryParse(json['updatedAt'] as String? ?? '') ?? createdAt,
       subtotal: (json['subtotal'] as num).toDouble(),
       shippingFee: (json['shippingFee'] as num).toDouble(),
       total: (json['total'] as num).toDouble(),
@@ -175,7 +181,9 @@ class AppOrder extends Equatable {
       customerEmail: json['customerEmail'] as String?,
       deliveryAddress: json['deliveryAddress'] as String?,
       notes: json['notes'] as String?,
-      paymentMethod: json['paymentMethod'] as String? ?? 'CASH_ON_DELIVERY',
+      paymentMethod: json['paymentMethod'] as String? ?? 'PAYSTACK',
+      paymentStatus: json['paymentStatus'] as String? ?? 'PENDING',
+      paymentAuthorizationUrl: json['paymentAuthorizationUrl'] as String?,
       items: (json['items'] as List<dynamic>? ?? const [])
           .whereType<Map<String, dynamic>>()
           .map(AppOrderItem.fromJson)
@@ -208,6 +216,8 @@ class AppOrder extends Equatable {
         deliveryAddress,
         notes,
         paymentMethod,
+        paymentStatus,
+        paymentAuthorizationUrl,
         items,
         events,
         isRedacted,

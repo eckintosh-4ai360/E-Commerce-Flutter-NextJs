@@ -10,12 +10,10 @@ import { useToast } from '@/components/providers/ToastProvider';
 import { ApiError, apiFetch, errorMessage } from '@/lib/client/api';
 import { newRequestId } from '@/lib/client/format';
 import { formatMoney } from '@/lib/money';
-import { ghanaRegions, paymentMethods } from '@/lib/store-config';
+import { ghanaRegions } from '@/lib/store-config';
 import type {
   AddressView,
   CustomerProfile,
-  OrderView,
-  PaymentMethod,
   StoreProduct,
 } from '@/lib/types';
 
@@ -34,7 +32,6 @@ type FormState = {
   region: string;
   saveAddress: boolean;
   notes: string;
-  paymentMethod: PaymentMethod;
 };
 
 type PaystackCheckout = {
@@ -157,7 +154,6 @@ const initialForm: FormState = {
   region: 'Greater Accra',
   saveAddress: true,
   notes: '',
-  paymentMethod: 'CASH_ON_DELIVERY',
 };
 
 function validate(form: FormState, usingSaved: boolean) {
@@ -180,7 +176,6 @@ export function CheckoutView({ paymentError = false }: { paymentError?: boolean 
   const [addresses, setAddresses] = useState<AddressView[]>([]);
   const [accountLoaded, setAccountLoaded] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [placed, setPlaced] = useState(false);
   const [error, setError] = useState<string | null>(
     paymentError ? 'We could not confirm that Paystack payment. Your cart is still here.' : null,
   );
@@ -207,10 +202,6 @@ export function CheckoutView({ paymentError = false }: { paymentError?: boolean 
           name: current.name || profile.name || user.displayName || '',
           phone: current.phone || profile.phone || '',
           addressId: preferred ? preferred.id : 'new',
-          paymentMethod:
-            profile.preferredPaymentMethod === 'MOBILE_MONEY'
-              ? 'CASH_ON_DELIVERY'
-              : profile.preferredPaymentMethod,
         }));
       })
       .catch(() => {
@@ -223,8 +214,6 @@ export function CheckoutView({ paymentError = false }: { paymentError?: boolean 
     setForm((current) => ({ ...current, [key]: value }));
 
   const selectedAddress = addresses.find((address) => address.id === form.addressId) ?? null;
-  const payingWithPaystack = form.paymentMethod === 'PAYSTACK';
-
   const placeOrder = async (event: FormEvent) => {
     event.preventDefault();
     setError(null);
@@ -260,7 +249,7 @@ export function CheckoutView({ paymentError = false }: { paymentError?: boolean 
         customerPhone: form.phone.trim(),
         deliveryAddress,
         notes: form.notes.trim() || null,
-        paymentMethod: form.paymentMethod,
+        paymentMethod: 'PAYSTACK',
         expectedTotal: cart.total,
         items: cart.lines.map((line) => ({
           productId: line.product.id,
@@ -270,32 +259,18 @@ export function CheckoutView({ paymentError = false }: { paymentError?: boolean 
         })),
       };
 
-      if (payingWithPaystack) {
-        const payment = await authedFetch<PaystackCheckout>(
-          '/api/payments/paystack/initialize',
-          {
-            method: 'POST',
-            headers: { 'Idempotency-Key': requestId },
-            body: checkoutBody,
-          },
-        );
-        const result = await openPaystackCheckout(payment);
-        if (result === 'success') {
-          cart.clear();
-          router.replace(`/account/orders/${payment.trackingCode}?placed=1&payment=pending`);
-        }
-        return;
+      const payment = await authedFetch<PaystackCheckout>(
+        '/api/payments/paystack/initialize',
+        {
+          method: 'POST',
+          headers: { 'Idempotency-Key': requestId },
+          body: checkoutBody,
+        },
+      );
+      const result = await openPaystackCheckout(payment);
+      if (result === 'success') {
+        router.replace(`/account/orders/${payment.trackingCode}?placed=1&payment=pending`);
       }
-
-      const { order } = await authedFetch<{ order: OrderView }>('/api/orders', {
-        method: 'POST',
-        headers: { 'Idempotency-Key': requestId },
-        body: checkoutBody,
-      });
-
-      setPlaced(true);
-      cart.clear();
-      router.replace(`/account/orders/${order.trackingCode}?placed=1`);
     } catch (caught) {
       if (caught instanceof ApiError && caught.status === 409) {
         // Prices or availability changed: refresh the cart so totals are current.
@@ -309,8 +284,8 @@ export function CheckoutView({ paymentError = false }: { paymentError?: boolean 
     }
   };
 
-  if (!cart.hydrated || status === 'loading' || placed) {
-    return <Spinner label={placed ? 'Placing your order' : 'Loading checkout'} />;
+  if (!cart.hydrated || status === 'loading') {
+    return <Spinner label="Loading checkout" />;
   }
 
   if (cart.lines.length === 0) {
@@ -354,21 +329,13 @@ export function CheckoutView({ paymentError = false }: { paymentError?: boolean 
           type="submit"
           form="checkout-form"
           className="btn btn-primary btn-lg btn-block"
-          disabled={submitting || accountLoaded !== user.uid}
+          disabled={submitting || accountLoaded !== user.uid || !user.email}
         >
-          {submitting
-            ? payingWithPaystack
-              ? 'Opening Paystack…'
-              : 'Placing order…'
-            : payingWithPaystack
-              ? `Make payment · ${formatMoney(cart.total)}`
-              : `Place order · ${formatMoney(cart.total)}`}
+          {submitting ? 'Opening Paystack…' : `Make payment · ${formatMoney(cart.total)}`}
         </button>
       ) : null}
       <p className="small muted" style={{ margin: '12px 0 0' }}>
-        {payingWithPaystack
-          ? 'A secure Paystack payment window will open to complete your payment.'
-          : 'Pay the rider in cash or with Mobile Money on delivery. We\'ll email every status update.'}
+        A secure Paystack payment window will open to complete your payment.
       </p>
     </CartSummary>
   );
@@ -533,31 +500,15 @@ export function CheckoutView({ paymentError = false }: { paymentError?: boolean 
 
           <div className="card">
             <h2>Payment</h2>
-            {payingWithPaystack ? (
-              <div className="alert alert--info" style={{ marginBottom: 14 }}>
-                Paystack will open a secure checkout where you can pay by card or Mobile Money. For
-                Mobile Money, use the number registered to the provider you select and approve the
-                prompt or OTP sent to that phone.
+            <div className="alert alert--info" style={{ marginBottom: 14 }}>
+              Pay securely online by card or Mobile Money through Paystack. For Mobile Money, use
+              the number registered to your provider and approve its prompt or OTP.
+            </div>
+            {!user.email ? (
+              <div className="alert alert--error" role="alert">
+                An email address is required for online payment. Sign in with an account that has one.
               </div>
             ) : null}
-            <div className="radio-list">
-              {paymentMethods
-                .filter((method) => method.value !== 'PAYSTACK' || user.email)
-                .map((method) => (
-                <label key={method.value} className="radio-card">
-                  <input
-                    type="radio"
-                    name="payment"
-                    checked={form.paymentMethod === method.value}
-                    onChange={() => update('paymentMethod', method.value)}
-                  />
-                  <span>
-                    <strong>{method.label}</strong>
-                    <span>{method.description}</span>
-                  </span>
-                </label>
-              ))}
-            </div>
           </div>
 
           <div className="card">

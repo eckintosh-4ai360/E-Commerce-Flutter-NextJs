@@ -1,20 +1,14 @@
-import { after } from 'next/server';
-
 import { requireUser } from '@/lib/auth';
-import { rememberCheckoutDetails } from '@/lib/customers';
-import { sendOrderConfirmationEmail } from '@/lib/email';
 import { HttpError } from '@/lib/errors';
 import {
   jsonResponse,
   preflight,
   privateNoStoreHeaders,
-  readJson,
   route,
 } from '@/lib/http';
-import { createOrder, listCustomerOrders, readIdempotencyKey } from '@/lib/orders';
-import { rateLimit, rateLimitByIp } from '@/lib/rate-limit';
+import { listCustomerOrders } from '@/lib/orders';
+import { rateLimit } from '@/lib/rate-limit';
 import { serialiseOrder } from '@/lib/serializers';
-import { createOrderSchema } from '@/lib/validation';
 
 export const runtime = 'nodejs';
 
@@ -31,35 +25,8 @@ export const GET = route(async (request) => {
 });
 
 export const POST = route(async (request) => {
-  rateLimitByIp(request, 'orders:create', { limit: 60, windowMs: 60_000 });
-  const user = await requireUser(request);
-  rateLimit(`orders:create:${user.uid}`, { limit: 10, windowMs: 60_000 });
-
-  const input = await readJson(request, createOrderSchema);
-  if (input.paymentMethod === 'PAYSTACK') {
-    throw new HttpError(400, 'Start Paystack payments through the secure payment endpoint.');
-  }
-  const { order, created } = await createOrder(user, input, readIdempotencyKey(request));
-
-  if (created) {
-    after(async () => {
-      await Promise.allSettled([
-        sendOrderConfirmationEmail(order),
-        rememberCheckoutDetails(user, {
-          name: input.customerName,
-          phone: input.customerPhone,
-        }),
-      ]);
-    });
-  }
-
-  return jsonResponse(
-    {
-      message: created ? 'Order created successfully.' : 'Order already placed.',
-      order: serialiseOrder(order, 'owner'),
-    },
-    { status: created ? 201 : 200, headers: privateNoStoreHeaders },
-  );
+  await requireUser(request);
+  throw new HttpError(410, 'Payment on delivery is no longer available. Update the app to pay online.');
 });
 
 export const OPTIONS = preflight;

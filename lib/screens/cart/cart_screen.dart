@@ -109,7 +109,9 @@ class CartScreen extends StatelessWidget {
           Row(
             children: [
               Icon(
-                remaining > 0 ? Icons.local_shipping_outlined : Icons.local_shipping,
+                remaining > 0
+                    ? Icons.local_shipping_outlined
+                    : Icons.local_shipping,
                 size: 16,
                 color: remaining > 0 ? AppTheme.textMed : AppTheme.success,
               ),
@@ -122,7 +124,8 @@ class CartScreen extends StatelessWidget {
                   style: GoogleFonts.kumbhSans(
                     fontSize: 12,
                     color: remaining > 0 ? AppTheme.textMed : AppTheme.success,
-                    fontWeight: remaining > 0 ? FontWeight.w400 : FontWeight.w600,
+                    fontWeight:
+                        remaining > 0 ? FontWeight.w400 : FontWeight.w600,
                   ),
                 ),
               ),
@@ -139,7 +142,8 @@ class CartScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          _summaryRow('Subtotal (${state.totalItems} items)', formatMoney(state.subtotal)),
+          _summaryRow('Subtotal (${state.totalItems} items)',
+              formatMoney(state.subtotal)),
           _summaryRow(
             'Shipping',
             state.shippingFee == 0 ? 'Free' : formatMoney(state.shippingFee),
@@ -182,7 +186,8 @@ class CartScreen extends StatelessWidget {
               padding: const EdgeInsets.only(top: 8),
               child: Text(
                 'Remove out-of-stock items to continue.',
-                style: GoogleFonts.kumbhSans(color: AppTheme.error, fontSize: 12),
+                style:
+                    GoogleFonts.kumbhSans(color: AppTheme.error, fontSize: 12),
               ),
             ),
         ],
@@ -197,7 +202,8 @@ class CartScreen extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label,
-              style: GoogleFonts.kumbhSans(fontSize: 13, color: AppTheme.textMed)),
+              style:
+                  GoogleFonts.kumbhSans(fontSize: 13, color: AppTheme.textMed)),
           Text(value,
               style: GoogleFonts.kumbhSans(
                   fontSize: 13, fontWeight: FontWeight.w600)),
@@ -260,7 +266,9 @@ class CartScreen extends StatelessWidget {
       return;
     }
 
-    context.read<CartBloc>().add(const ClearCart());
+    if (order.paymentStatus == 'PAID') {
+      context.read<CartBloc>().add(const ClearCart());
+    }
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -292,7 +300,8 @@ class _CartItemCard extends StatelessWidget {
           color: AppTheme.error.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
         ),
-        child: const Icon(Icons.delete_outline, color: AppTheme.error, size: 28),
+        child:
+            const Icon(Icons.delete_outline, color: AppTheme.error, size: 28),
       ),
       child: GestureDetector(
         onTap: () => openProduct(context, item.product),
@@ -370,7 +379,8 @@ class _CartItemCard extends StatelessWidget {
                     item.quantity >= AppConfig.maxQuantityPerLine
                         ? null
                         : () => context.read<CartBloc>().add(
-                              UpdateCartQuantity(item.lineKey, item.quantity + 1),
+                              UpdateCartQuantity(
+                                  item.lineKey, item.quantity + 1),
                             ),
                   ),
                   Padding(

@@ -92,11 +92,12 @@ test('ownership uses uid, or verified email for legacy orders', () => {
 });
 
 test('public tracking view hides personal details', () => {
-  const view = serialiseOrder(order(), 'public');
+  const view = serialiseOrder(order({ paymentAuthorizationUrl: 'https://checkout.paystack.com/test' }), 'public');
   assert.equal(view.isRedacted, true);
   assert.equal(view.customerName, 'Ama');
   assert.equal(view.customerPhone, '••• ••• 687');
   assert.equal(view.customerEmail, null);
+  assert.equal(view.paymentAuthorizationUrl, null);
   assert.equal(view.deliveryAddress, null);
   assert.equal(view.notes, null);
   assert.equal(view.canCancel, false);
@@ -105,11 +106,12 @@ test('public tracking view hides personal details', () => {
 });
 
 test('owner view exposes details and actions', () => {
-  const view = serialiseOrder(order(), 'owner');
+  const view = serialiseOrder(order({ paymentAuthorizationUrl: 'https://checkout.paystack.com/test' }), 'owner');
   assert.equal(view.isRedacted, false);
   assert.equal(view.deliveryAddress, '12 Oxford St, Osu');
   assert.equal(view.canCancel, true);
   assert.equal(view.canRequestReturn, false);
+  assert.equal(view.paymentAuthorizationUrl, 'https://checkout.paystack.com/test');
 });
 
 test('a paid Paystack order cannot be self-cancelled', () => {

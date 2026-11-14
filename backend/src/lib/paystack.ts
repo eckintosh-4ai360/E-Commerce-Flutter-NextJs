@@ -1,6 +1,7 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
 import { HttpError } from './errors';
+import { getSiteBaseUrl } from './http';
 import { getPrisma } from './prisma';
 import { orderInclude, trackingCodeFor, type OrderWithRelations } from './serializers';
 import { storeConfig } from './store-config';
@@ -87,6 +88,89 @@ export function paystackCheckoutForOrder(order: OrderWithRelations) {
     currency: storeConfig.currencyCode,
     reference: order.paymentReference,
     trackingCode: order.trackingCode ?? trackingCodeFor(order.id),
+  };
+}
+
+export function readHostedCheckoutUrl(value: unknown, expectedReference: string) {
+  const response = value as {
+    status?: boolean;
+    data?: { authorization_url?: string; reference?: string };
+  } | null;
+  const urlText = response?.data?.authorization_url;
+  if (
+    response?.status !== true ||
+    response.data?.reference !== expectedReference ||
+    typeof urlText !== 'string'
+  ) {
+    throw new HttpError(502, 'Paystack could not start this payment. Please try again.');
+  }
+  try {
+    const url = new URL(urlText);
+    if (
+      url.protocol === 'https:' &&
+      url.hostname === 'checkout.paystack.com' &&
+      !url.port &&
+      !url.username &&
+      !url.password
+    ) {
+      return urlText;
+    }
+  } catch {
+    // The gateway response must be a valid HTTPS checkout URL.
+  }
+  throw new HttpError(502, 'Paystack could not start this payment. Please try again.');
+}
+
+/** Opens a Paystack-hosted checkout for mobile clients without exposing the secret key. */
+export async function hostedPaystackCheckoutForOrder(order: OrderWithRelations) {
+  const checkout = paystackCheckoutForOrder(order);
+  if (order.paymentAuthorizationUrl) {
+    return {
+      authorizationUrl: order.paymentAuthorizationUrl,
+      trackingCode: checkout.trackingCode,
+    };
+  }
+
+  let response: Response;
+  try {
+    response = await fetch('https://api.paystack.co/transaction/initialize', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${getPaystackLiveSecret()}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: checkout.email,
+        amount: checkout.amount,
+        currency: checkout.currency,
+        reference: checkout.reference,
+        callback_url: `${getSiteBaseUrl()}/api/payments/paystack/callback?source=app`,
+        channels: ['card', 'mobile_money'],
+      }),
+      signal: AbortSignal.timeout(15_000),
+      cache: 'no-store',
+    });
+  } catch {
+    throw new HttpError(503, 'Paystack is unavailable right now. Please try again.');
+  }
+
+  const result: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    throw new HttpError(502, 'Paystack could not start this payment. Please try again.');
+  }
+  const authorizationUrl = readHostedCheckoutUrl(result, checkout.reference);
+
+  await getPrisma().order.updateMany({
+    where: { id: order.id, paymentAuthorizationUrl: null },
+    data: { paymentAuthorizationUrl: authorizationUrl },
+  });
+  const saved = await getPrisma().order.findUniqueOrThrow({
+    where: { id: order.id },
+    select: { paymentAuthorizationUrl: true },
+  });
+  return {
+    authorizationUrl: saved.paymentAuthorizationUrl ?? authorizationUrl,
+    trackingCode: checkout.trackingCode,
   };
 }
 

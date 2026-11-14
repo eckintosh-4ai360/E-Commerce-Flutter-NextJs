@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     'Accra online store',
     'Kumasi delivery',
     'e-commerce Ghana',
-    'pay on delivery Ghana',
+    'online payment Ghana',
     'Mobile Money shopping',
     'electronics shop Accra',
     'fashion Ghana',

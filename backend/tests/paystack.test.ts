@@ -5,6 +5,7 @@ import { test } from 'node:test';
 import {
   isPaystackWebhookPayment,
   paystackReferenceForOrder,
+  readHostedCheckoutUrl,
   toPaystackAmount,
   verifyPaystackSignature,
 } from '@/lib/paystack';
@@ -19,6 +20,25 @@ test('Paystack order references are deterministic and gateway-safe', () => {
     paystackReferenceForOrder('cm1234567890abcdefghijkl'),
     'globacart-cm1234567890abcdefghijkl',
   );
+});
+
+test('hosted checkout accepts only the expected Paystack URL and reference', () => {
+  const reference = 'globacart-cm1234567890abcdefghijkl';
+  const valid = {
+    status: true,
+    data: { reference, authorization_url: 'https://checkout.paystack.com/abc123' },
+  };
+  assert.equal(readHostedCheckoutUrl(valid, reference), valid.data.authorization_url);
+  for (const invalid of [
+    { ...valid, data: { ...valid.data, reference: 'other' } },
+    { ...valid, data: { ...valid.data, authorization_url: 'http://checkout.paystack.com/abc123' } },
+    { ...valid, data: { ...valid.data, authorization_url: 'https://checkout.paystack.com.evil.test/a' } },
+    { ...valid, data: { ...valid.data, authorization_url: 'https://checkout.paystack.com:444/a' } },
+    { ...valid, status: false },
+    null,
+  ]) {
+    assert.throws(() => readHostedCheckoutUrl(invalid, reference));
+  }
 });
 
 test('Paystack webhook signatures must match the raw request body', () => {

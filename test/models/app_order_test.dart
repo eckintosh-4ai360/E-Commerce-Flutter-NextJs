@@ -13,6 +13,7 @@ Map<String, dynamic> orderJson([Map<String, dynamic> overrides = const {}]) => {
       'shippingFee': 25,
       'total': 175,
       'paymentMethod': 'MOBILE_MONEY',
+      'paymentStatus': 'PAY_ON_DELIVERY',
       'customerName': 'Ama',
       'customerPhone': '••• ••• 687',
       'customerEmail': null,
@@ -65,13 +66,27 @@ void main() {
       ..remove('trackingCode')
       ..remove('events')
       ..remove('paymentMethod')
+      ..remove('paymentStatus')
       ..remove('isRedacted')
       ..remove('returnRequests');
     final order = AppOrder.fromJson(json);
     expect(order.trackingCode, 'I789JKL0MN');
     expect(order.events.single.status, 'PENDING');
-    expect(order.paymentMethod, 'CASH_ON_DELIVERY');
+    expect(order.paymentMethod, 'PAYSTACK');
+    expect(order.paymentStatus, 'PENDING');
     expect(order.isRedacted, isFalse);
+  });
+
+  test('parses an online payment awaiting confirmation', () {
+    final order = AppOrder.fromJson(orderJson({
+      'paymentMethod': 'PAYSTACK',
+      'paymentStatus': 'PENDING',
+      'paymentAuthorizationUrl': 'https://checkout.paystack.com/example',
+    }));
+    expect(paymentMethodLabel(order.paymentMethod), 'Paystack online payment');
+    expect(order.paymentStatus, 'PENDING');
+    expect(
+        order.paymentAuthorizationUrl, 'https://checkout.paystack.com/example');
   });
 
   test('parses owner actions and return requests', () {

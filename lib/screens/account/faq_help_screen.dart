@@ -26,7 +26,7 @@ const _faqs = [
   ),
   (
     'How do I pay?',
-    'You pay on delivery, either in cash or with Mobile Money (MTN, Telecel or AirtelTigo). We never ask for card details.',
+    'At checkout, pay online by card or Mobile Money through Paystack. We never store your card details or Mobile Money PIN.',
   ),
   (
     'Can I cancel my order?',

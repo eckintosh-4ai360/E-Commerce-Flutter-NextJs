@@ -20,7 +20,7 @@ test('a valid order is normalised', () => {
   const parsed = createOrderSchema.parse(validOrder);
   assert.equal(parsed.customerName, 'Ama Mensah');
   assert.equal(parsed.customerPhone, '059 859 9687');
-  assert.equal(parsed.paymentMethod, 'CASH_ON_DELIVERY');
+  assert.equal(parsed.paymentMethod, 'PAYSTACK');
   assert.equal(parsed.items[0].selectedColor, null);
   assert.equal(parsed.notes, null);
 });
@@ -41,13 +41,21 @@ test('orders need a delivery address and at least one item', () => {
   );
 });
 
-test('Paystack is allowed at checkout but not stored as an on-delivery preference', () => {
+test('only Paystack can be used for new orders and payment preferences', () => {
   assert.equal(
     createOrderSchema.safeParse({ ...validOrder, paymentMethod: 'PAYSTACK' }).success,
     true,
   );
   assert.equal(
     updateProfileSchema.safeParse({ preferredPaymentMethod: 'PAYSTACK' }).success,
+    true,
+  );
+  assert.equal(
+    createOrderSchema.safeParse({ ...validOrder, paymentMethod: 'CASH_ON_DELIVERY' }).success,
+    false,
+  );
+  assert.equal(
+    updateProfileSchema.safeParse({ preferredPaymentMethod: 'CASH_ON_DELIVERY' }).success,
     false,
   );
   assert.equal(

@@ -177,6 +177,7 @@ export function serialiseOrder(
     paymentMethod: order.paymentMethod,
     paymentStatus: order.paymentStatus,
     paymentReference: isPublic ? null : order.paymentReference,
+    paymentAuthorizationUrl: isPublic ? null : order.paymentAuthorizationUrl,
     paidAt: order.paidAt?.toISOString() ?? null,
     customerName: isPublic ? firstName(order.customerName) : order.customerName,
     customerPhone: isPublic ? maskPhone(order.customerPhone) : order.customerPhone,

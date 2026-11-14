@@ -7,20 +7,20 @@ import { storeConfig } from '@/lib/store-config';
 
 export const metadata: Metadata = {
   title: 'FAQ & Help Center',
-  description: `Answers about delivery fees, payment on delivery, Paystack, returns and order tracking at ${storeConfig.name}.`,
+  description: `Answers about delivery fees, online Paystack payment, returns and order tracking at ${storeConfig.name}.`,
   alternates: {
     canonical: '/help',
   },
   openGraph: {
     title: `FAQ & Help Center · ${storeConfig.name}`,
-    description: `Answers about delivery fees, payment on delivery, Paystack, returns and order tracking at ${storeConfig.name}.`,
+    description: `Answers about delivery fees, online Paystack payment, returns and order tracking at ${storeConfig.name}.`,
     url: '/help',
     type: 'website',
   },
   twitter: {
     card: 'summary',
     title: `FAQ & Help Center · ${storeConfig.name}`,
-    description: `Answers about delivery fees, payment on delivery, Paystack, returns and order tracking at ${storeConfig.name}.`,
+    description: `Answers about delivery fees, online Paystack payment, returns and order tracking at ${storeConfig.name}.`,
   },
 };
 

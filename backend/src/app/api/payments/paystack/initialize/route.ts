@@ -29,7 +29,7 @@ export const POST = route(async (request) => {
   if (!user.email) {
     throw new HttpError(
       400,
-      'Paystack requires an email address. Sign in with an account that has an email address or choose payment on delivery.',
+      'Paystack requires an email address. Sign in with an account that has an email address.',
     );
   }
 

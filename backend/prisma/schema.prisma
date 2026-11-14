@@ -74,7 +74,7 @@ model Customer {
   email                  String?
   name                   String?
   phone                  String?
-  preferredPaymentMethod PaymentMethod  @default(CASH_ON_DELIVERY)
+  preferredPaymentMethod PaymentMethod  @default(PAYSTACK)
   createdAt              DateTime       @default(now())
   updatedAt              DateTime       @updatedAt
   addresses              Address[]
@@ -121,8 +121,8 @@ model Order {
   customerPhone           String
   deliveryAddress         String?
   notes                   String?
-  paymentMethod           PaymentMethod   @default(CASH_ON_DELIVERY)
-  paymentStatus           PaymentStatus   @default(PAY_ON_DELIVERY)
+  paymentMethod           PaymentMethod   @default(PAYSTACK)
+  paymentStatus           PaymentStatus   @default(PENDING)
   paymentReference        String?
   paymentAuthorizationUrl String?
   // True when stock quantities were reserved for this order. It lets a

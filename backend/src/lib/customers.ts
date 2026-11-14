@@ -15,6 +15,7 @@ export async function ensureCustomer(user: AuthenticatedUser) {
     if (existing.email !== user.email) data.email = user.email;
     if (!existing.phone && user.phone) data.phone = user.phone;
     if (!existing.name && user.name) data.name = user.name;
+    if (existing.preferredPaymentMethod !== 'PAYSTACK') data.preferredPaymentMethod = 'PAYSTACK';
     return Object.keys(data).length === 0
       ? existing
       : prisma.customer.update({ where: { uid: user.uid }, data });
@@ -22,7 +23,13 @@ export async function ensureCustomer(user: AuthenticatedUser) {
 
   try {
     return await prisma.customer.create({
-      data: { uid: user.uid, email: user.email, phone: user.phone, name: user.name },
+      data: {
+        uid: user.uid,
+        email: user.email,
+        phone: user.phone,
+        name: user.name,
+        preferredPaymentMethod: 'PAYSTACK',
+      },
     });
   } catch (error) {
     // Two first requests raced; the other one created the row.

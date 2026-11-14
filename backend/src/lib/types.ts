@@ -74,6 +74,7 @@ export type OrderView = {
   paymentMethod: PaymentMethod;
   paymentStatus: PaymentStatus;
   paymentReference: string | null;
+  paymentAuthorizationUrl: string | null;
   paidAt: string | null;
   customerName: string;
   customerPhone: string;

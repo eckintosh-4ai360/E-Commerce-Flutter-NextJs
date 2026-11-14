@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../blocs/auth/auth_cubit.dart';
 import '../blocs/cart/cart_bloc.dart';
@@ -40,7 +41,6 @@ class _CheckoutSheetState extends State<CheckoutSheet> {
   final _notesController = TextEditingController();
 
   String _region = ghanaRegions.first;
-  String _paymentMethod = 'CASH_ON_DELIVERY';
   String? _addressId; // null = new address
   bool _saveAddress = true;
   List<DeliveryAddress> _addresses = const [];
@@ -94,7 +94,6 @@ class _CheckoutSheetState extends State<CheckoutSheet> {
       setState(() {
         _addresses = addresses;
         _addressId = preferred?.id;
-        _paymentMethod = profile.preferredPaymentMethod;
         if (_nameController.text.trim().isEmpty) {
           _nameController.text = profile.name ?? user.displayName ?? '';
         }
@@ -140,7 +139,13 @@ class _CheckoutSheetState extends State<CheckoutSheet> {
   Future<void> _submitOrder(CartState cart) async {
     final authState = context.read<AuthCubit>().state;
     if (!authState.isAuthenticated) {
-      setState(() => _errorMessage = 'Sign in with Google to continue to checkout.');
+      setState(
+          () => _errorMessage = 'Sign in with Google to continue to checkout.');
+      return;
+    }
+    if (authState.user?.email.isEmpty ?? true) {
+      setState(() =>
+          _errorMessage = 'An email address is required for online payment.');
       return;
     }
     final problem = _validate();
@@ -166,7 +171,8 @@ class _CheckoutSheetState extends State<CheckoutSheet> {
     if (selected == null && _saveAddress) {
       // Saving the address must never block the order itself.
       unawaited(accountService.saveAddress({
-        'label': _addresses.isEmpty ? 'Home' : 'Address ${_addresses.length + 1}',
+        'label':
+            _addresses.isEmpty ? 'Home' : 'Address ${_addresses.length + 1}',
         'recipientName': name,
         'phone': phone,
         'street': _streetController.text.trim(),
@@ -176,20 +182,27 @@ class _CheckoutSheetState extends State<CheckoutSheet> {
     }
 
     try {
-      final order = await orderService.createOrder(
+      final checkout = await orderService.initializePayment(
         requestId: _requestId,
         customerName: name,
         customerPhone: phone,
         deliveryAddress: deliveryAddress,
-        paymentMethod: _paymentMethod,
         notes: _notesController.text.trim().isEmpty
             ? null
             : _notesController.text.trim(),
         items: cart.items,
         expectedTotal: cart.total,
       );
+      final opened = await launchUrl(
+        Uri.parse(checkout.authorizationUrl),
+        mode: LaunchMode.externalApplication,
+      );
+      if (!opened) {
+        throw StateError(
+            'Could not open the Paystack payment page. Please try again.');
+      }
       if (!mounted) return;
-      Navigator.pop<AppOrder>(context, order);
+      Navigator.pop<AppOrder>(context, checkout.order);
     } on ApiException catch (error) {
       if (error.isConflict) {
         // Prices or stock changed: reload so the cart shows current values.
@@ -220,8 +233,9 @@ class _CheckoutSheetState extends State<CheckoutSheet> {
       },
       child: BlocBuilder<CartBloc, CartState>(
         builder: (context, cart) {
-          final signature =
-              cart.items.map((item) => '${item.lineKey}x${item.quantity}').join(',');
+          final signature = cart.items
+              .map((item) => '${item.lineKey}x${item.quantity}')
+              .join(',');
           if (signature != _cartSignature) {
             _cartSignature = signature;
             _requestId = _newRequestId();
@@ -270,7 +284,8 @@ class _CheckoutSheetState extends State<CheckoutSheet> {
                       _sectionTitle('Delivery address'),
                       RadioGroup<String?>(
                         groupValue: _addressId,
-                        onChanged: (value) => setState(() => _addressId = value),
+                        onChanged: (value) =>
+                            setState(() => _addressId = value),
                         child: Column(
                           children: [
                             ..._addresses.map(_addressOption),
@@ -286,13 +301,15 @@ class _CheckoutSheetState extends State<CheckoutSheet> {
                         ),
                       ),
                       if (_selectedAddress == null) ...[
-                        _buildField(_streetController, 'Street address or landmark'),
+                        _buildField(
+                            _streetController, 'Street address or landmark'),
                         const SizedBox(height: 12),
                         _buildField(_cityController, 'City or town'),
                         const SizedBox(height: 12),
                         DropdownButtonFormField<String>(
                           initialValue: _region,
-                          decoration: const InputDecoration(labelText: 'Region'),
+                          decoration:
+                              const InputDecoration(labelText: 'Region'),
                           items: ghanaRegions
                               .map((region) => DropdownMenuItem(
                                   value: region, child: Text(region)))
@@ -312,25 +329,10 @@ class _CheckoutSheetState extends State<CheckoutSheet> {
                       ],
                       const SizedBox(height: 12),
                       _sectionTitle('Payment'),
-                      RadioGroup<String>(
-                        groupValue: _paymentMethod,
-                        onChanged: (value) => setState(
-                            () => _paymentMethod = value ?? _paymentMethod),
-                        child: Column(
-                          children: paymentMethodOptions
-                              .map(
-                                (option) => RadioListTile<String>(
-                                  contentPadding: EdgeInsets.zero,
-                                  value: option.value,
-                                  title: Text(option.label,
-                                      style: GoogleFonts.kumbhSans(
-                                          fontWeight: FontWeight.w600)),
-                                  subtitle: Text(option.description,
-                                      style: GoogleFonts.kumbhSans(fontSize: 12)),
-                                ),
-                              )
-                              .toList(),
-                        ),
+                      Text(
+                        'Pay securely online by card or Mobile Money through Paystack.',
+                        style: GoogleFonts.kumbhSans(
+                            fontSize: 13, color: AppTheme.textMed),
                       ),
                       const SizedBox(height: 8),
                       _buildField(_notesController, 'Order notes (optional)',
@@ -394,16 +396,16 @@ class _CheckoutSheetState extends State<CheckoutSheet> {
                             : () => _submitOrder(cart),
                         child: Text(
                           _isSubmitting
-                              ? 'PLACING ORDER...'
+                              ? 'OPENING PAYSTACK...'
                               : authState.isAuthenticated
-                                  ? 'PLACE ORDER · ${formatMoney(cart.total)}'
+                                  ? 'MAKE PAYMENT · ${formatMoney(cart.total)}'
                                   : 'SIGN IN TO CONTINUE',
                         ),
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'You pay on delivery by cash or Mobile Money.',
+                      'Paystack will open a secure payment page. Your order stays pending until payment is confirmed.',
                       style: GoogleFonts.kumbhSans(
                           fontSize: 12, color: AppTheme.textMed),
                     ),

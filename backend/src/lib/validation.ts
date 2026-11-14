@@ -2,7 +2,6 @@ import { z } from 'zod';
 
 import {
   orderStatuses,
-  paymentOnDeliveryMethods,
   paymentMethods,
   returnReasons,
   returnStatuses,
@@ -12,11 +11,6 @@ import {
 const paymentMethodValues = paymentMethods.map((method) => method.value) as [
   (typeof paymentMethods)[number]['value'],
   ...(typeof paymentMethods)[number]['value'][],
-];
-
-const paymentPreferenceValues = paymentOnDeliveryMethods.map((method) => method.value) as [
-  (typeof paymentOnDeliveryMethods)[number]['value'],
-  ...(typeof paymentOnDeliveryMethods)[number]['value'][],
 ];
 
 function text(label: string, min: number, max: number) {
@@ -60,7 +54,7 @@ export const createOrderSchema = z.object({
   notes: optionalText('Order notes', 500),
   paymentMethod: z
     .enum(paymentMethodValues, { error: 'Choose a valid payment method.' })
-    .default('CASH_ON_DELIVERY'),
+    .default('PAYSTACK'),
   expectedTotal: z.number().nonnegative().finite().optional(),
   items: z
     .array(
@@ -98,7 +92,7 @@ export const updateProfileSchema = z.object({
     .union([phoneSchema, z.literal('').transform(() => null), z.null()])
     .optional(),
   preferredPaymentMethod: z
-    .enum(paymentPreferenceValues, { error: 'Choose a valid payment method.' })
+    .literal('PAYSTACK', { error: 'Only online payment is available.' })
     .optional(),
 });
 

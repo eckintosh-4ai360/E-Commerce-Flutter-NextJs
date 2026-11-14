@@ -19,27 +19,13 @@ const ghanaRegions = [
   'Ahafo',
 ];
 
-const paymentMethodOptions = [
-  (
-    value: 'CASH_ON_DELIVERY',
-    label: 'Cash on delivery',
-    description: 'Pay the rider in cash when your order arrives.',
-  ),
-  (
-    value: 'MOBILE_MONEY',
-    label: 'Mobile Money on delivery',
-    description:
-        'Pay with MTN, Telecel or AirtelTigo MoMo when your order arrives.',
-  ),
-];
-
 class CustomerProfile extends Equatable {
   const CustomerProfile({
     required this.uid,
     required this.email,
     this.name,
     this.phone,
-    this.preferredPaymentMethod = 'CASH_ON_DELIVERY',
+    this.preferredPaymentMethod = 'PAYSTACK',
   });
 
   final String uid;
@@ -55,7 +41,7 @@ class CustomerProfile extends Equatable {
         name: json['name'] as String?,
         phone: json['phone'] as String?,
         preferredPaymentMethod:
-            json['preferredPaymentMethod'] as String? ?? 'CASH_ON_DELIVERY',
+            json['preferredPaymentMethod'] as String? ?? 'PAYSTACK',
       );
 
   @override

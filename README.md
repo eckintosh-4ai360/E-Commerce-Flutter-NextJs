@@ -18,7 +18,7 @@ A full-stack Ghanaian e-commerce store. Customers can shop in the **Flutter mobi
 - **Shop anywhere**: the website mirrors the app; signing in with the same Google account syncs the wishlist, addresses, profile, orders and returns.
 - **Catalogue**: categories, search, sort, price/colour/size filters, sale / new / best-seller collections, product pages with colour, size and quantity selection, sharing.
 - **Cart**: per-variant lines, saved on the device, prices refreshed from the live catalogue, free-shipping progress.
-- **Checkout**: Google sign-in, saved addresses, cash or Mobile Money on delivery, server-side pricing, protection against duplicate submissions and price changes.
+- **Checkout**: Google sign-in, saved addresses, online card or Mobile Money payment through Paystack, server-side pricing, protection against duplicate submissions and price changes.
 - **After purchase**: confirmation and status emails, order timeline, public tracking by code (personal details hidden), cancel while pending, return requests within 14 days, buy again.
 - **Admin**: dashboard, paginated order search, status updates with customer notes and emails, product management (products that appear in orders are archived, not deleted), return handling.
 
@@ -67,12 +67,16 @@ Key settings in `backend/.env` (all are documented in `.env.example`):
 | `DATABASE_URL`, `DIRECT_URL` | Everything |
 | `ADMIN_EMAILS` | Signing in to `/admin` (comma-separated Google emails) |
 | `PUBLIC_APP_URL` | Absolute image URLs, email links, sitemap (set it in production) |
+| `PAYSTACK_SECRET_KEY`, `PAYSTACK_PUBLIC_KEY` | Required for online checkout; use matching live keys in production |
+| Paystack webhook | Set to `https://<your-domain>/api/payments/paystack/webhook` in Paystack's dashboard so payments can be confirmed |
 | `FIREBASE_ADMIN_PROJECT_ID` | Verifying sign-ins (defaults to this project) |
 | `RESEND_API_KEY`, `ORDER_EMAIL_FROM` | Order emails (skipped when unset) |
 | `CLOUDINARY_*` | Image uploads in the admin |
 | `NEXT_PUBLIC_ANDROID_APP_URL`, `NEXT_PUBLIC_IOS_APP_URL` | "Get the app" links on the website |
 
 For Google sign-in on the website, add your domain (for example `localhost` and your production domain) in Firebase Console → Authentication → Settings → Authorized domains.
+
+The Flutter app opens a Paystack-hosted payment page. Set `PUBLIC_APP_URL` to a public HTTPS URL so Paystack can return customers to the order tracking page after payment. Orders stay pending until the signed Paystack webhook confirms payment.
 
 ### Deploying the website to Vercel
 
@@ -164,7 +168,7 @@ flutter test
 
 ## Roadmap
 
-- [ ] Online payments (Paystack / Flutterwave)
+- [x] Online payments through Paystack
 - [ ] Push notifications for order updates
 - [ ] Stock quantities per product and variant
 - [ ] AI recommendations

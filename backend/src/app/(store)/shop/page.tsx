@@ -40,7 +40,7 @@ export async function generateMetadata({ searchParams }: ShopPageProps): Promise
     ? `/shop?category=${encodeURIComponent(filters.category)}`
     : '/shop';
   const description = filters.category
-    ? `Explore ${filters.category.toLowerCase()} at ${storeConfig.name}. Enjoy fast delivery across Accra and nationwide Ghana, with Mobile Money and Pay on Delivery.`
+    ? `Explore ${filters.category.toLowerCase()} at ${storeConfig.name}. Enjoy fast delivery across Accra and nationwide Ghana, with secure online card or Mobile Money payment.`
     : `Browse high-quality products across all categories at ${storeConfig.name}. Dependable delivery and authentic goods in Ghana.`;
 
   const shouldNoindex = Boolean(filters.search || hasRefinements(filters));

@@ -49,7 +49,7 @@ export default function TermsPage() {
           id: 'orders-and-payment',
           title: 'Orders and payment',
           children: <>
-            <p>An order is subject to acceptance and stock availability. Paystack payments are complete only when Paystack confirms them. For payment on delivery, payment is due when the order arrives.</p>
+            <p>An order is subject to acceptance and stock availability. Payment is made online through Paystack. We prepare orders only after Paystack confirms payment.</p>
             <p>Do not share your payment PIN, OTP or card details with anyone claiming to represent GlobaCart GH.</p>
           </>,
         },

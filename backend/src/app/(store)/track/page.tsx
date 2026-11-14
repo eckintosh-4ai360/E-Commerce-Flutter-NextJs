@@ -14,12 +14,12 @@ export default async function TrackPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const { code } = await searchParams;
+  const { code, payment } = await searchParams;
   const initialCode = typeof code === 'string' ? code.slice(0, 40) : '';
 
   return (
     <div className="container narrow" style={{ maxWidth: 1000 }}>
-      <TrackOrderView initialCode={initialCode} />
+      <TrackOrderView initialCode={initialCode} paymentError={payment === 'error'} />
     </div>
   );
 }
