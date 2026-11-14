@@ -8,6 +8,18 @@ import { storeConfig } from '@/lib/store-config';
 export const metadata: Metadata = {
   title: 'Get the app',
   description: `Download the ${storeConfig.name} app for Android and iPhone, or keep shopping on the web.`,
+  alternates: { canonical: '/get-the-app' },
+  openGraph: {
+    title: `Get the app · ${storeConfig.name}`,
+    description: `Download the ${storeConfig.name} app for Android and iPhone, or keep shopping on the web.`,
+    url: '/get-the-app',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary',
+    title: `Get the app · ${storeConfig.name}`,
+    description: `Download the ${storeConfig.name} app for Android and iPhone, or keep shopping on the web.`,
+  },
 };
 
 const perks = [

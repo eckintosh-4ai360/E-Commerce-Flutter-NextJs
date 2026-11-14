@@ -5,7 +5,19 @@ import { storeConfig } from '@/lib/store-config';
 
 export const metadata: Metadata = {
   title: 'Terms & Conditions',
-  description: `The terms for shopping with ${storeConfig.name}.`,
+  description: `The terms for shopping, payment, delivery and returns with ${storeConfig.name}.`,
+  alternates: { canonical: '/terms' },
+  openGraph: {
+    title: `Terms & Conditions · ${storeConfig.name}`,
+    description: `The terms for shopping, payment, delivery and returns with ${storeConfig.name}.`,
+    url: '/terms',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary',
+    title: `Terms & Conditions · ${storeConfig.name}`,
+    description: `The terms for shopping, payment, delivery and returns with ${storeConfig.name}.`,
+  },
 };
 
 const lastUpdated = '26 October 2026';

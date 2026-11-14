@@ -5,6 +5,7 @@ export const storeConfig = {
   name: 'GlobaCart GH',
   shortName: 'GlobaCart',
   tagline: 'Shop Global, Pay Local',
+  siteUrl: 'https://www.globacartgh.com',
   description:
     'Global finds, local convenience and dependable delivery across Ghana.',
   currencyCode: 'GHS',

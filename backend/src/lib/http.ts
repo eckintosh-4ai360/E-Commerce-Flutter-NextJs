@@ -144,6 +144,8 @@ export function getClientIp(request: Request) {
   );
 }
 
+export const DEFAULT_SITE_URL = 'https://www.globacartgh.com';
+
 /** The configured public URL of this deployment, if any. */
 export function getPublicBaseUrl() {
   const configured =
@@ -160,6 +162,26 @@ export function getPublicBaseUrl() {
   } catch {
     return null;
   }
+}
+
+/**
+ * Returns a guaranteed absolute base URL for canonical tags, OpenGraph,
+ * sitemaps, and Schema.org structured data.
+ * In production, it guards against accidental localhost URLs and guarantees
+ * the live canonical domain.
+ */
+export function getSiteBaseUrl(): string {
+  const publicUrl = getPublicBaseUrl();
+  const isLocal = !publicUrl || publicUrl.includes('localhost') || publicUrl.includes('127.0.0.1');
+
+  if (process.env.NODE_ENV === 'production') {
+    if (publicUrl && !isLocal) {
+      return publicUrl;
+    }
+    return DEFAULT_SITE_URL;
+  }
+
+  return publicUrl || 'http://localhost:3000';
 }
 
 export function parseIntParam(value: string, label = 'id') {

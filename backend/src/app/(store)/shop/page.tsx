@@ -12,6 +12,7 @@ import {
   shopHref,
   type CatalogFilters,
 } from '@/lib/catalog-params';
+import { getSiteBaseUrl } from '@/lib/http';
 import { serialiseProduct } from '@/lib/serializers';
 import { storeConfig } from '@/lib/store-config';
 
@@ -35,11 +36,33 @@ function titleFor(filters: CatalogFilters) {
 export async function generateMetadata({ searchParams }: ShopPageProps): Promise<Metadata> {
   const filters = parseCatalogFilters(await searchParams);
   const title = titleFor(filters).replace(/[“”]/g, '"');
+  const canonicalPath = filters.category
+    ? `/shop?category=${encodeURIComponent(filters.category)}`
+    : '/shop';
+  const description = filters.category
+    ? `Explore ${filters.category.toLowerCase()} at ${storeConfig.name}. Enjoy fast delivery across Accra and nationwide Ghana, with Mobile Money and Pay on Delivery.`
+    : `Browse high-quality products across all categories at ${storeConfig.name}. Dependable delivery and authentic goods in Ghana.`;
+
+  const shouldNoindex = Boolean(filters.search || hasRefinements(filters));
+
   return {
-    title,
-    description: `Browse ${title.toLowerCase()} at ${storeConfig.name}.`,
-    alternates: { canonical: filters.category ? `/shop?category=${encodeURIComponent(filters.category)}` : '/shop' },
-    robots: filters.search || hasRefinements(filters) ? { index: false } : undefined,
+    title: `${title} · Online Shopping Ghana`,
+    description,
+    alternates: { canonical: canonicalPath },
+    robots: shouldNoindex
+      ? { index: false, follow: true }
+      : { index: true, follow: true },
+    openGraph: {
+      title: `${title} · ${storeConfig.name}`,
+      description,
+      url: canonicalPath,
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary',
+      title: `${title} · ${storeConfig.name}`,
+      description,
+    },
   };
 }
 
@@ -54,8 +77,60 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
   const items = products.map((product) => serialiseProduct(product, { absoluteImages: false }));
   const filterProps = { filters, colors: facets.colors, sizes: facets.sizes, maxPrice: facets.maxPrice };
 
+  const siteUrl = getSiteBaseUrl();
+  const canonicalPath = filters.category
+    ? `/shop?category=${encodeURIComponent(filters.category)}`
+    : '/shop';
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: `${siteUrl}/`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: filters.category ?? 'Shop',
+        item: `${siteUrl}${canonicalPath}`,
+      },
+    ],
+  };
+
+  const itemListSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: titleFor(filters),
+    numberOfItems: items.length,
+    itemListElement: items.slice(0, 24).map((product, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: product.name,
+      url: `${siteUrl}/product/${product.id}`,
+    })),
+  };
+
   return (
     <div className="container">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbSchema).replace(/</g, '\\u003c'),
+        }}
+      />
+      {items.length > 0 ? (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(itemListSchema).replace(/</g, '\\u003c'),
+          }}
+        />
+      ) : null}
+
       <h1 className="page-title">{titleFor(filters)}</h1>
       <p className="page-subtitle">Product categories</p>
 

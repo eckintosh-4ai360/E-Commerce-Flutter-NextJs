@@ -5,7 +5,19 @@ import { storeConfig } from '@/lib/store-config';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
-  description: `How ${storeConfig.name} collects, uses and protects personal information.`,
+  description: `How ${storeConfig.name} collects, uses and protects personal information in Ghana.`,
+  alternates: { canonical: '/privacy' },
+  openGraph: {
+    title: `Privacy Policy · ${storeConfig.name}`,
+    description: `How ${storeConfig.name} collects, uses and protects personal information in Ghana.`,
+    url: '/privacy',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary',
+    title: `Privacy Policy · ${storeConfig.name}`,
+    description: `How ${storeConfig.name} collects, uses and protects personal information in Ghana.`,
+  },
 };
 
 const lastUpdated = '26 October 2026';

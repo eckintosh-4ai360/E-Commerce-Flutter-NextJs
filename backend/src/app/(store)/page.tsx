@@ -1,4 +1,5 @@
 import { ArrowRight, BadgeCheck, Headset, RotateCcw, Truck } from 'lucide-react';
+import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -8,6 +9,7 @@ import { HomeProductTabs } from '@/components/store/HomeProductTabs';
 import { ProductCard } from '@/components/store/ProductCard';
 import { StoreBadges } from '@/components/store/StoreBadges';
 import { getActiveProducts, getCategories } from '@/lib/catalog';
+import { getSiteBaseUrl } from '@/lib/http';
 import { discountPercent } from '@/lib/money';
 import { serialiseProduct } from '@/lib/serializers';
 import { storeConfig } from '@/lib/store-config';
@@ -15,14 +17,109 @@ import { storeConfig } from '@/lib/store-config';
 // Rebuilt at most every 5 minutes, and immediately when the admin edits products.
 export const revalidate = 300;
 
+export const metadata: Metadata = {
+  title: `${storeConfig.name} — ${storeConfig.tagline} | Online Shopping Ghana`,
+  description:
+    'Discover global finds, pay local with Mobile Money or Cash on Delivery, and get dependable delivery across Accra and all of Ghana. Shop electronics, fashion, and home goods.',
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: `${storeConfig.name} — ${storeConfig.tagline}`,
+    description:
+      'Shop global, pay local with GlobaCart GH. Enjoy fast delivery across Accra and Ghana with Mobile Money or Pay on Delivery.',
+    url: '/',
+    type: 'website',
+    images: [
+      {
+        url: '/logo.jpeg',
+        width: 800,
+        height: 800,
+        alt: `${storeConfig.name} — ${storeConfig.tagline}`,
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: `${storeConfig.name} — ${storeConfig.tagline}`,
+    description:
+      'Shop global, pay local with GlobaCart GH. Fast delivery across Ghana with Mobile Money or Pay on Delivery.',
+    images: ['/logo.jpeg'],
+  },
+};
+
 export default async function HomePage() {
   const [products, categories] = await Promise.all([getActiveProducts(), getCategories()]);
   const items = products.map((product) => serialiseProduct(product, { absoluteImages: false }));
   const onSale = items.filter(
     (product) => discountPercent(product.price, product.originalPrice) !== null,
   );
+
+  const siteUrl = getSiteBaseUrl();
+
+  const websiteSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    '@id': `${siteUrl}/#website`,
+    url: siteUrl,
+    name: storeConfig.name,
+    description: storeConfig.description,
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: {
+        '@type': 'EntryPoint',
+        urlTemplate: `${siteUrl}/shop?search={search_term_string}`,
+      },
+      'query-input': 'required name=search_term_string',
+    },
+    inLanguage: 'en-GH',
+  };
+
+  const organizationSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'OnlineStore',
+    '@id': `${siteUrl}/#organization`,
+    name: storeConfig.name,
+    url: siteUrl,
+    logo: `${siteUrl}/logo.jpeg`,
+    image: `${siteUrl}/logo.jpeg`,
+    description: storeConfig.description,
+    telephone: storeConfig.supportPhone,
+    currenciesAccepted: storeConfig.currencyCode,
+    paymentAccepted: 'Cash, Mobile Money, Debit Card, Credit Card, Paystack',
+    priceRange: 'GH₵',
+    address: {
+      '@type': 'PostalAddress',
+      addressCountry: 'GH',
+      addressLocality: 'Accra',
+    },
+    contactPoint: [
+      {
+        '@type': 'ContactPoint',
+        telephone: storeConfig.supportPhone,
+        contactType: 'customer service',
+        areaServed: 'GH',
+        availableLanguage: ['English'],
+      },
+    ],
+    sameAs: storeConfig.socials.map((item) => item.href),
+  };
+
   return (
     <div className="container">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(websiteSchema).replace(/</g, '\\u003c'),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(organizationSchema).replace(/</g, '\\u003c'),
+        }}
+      />
+
       <section className="hero" aria-labelledby="hero-heading">
         <div className="hero__rings" aria-hidden="true" />
         <div className="hero__content">
@@ -59,32 +156,28 @@ export default async function HomePage() {
         <div>
           <Truck size={22} aria-hidden="true" />
           <span>
-            Flexible{' '}
-            <br />
+            Flexible <br />
             Delivery
           </span>
         </div>
         <div>
           <RotateCcw size={22} aria-hidden="true" />
           <span>
-            Easy{' '}
-            <br />
+            Easy <br />
             Returns
           </span>
         </div>
         <div>
           <BadgeCheck size={22} aria-hidden="true" />
           <span>
-            100%{' '}
-            <br />
+            100% <br />
             Authentic
           </span>
         </div>
         <div>
           <Headset size={22} aria-hidden="true" />
           <span>
-            24/7{' '}
-            <br />
+            24/7 <br />
             Support
           </span>
         </div>

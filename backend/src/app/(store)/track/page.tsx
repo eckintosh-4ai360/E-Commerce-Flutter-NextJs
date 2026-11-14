@@ -6,6 +6,7 @@ import { storeConfig } from '@/lib/store-config';
 export const metadata: Metadata = {
   title: 'Track your order',
   description: `Check the delivery status of your ${storeConfig.name} order.`,
+  robots: { index: false, follow: false },
 };
 
 export default async function TrackPage({

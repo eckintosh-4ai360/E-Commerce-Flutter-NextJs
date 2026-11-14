@@ -8,9 +8,9 @@ import { ProductGallery } from '@/components/store/ProductGallery';
 import { PurchasePanel } from '@/components/store/PurchasePanel';
 import { PriceRow, RatingStars } from '@/components/store/ui';
 import { getProduct, getRelatedProducts } from '@/lib/catalog';
-import { getPublicBaseUrl } from '@/lib/http';
+import { getSiteBaseUrl } from '@/lib/http';
 import { discountPercent, formatMoney, formatPrice } from '@/lib/money';
-import { productImagePaths, resolveImageUrl, serialiseProduct } from '@/lib/serializers';
+import { parseList, productImagePaths, resolveImageUrl, serialiseProduct } from '@/lib/serializers';
 import { storeConfig } from '@/lib/store-config';
 
 type ProductPageProps = { params: Promise<{ id: string }> };
@@ -34,16 +34,43 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   if (!product) {
     return { title: 'Product not found' };
   }
-  const image = resolveImageUrl(product.imagePath);
+  const siteUrl = getSiteBaseUrl();
+  const rawImage = resolveImageUrl(product.imagePath, { absolute: true });
+  const image = rawImage.startsWith('/') ? `${siteUrl}${rawImage}` : rawImage;
+  const description =
+    product.description.length > 155
+      ? `${product.description.slice(0, 152)}...`
+      : product.description;
+
   return {
-    title: product.name,
-    description: product.description.slice(0, 160),
+    title: `${product.name} | Buy Online Ghana`,
+    description,
+    keywords: [
+      product.name,
+      product.category,
+      ...parseList(product.tags),
+      storeConfig.name,
+      'online shopping Ghana',
+      'buy in Ghana',
+    ],
     alternates: { canonical: `/product/${product.id}` },
     openGraph: {
-      title: product.name,
-      description: product.description.slice(0, 160),
-      images: [{ url: image }],
+      title: `${product.name} · ${storeConfig.name}`,
+      description,
+      url: `/product/${product.id}`,
+      images: [
+        {
+          url: image,
+          alt: product.name,
+        },
+      ],
       type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${product.name} · ${storeConfig.name}`,
+      description,
+      images: [image],
     },
   };
 }
@@ -59,17 +86,26 @@ export default async function ProductPage({ params }: ProductPageProps) {
     serialiseProduct(item, { absoluteImages: false }),
   );
   const discount = discountPercent(product.price, product.originalPrice);
-  const baseUrl = getPublicBaseUrl();
+  const siteUrl = getSiteBaseUrl();
 
-  const structuredData = {
+  const absoluteImages = productImagePaths(record, { absolute: true }).map((img) =>
+    img.startsWith('/') ? `${siteUrl}${img}` : img,
+  );
+
+  const priceValidUntil = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .split('T')[0];
+
+  const productStructuredData = {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: product.name,
     description: product.description,
-    image: productImagePaths(record),
+    image: absoluteImages.length > 0 ? absoluteImages : [`${siteUrl}/logo.jpeg`],
     category: product.category,
     sku: String(product.id),
     brand: { '@type': 'Brand', name: storeConfig.shortName },
+    itemCondition: 'https://schema.org/NewCondition',
     aggregateRating:
       product.reviewCount > 0
         ? {
@@ -82,20 +118,91 @@ export default async function ProductPage({ params }: ProductPageProps) {
       '@type': 'Offer',
       priceCurrency: storeConfig.currencyCode,
       price: product.price,
+      priceValidUntil,
+      itemCondition: 'https://schema.org/NewCondition',
       availability: product.inStock
         ? 'https://schema.org/InStock'
         : 'https://schema.org/OutOfStock',
-      url: baseUrl ? `${baseUrl}/product/${product.id}` : undefined,
+      url: `${siteUrl}/product/${product.id}`,
+      seller: {
+        '@type': 'Organization',
+        name: storeConfig.name,
+      },
+      hasMerchantReturnPolicy: {
+        '@type': 'MerchantReturnPolicy',
+        applicableCountry: 'GH',
+        returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
+        merchantReturnDays: storeConfig.returnWindowDays,
+        returnMethod: 'https://schema.org/ReturnByMail',
+        returnFees: 'https://schema.org/FreeReturn',
+      },
+      shippingDetails: {
+        '@type': 'OfferShippingDetails',
+        shippingRate: {
+          '@type': 'MonetaryAmount',
+          value: product.shippingFee,
+          currency: storeConfig.currencyCode,
+        },
+        shippingDestination: {
+          '@type': 'DefinedRegion',
+          addressCountry: 'GH',
+        },
+        deliveryTime: {
+          '@type': 'ShippingDeliveryTime',
+          handlingTime: {
+            '@type': 'QuantitativeValue',
+            minValue: 0,
+            maxValue: 1,
+            unitCode: 'DAY',
+          },
+          transitTime: {
+            '@type': 'QuantitativeValue',
+            minValue: 1,
+            maxValue: 3,
+            unitCode: 'DAY',
+          },
+        },
+      },
     },
+  };
+
+  const breadcrumbStructuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: `${siteUrl}/`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: product.category,
+        item: `${siteUrl}/shop?category=${encodeURIComponent(product.category)}`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: product.name,
+        item: `${siteUrl}/product/${product.id}`,
+      },
+    ],
   };
 
   return (
     <div className="container">
       <script
         type="application/ld+json"
-        // JSON.stringify output is escaped for "<" so it cannot close the script tag.
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(structuredData).replace(/</g, '\\u003c'),
+          __html: JSON.stringify(productStructuredData).replace(/</g, '\\u003c'),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbStructuredData).replace(/</g, '\\u003c'),
         }}
       />
       <nav className="breadcrumbs" aria-label="Breadcrumb">
