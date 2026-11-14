@@ -1,9 +1,9 @@
 import { ArrowRight, BadgeCheck, Headset, RotateCcw, Truck } from 'lucide-react';
 import type { Metadata } from 'next';
-import Image from 'next/image';
 import Link from 'next/link';
 
 import { CategoryBanners } from '@/components/store/CategoryBanners';
+import { HeroCarousel } from '@/components/store/HeroCarousel';
 import { HeroSignInButton } from '@/components/store/HeroSignInButton';
 import { HomeProductTabs } from '@/components/store/HomeProductTabs';
 import { ProductCard } from '@/components/store/ProductCard';
@@ -51,6 +51,23 @@ export const metadata: Metadata = {
 export default async function HomePage() {
   const [products, categories] = await Promise.all([getActiveProducts(), getCategories()]);
   const items = products.map((product) => serialiseProduct(product, { absoluteImages: false }));
+  const carouselProducts = [...products]
+    .sort((a, b) =>
+      Number(b.isNew) - Number(a.isNew)
+      || b.createdAt.getTime() - a.createdAt.getTime()
+      || b.id - a.id,
+    )
+    .map((product) => serialiseProduct(product, { absoluteImages: false }))
+    .filter((product) => product.inStock && product.images[0])
+    .slice(0, 4)
+    .map(({ id, name, images, category, price, isNew }) => ({
+      id,
+      name,
+      image: images[0],
+      category,
+      price,
+      isNew,
+    }));
   const onSale = items.filter(
     (product) => discountPercent(product.price, product.originalPrice) !== null,
   );
@@ -140,15 +157,8 @@ export default async function HomePage() {
             <HeroSignInButton />
           </div>
         </div>
-        <div className="hero__visual" aria-hidden="true">
-          <Image
-            src="/logo.jpeg"
-            alt=""
-            fill
-            priority
-            sizes="(min-width: 900px) 42vw, 0px"
-            className="hero__logo-art"
-          />
+        <div className="hero__visual">
+          <HeroCarousel products={carouselProducts} />
         </div>
       </section>
 

@@ -1359,14 +1359,141 @@
 
 .hero__visual {
   position: relative;
-  display: none;
+  z-index: 1;
+  min-width: 0;
+  height: 280px;
+  padding: 0 20px 18px;
 }
 
-.hero__logo-art {
-  position: absolute;
+.hero-carousel {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) 32px;
+  gap: 6px;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.hero-carousel__slide {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 14px;
+  background: #fff;
+  text-decoration: none;
+  animation: fade-in 240ms ease-out;
+}
+
+.hero-carousel__media {
+  position: relative;
+  display: block;
+  min-height: 0;
+  background: #fff;
+}
+
+.hero-carousel__media img {
   object-fit: contain;
-  object-position: center;
-  padding: 18px 22px 18px 0;
+  padding: 12px;
+}
+
+.hero-carousel__slide--brand .hero-carousel__media {
+  background: #001a3a;
+}
+
+.hero-carousel__slide--brand .hero-carousel__media img {
+  padding: 8px;
+}
+
+.hero-carousel__caption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 66px;
+  padding: 10px 16px;
+  background: #00295b;
+  color: #fff;
+}
+
+.hero-carousel__details {
+  display: grid;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.hero-carousel__eyebrow {
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hero-carousel__details strong {
+  overflow: hidden;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hero-carousel__price {
+  flex: none;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.hero-carousel__controls,
+.hero-carousel__dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.hero-carousel__arrow,
+.hero-carousel__dot {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  color: #fff;
+  background: none;
+  cursor: pointer;
+}
+
+.hero-carousel__arrow {
+  width: 28px;
+  height: 28px;
+}
+
+.hero-carousel__dot {
+  width: 22px;
+  height: 22px;
+}
+
+.hero-carousel__dot::before {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  content: '';
+}
+
+.hero-carousel__dot.is-active::before {
+  background: var(--accent);
+}
+
+.hero-carousel :focus-visible {
+  outline-color: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-carousel__slide {
+    animation: none;
+  }
 }
 
 @media (min-width: 900px) {
@@ -1380,7 +1507,8 @@
   }
 
   .hero__visual {
-    display: block;
+    height: auto;
+    padding: 24px 28px 24px 0;
   }
 }
 
