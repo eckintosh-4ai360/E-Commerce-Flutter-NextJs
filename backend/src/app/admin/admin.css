@@ -670,11 +670,16 @@ a:hover .kpi {
 }
 
 @media (max-width: 900px) {
+  .admin-layout {
+    display: block;
+  }
+
   .admin-sidebar {
     display: none;
   }
 
   .admin-main {
+    width: 100%;
     margin-left: 0;
   }
 
@@ -687,6 +692,7 @@ a:hover .kpi {
     top: 0;
     z-index: 40;
     display: flex;
+    width: 100%;
     align-items: center;
     gap: 6px;
     overflow-x: auto;
@@ -711,9 +717,27 @@ a:hover .kpi {
     background: #fff7ed;
     color: var(--a-gold);
   }
+
+  .admin-pagination {
+    flex-wrap: wrap;
+  }
 }
 
 @media (max-width: 520px) {
+  .admin-grid--kpi {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .admin-grid--kpi .admin-card {
+    padding: 14px;
+  }
+
+  .kpi__value {
+    font-size: 22px;
+    overflow-wrap: anywhere;
+  }
+
   .admin-page-head h1 {
     font-size: 24px;
   }
@@ -725,5 +749,11 @@ a:hover .kpi {
   .admin-card,
   .admin-modal__body {
     padding: 18px;
+  }
+}
+
+@media (max-width: 350px) {
+  .admin-grid--kpi {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
