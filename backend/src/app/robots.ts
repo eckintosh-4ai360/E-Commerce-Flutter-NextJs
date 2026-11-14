@@ -1,17 +1,28 @@
 import type { MetadataRoute } from 'next';
 
-import { getPublicBaseUrl } from '@/lib/http';
+import { getSiteBaseUrl } from '@/lib/http';
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = getPublicBaseUrl();
+  const baseUrl = getSiteBaseUrl();
   return {
     rules: [
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/admin', '/api/', '/account', '/cart', '/checkout'],
+        disallow: [
+          '/admin',
+          '/admin/',
+          '/api/',
+          '/account',
+          '/account/',
+          '/cart',
+          '/checkout',
+          '/wishlist',
+          '/track',
+        ],
       },
     ],
-    ...(baseUrl ? { sitemap: `${baseUrl}/sitemap.xml` } : {}),
+    sitemap: `${baseUrl}/sitemap.xml`,
+    host: baseUrl,
   };
 }

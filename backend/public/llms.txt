@@ -1,0 +1,30 @@
+# GlobaCart GH
+
+> Shop Global, Pay Local. Dependable e-commerce delivery across Ghana.
+
+## About GlobaCart GH
+GlobaCart GH (https://www.globacartgh.com) is a modern Ghanaian e-commerce platform offering top quality electronics, fashion, home essentials, and lifestyle products. We bridge global shopping with local convenience and dependable delivery across all 16 regions of Ghana.
+
+## Key Features & Services
+- **Payment Methods**: Payment on delivery (cash or Mobile Money to dispatch rider) and instant online payment via Paystack (Visa, Mastercard, Mobile Money).
+- **Delivery Coverage**: Fast delivery across Greater Accra (1-2 business days) and nationwide across Ghana (Ashanti, Central, Eastern, Western, Northern regions, etc., within 3-5 business days).
+- **Returns & Warranty**: 14-day hassle-free return window for unused items in original packaging.
+- **Authenticity**: 100% genuine products directly sourced from verified merchants.
+
+## Website Navigation
+- Home: https://www.globacartgh.com/
+- Shop All Products: https://www.globacartgh.com/shop
+- Deals & Sales: https://www.globacartgh.com/shop?featured=sale
+- New Arrivals: https://www.globacartgh.com/shop?featured=new
+- FAQ & Support: https://www.globacartgh.com/help
+- Download Mobile App: https://www.globacartgh.com/get-the-app
+- Terms & Conditions: https://www.globacartgh.com/terms
+- Privacy Policy: https://www.globacartgh.com/privacy
+
+## Contact Information
+- Main Support Line: +233 24 307 3148
+- Secondary Line: +233 54 134 1263
+- WhatsApp Channel: https://whatsapp.com/channel/0029VbCeBSQGU3BEzkzs2h2l
+- Instagram: @globacartgh
+- TikTok: @globacart.gh
+- Telegram: @GlobaCart_GH
