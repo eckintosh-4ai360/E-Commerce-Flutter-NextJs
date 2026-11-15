@@ -1,6 +1,6 @@
 'use client';
 
-import { ArchiveRestore, Check, ImageIcon, Package, PackageX, Pencil, Plus, Search, Trash2, X } from 'lucide-react';
+import { ArchiveRestore, Check, ChevronDown, ImageIcon, Package, PackageX, Pencil, Plus, Search, Trash2, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState, type DragEvent, type ReactNode } from 'react';
 
 import { useAuth } from '@/components/providers/AuthProvider';
@@ -301,6 +301,87 @@ function ImageUploader({ values, onChange }: { values: string[]; onChange: (path
   );
 }
 
+function ColorPhotoPicker({ color, index, images, assigned, open, onToggle, onClose, onChoose }: {
+  color: string;
+  index: number;
+  images: string[];
+  assigned: string | undefined;
+  open: boolean;
+  onToggle: () => void;
+  onClose: () => void;
+  onChoose: (image: string | null) => void;
+}) {
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const selectedIndex = assigned ? images.indexOf(assigned) : 0;
+  const selectedImage = images[selectedIndex >= 0 ? selectedIndex : 0];
+  const optionsId = `p-color-photos-${index}`;
+
+  const choose = (image: string | null) => {
+    onChoose(image);
+    onClose();
+    triggerRef.current?.focus();
+  };
+
+  return (
+    <div className="admin-color-photo-row">
+      <span className="admin-label">{color}</span>
+      <button
+        ref={triggerRef}
+        type="button"
+        className="admin-color-photo-trigger"
+        aria-label={`Photo for ${color}: ${selectedIndex > 0 ? `photo ${selectedIndex + 1}` : 'main product photo'}`}
+        aria-expanded={open}
+        aria-controls={open ? optionsId : undefined}
+        disabled={images.length === 0}
+        onClick={onToggle}
+        onKeyDown={(event) => {
+          if (event.key === 'Escape' && open) {
+            event.stopPropagation();
+            onClose();
+          }
+        }}
+      >
+        {selectedImage ? <img src={selectedImage} alt="" /> : <ImageIcon size={24} aria-hidden="true" />}
+        <span>{images.length === 0 ? 'Upload photos first' : selectedIndex > 0 ? `Selected photo ${selectedIndex + 1}` : 'Main product photo'}</span>
+        <ChevronDown size={18} aria-hidden="true" />
+      </button>
+      {open && images.length > 0 ? (
+        <div
+          id={optionsId}
+          className="admin-color-photo-options"
+          role="group"
+          aria-label={`Photos for ${color}`}
+          onKeyDown={(event) => {
+            if (event.key === 'Escape') {
+              event.stopPropagation();
+              onClose();
+              triggerRef.current?.focus();
+            }
+          }}
+        >
+          {images.map((image, photoIndex) => {
+            const selected = photoIndex === (selectedIndex >= 0 ? selectedIndex : 0);
+            return (
+              <button
+                key={image}
+                type="button"
+                className="admin-color-photo-option"
+                aria-label={`${photoIndex === 0 ? 'Main photo' : `Photo ${photoIndex + 1}`} for ${color}`}
+                aria-pressed={selected}
+                onClick={() => choose(photoIndex === 0 ? null : image)}
+              >
+                <img src={image} alt="" />
+                <span>{photoIndex === 0 ? 'Main' : `Photo ${photoIndex + 1}`}</span>
+                {selected ? <Check size={15} aria-hidden="true" className="admin-color-photo-option__check" /> : null}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export default function ProductsPage() {
   const { authedFetch } = useAuth();
   const [products, setProducts] = useState<Product[] | null>(null);
@@ -310,6 +391,7 @@ export default function ProductsPage() {
   const [editing, setEditing] = useState<Product | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState<FormState>(createEmptyForm);
+  const [openColorPicker, setOpenColorPicker] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<Product | null>(null);
@@ -328,12 +410,14 @@ export default function ProductsPage() {
   const openNew = () => {
     setEditing(null);
     setForm(createEmptyForm());
+    setOpenColorPicker(null);
     setFormError(null);
     setShowModal(true);
   };
 
   const openEdit = (product: Product) => {
     setEditing(product);
+    setOpenColorPicker(null);
     setFormError(null);
     setForm({
       name: product.name,
@@ -599,40 +683,32 @@ export default function ProductsPage() {
           </div>
           <div className="admin-field"><label htmlFor="p-description">Description</label><textarea id="p-description" className="admin-textarea" value={form.description} onChange={(e) => set('description', e.target.value)} /></div>
           <div className="admin-field"><label htmlFor="p-tags">Tags (comma-separated)</label><input id="p-tags" className="admin-input" placeholder="Fashion, Top, Summer" value={form.tags} onChange={(e) => set('tags', e.target.value)} /></div>
-          <div className="admin-field"><label htmlFor="p-colors">Colours (comma-separated)</label><input id="p-colors" className="admin-input" placeholder="Black, White, Red" value={form.colors} onChange={(e) => set('colors', e.target.value)} /></div>
+          <div className="admin-field"><label htmlFor="p-colors">Colours (comma-separated)</label><input id="p-colors" className="admin-input" placeholder="Black, White, Red" value={form.colors} onChange={(e) => { set('colors', e.target.value); setOpenColorPicker(null); }} /></div>
           {splitList(form.colors).length > 0 ? (
             <div className="admin-field">
               <span className="admin-label">Photos for each color</span>
               <span style={{ fontSize: 12, color: 'var(--a-text-3)', display: 'block', marginBottom: 10 }}>
-                Upload each color photo in Product images above, then assign it here. Unassigned colors use the main product photo.
+                Upload each color photo in Product images above, then pick its thumbnail here. Unassigned colors use the main product photo.
               </span>
               <div style={{ display: 'grid', gap: 10 }}>
                 {splitList(form.colors).map((color, index) => {
-                  const assigned = form.colorImages[color];
-                  const photo = assigned && form.images.includes(assigned) ? assigned : form.images[0];
                   return (
-                    <div key={`${color}-${index}`} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 10, border: '1px solid var(--a-line)', borderRadius: 8 }}>
-                      {photo ? <img src={photo} alt="" style={{ width: 64, height: 64, objectFit: 'contain', borderRadius: 6, background: '#fff' }} /> : <ImageIcon size={28} color="var(--a-text-3)" />}
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <label htmlFor={`p-color-image-${index}`} style={{ display: 'block', fontWeight: 600, marginBottom: 4 }}>{color}</label>
-                        <select
-                          id={`p-color-image-${index}`}
-                          className="admin-input"
-                          value={assigned && assigned !== form.images[0] && form.images.includes(assigned) ? assigned : ''}
-                          onChange={(event) => setForm((current) => {
-                            const colorImages = { ...current.colorImages };
-                            if (event.target.value) colorImages[color] = event.target.value;
-                            else delete colorImages[color];
-                            return { ...current, colorImages };
-                          })}
-                        >
-                          <option value="">Main product photo</option>
-                          {form.images.slice(1).map((image, photoIndex) => (
-                            <option key={image} value={image}>Product image {photoIndex + 2}</option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
+                    <ColorPhotoPicker
+                      key={`${color}-${index}`}
+                      color={color}
+                      index={index}
+                      images={form.images}
+                      assigned={form.colorImages[color]}
+                      open={openColorPicker === index}
+                      onToggle={() => setOpenColorPicker((current) => current === index ? null : index)}
+                      onClose={() => setOpenColorPicker(null)}
+                      onChoose={(image) => setForm((current) => {
+                        const colorImages = { ...current.colorImages };
+                        if (image) colorImages[color] = image;
+                        else delete colorImages[color];
+                        return { ...current, colorImages };
+                      })}
+                    />
                   );
                 })}
               </div>
