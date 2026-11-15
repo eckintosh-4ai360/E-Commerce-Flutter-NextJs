@@ -4,88 +4,81 @@ import { Heart, Minus, Plus, Share2 } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 
-import { useCart } from '@/components/providers/CartProvider';
+import { cartLineKey, useCart } from '@/components/providers/CartProvider';
 import { useToast } from '@/components/providers/ToastProvider';
 import { useWishlist } from '@/components/providers/WishlistProvider';
 import { formatPrice } from '@/lib/money';
 import { storeConfig } from '@/lib/store-config';
 import type { StoreProduct } from '@/lib/types';
 
+const swatches: Record<string, string> = {
+  black: '#282a31', white: '#f7f7f2', cream: '#f0e3ca', brown: '#79533d',
+  tan: '#b68860', khaki: '#a89879', pink: '#edb5c5', red: '#ce3548',
+  blue: '#4078b5', green: '#4f8a66', yellow: '#f6cb55', grey: '#9a9da3',
+  gray: '#9a9da3', purple: '#8d6aa8', orange: '#e89250', navy: '#263d67',
+};
+
+function swatchFor(color: string) {
+  const name = color.toLowerCase();
+  return Object.entries(swatches).find(([key]) => name.includes(key))?.[1] ?? '#dbe4ee';
+}
+
 export function PurchasePanel({ product }: { product: StoreProduct }) {
   const cart = useCart();
   const wishlist = useWishlist();
   const toast = useToast();
-  const [colors, setColors] = useState<string[]>(product.colors[0] ? [product.colors[0]] : []);
-  const [sizes, setSizes] = useState<string[]>(product.sizes[0] ? [product.sizes[0]] : []);
-  const [quantity, setQuantity] = useState(1);
+  const [selectedColor, setSelectedColor] = useState<string | null>(null);
+  const [sizeQuantities, setSizeQuantities] = useState<Record<string, number>>({});
+  const [quantity, setQuantity] = useState(product.colors.length === 0 ? 1 : 0);
   const [justAdded, setJustAdded] = useState(false);
   const wished = wishlist.hydrated && wishlist.contains(product.id);
+  const colorReady = product.colors.length === 0 || selectedColor !== null;
 
-  const toggleColor = (value: string) =>
-    setColors((prev) => {
-      if (prev.includes(value)) {
-        if (prev.length === 1) return prev;
-        return prev.filter((c) => c !== value);
-      }
-      return [...prev, value];
-    });
-
-  const toggleSize = (value: string) =>
-    setSizes((prev) => {
-      if (prev.includes(value)) {
-        if (prev.length === 1) return prev;
-        return prev.filter((s) => s !== value);
-      }
-      return [...prev, value];
-    });
-
-  const effectiveColors: (string | null)[] =
-    product.colors.length > 0
-      ? colors.length > 0
-        ? colors
-        : [product.colors[0]]
-      : [null];
-
-  const effectiveSizes: (string | null)[] =
-    product.sizes.length > 0
-      ? sizes.length > 0
-        ? sizes
-        : [product.sizes[0]]
-      : [null];
-
-  const combinations: { color: string | null; size: string | null }[] = [];
-  for (const c of effectiveColors) {
-    for (const s of effectiveSizes) {
-      combinations.push({ color: c, size: s });
-    }
-  }
-
-  const totalItems = combinations.length * quantity;
+  const selections = product.sizes.length > 0
+    ? product.sizes.map((size) => ({ size, quantity: sizeQuantities[size] ?? 0 }))
+        .filter((selection) => selection.quantity > 0)
+    : quantity > 0 ? [{ size: null, quantity }] : [];
+  const totalItems = selections.reduce((sum, selection) => sum + selection.quantity, 0);
   const totalPrice = product.price * totalItems;
-  const totalOriginalPrice = product.originalPrice ? product.originalPrice * totalItems : null;
+
+  const selectColor = (color: string) => {
+    if (color === selectedColor) return;
+    setSelectedColor(color);
+    setSizeQuantities({});
+    setQuantity(1);
+    setJustAdded(false);
+  };
+
+  const changeSizeQuantity = (size: string, delta: number) => {
+    setSizeQuantities((previous) => ({
+      ...previous,
+      [size]: Math.max(0, Math.min(storeConfig.maxQuantityPerLine, (previous[size] ?? 0) + delta)),
+    }));
+    setJustAdded(false);
+  };
 
   const addToCart = () => {
-    let anyUnavailable = false;
-    let anyLimit = false;
+    if (!product.inStock || !colorReady || totalItems === 0) return;
 
-    for (const combo of combinations) {
-      const result = cart.add(product, {
-        quantity,
-        selectedColor: combo.color,
-        selectedSize: combo.size,
+    const exceedsLimit = selections.some(({ size, quantity: selectedQuantity }) => {
+      const key = cartLineKey(product.id, selectedColor, size);
+      const existing = cart.lines.find((line) => line.key === key)?.quantity ?? 0;
+      return existing + selectedQuantity > storeConfig.maxQuantityPerLine;
+    });
+    if (exceedsLimit) {
+      toast(`You can order at most ${storeConfig.maxQuantityPerLine} of one size and color.`, 'error');
+      return;
+    }
+
+    for (const selection of selections) {
+      cart.add(product, {
+        quantity: selection.quantity,
+        selectedColor,
+        selectedSize: selection.size,
       });
-      if (result === 'unavailable') anyUnavailable = true;
-      if (result === 'limit') anyLimit = true;
     }
-
-    if (anyUnavailable) {
-      toast('This product is out of stock.', 'error');
-      return;
-    }
-    if (anyLimit) {
-      toast(`You can order at most ${storeConfig.maxQuantityPerLine} of one item.`, 'error');
-      return;
-    }
+    setSizeQuantities({});
+    setQuantity(1);
     setJustAdded(true);
     toast(`Added ${totalItems} × ${product.name} to cart (${formatPrice(totalPrice)})`, 'success');
   };
@@ -107,22 +100,18 @@ export function PurchasePanel({ product }: { product: StoreProduct }) {
   };
 
   return (
-    <div>
+    <div className="purchase-panel">
       {product.colors.length > 0 ? (
-        <div className="option-group" role="group" aria-label="Colour">
+        <div className="option-group" role="group" aria-label="Choose a color">
           <div className="option-group__label">
-            Colour <span>{colors.length > 0 ? colors.join(', ') : 'None'}</span>
+            <strong>1. Choose a color</strong>
+            <span>{selectedColor ?? 'Select one to continue'}</span>
           </div>
-          <div className="option-list">
-            {product.colors.map((value) => (
-              <button
-                key={value}
-                type="button"
-                className="chip"
-                aria-pressed={colors.includes(value)}
-                onClick={() => toggleColor(value)}
-              >
-                {value}
+          <div className="purchase-colors">
+            {product.colors.map((color) => (
+              <button key={color} type="button" className="purchase-color" aria-pressed={selectedColor === color} onClick={() => selectColor(color)}>
+                <span className="purchase-color__swatch" style={{ backgroundColor: swatchFor(color) }} />
+                <span>{color}</span>
               </button>
             ))}
           </div>
@@ -130,113 +119,69 @@ export function PurchasePanel({ product }: { product: StoreProduct }) {
       ) : null}
 
       {product.sizes.length > 0 ? (
-        <div className="option-group" role="group" aria-label="Size">
+        <div className="option-group" role="group" aria-label="Choose size quantities">
           <div className="option-group__label">
-            Size <span>{sizes.length > 0 ? sizes.join(', ') : 'None'}</span>
+            <strong>{product.colors.length > 0 ? '2. Choose sizes and quantities' : 'Choose sizes and quantities'}</strong>
           </div>
-          <div className="option-list">
-            {product.sizes.map((value) => (
-              <button
-                key={value}
-                type="button"
-                className="size-pill"
-                aria-pressed={sizes.includes(value)}
-                onClick={() => toggleSize(value)}
-              >
-                {value}
-              </button>
-            ))}
-          </div>
-        </div>
-      ) : null}
-
-      <div className="option-group">
-        <div className="option-group__label" id="qty-label">
-          Quantity
-        </div>
-        <div className="qty" role="group" aria-labelledby="qty-label">
-          <button
-            type="button"
-            aria-label="Decrease quantity"
-            disabled={quantity <= 1}
-            onClick={() => setQuantity((value) => Math.max(1, value - 1))}
-          >
-            <Minus size={16} />
-          </button>
-          <output aria-live="polite">{quantity}</output>
-          <button
-            type="button"
-            aria-label="Increase quantity"
-            disabled={quantity >= storeConfig.maxQuantityPerLine}
-            onClick={() =>
-              setQuantity((value) => Math.min(storeConfig.maxQuantityPerLine, value + 1))
-            }
-          >
-            <Plus size={16} />
-          </button>
-        </div>
-      </div>
-
-      <div
-        style={{
-          margin: '18px 0 16px',
-          padding: '14px 18px',
-          background: 'var(--a-surface-2)',
-          borderRadius: 12,
-          border: '1px solid var(--a-line)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
-        <div>
-          <div style={{ fontSize: 13, color: 'var(--a-text-2)', fontWeight: 500 }}>
-            {totalItems > 1 ? (
-              <span>
-                Total for <strong>{totalItems} items</strong> ({combinations.length} selections × {quantity} qty)
-              </span>
-            ) : (
-              <span>Total:</span>
-            )}
-          </div>
-          {combinations.length > 1 ? (
-            <div style={{ fontSize: 11, color: 'var(--a-text-3)', marginTop: 2 }}>
-              Multiple selections applied to total price
+          {!colorReady ? (
+            <p className="purchase-hint">Choose a color to set quantities for each size.</p>
+          ) : (
+            <div className="purchase-sizes">
+              {product.sizes.map((size) => {
+                const selectedQuantity = sizeQuantities[size] ?? 0;
+                return (
+                  <div className="purchase-size" key={size}>
+                    <div className="purchase-size__info">
+                      <strong>{size}</strong>
+                      <span>{formatPrice(product.price)} each</span>
+                    </div>
+                    <div className="qty qty--sm" role="group" aria-label={`${size} quantity`}>
+                      <button type="button" aria-label={`Remove one ${size}`} disabled={selectedQuantity === 0} onClick={() => changeSizeQuantity(size, -1)}>
+                        <Minus size={16} aria-hidden="true" />
+                      </button>
+                      <output aria-live="polite">{selectedQuantity}</output>
+                      <button type="button" aria-label={`Add one ${size}`} disabled={selectedQuantity >= storeConfig.maxQuantityPerLine} onClick={() => changeSizeQuantity(size, 1)}>
+                        <Plus size={16} aria-hidden="true" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          ) : null}
+          )}
         </div>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-          <span style={{ fontSize: 24, fontWeight: 700, color: 'var(--a-gold)' }}>
-            {formatPrice(totalPrice)}
-          </span>
-          {totalOriginalPrice ? (
-            <span style={{ fontSize: 14, textDecoration: 'line-through', color: 'var(--a-text-3)' }}>
-              {formatPrice(totalOriginalPrice)}
-            </span>
-          ) : null}
+      ) : (
+        <div className="option-group">
+          <div className="option-group__label" id="qty-label">Quantity</div>
+          <div className="qty" role="group" aria-labelledby="qty-label">
+            <button type="button" aria-label="Decrease quantity" disabled={!colorReady || quantity <= 1} onClick={() => setQuantity((value) => Math.max(1, value - 1))}>
+              <Minus size={16} aria-hidden="true" />
+            </button>
+            <output aria-live="polite">{colorReady ? quantity : 0}</output>
+            <button type="button" aria-label="Increase quantity" disabled={!colorReady || quantity >= storeConfig.maxQuantityPerLine} onClick={() => setQuantity((value) => Math.min(storeConfig.maxQuantityPerLine, value + 1))}>
+              <Plus size={16} aria-hidden="true" />
+            </button>
+          </div>
         </div>
+      )}
+
+      <div className="purchase-summary" aria-live="polite">
+        <div>
+          <strong>{totalItems} selected</strong>
+          <span>{totalItems === 0
+            ? 'Delivery shown at checkout'
+            : product.shippingFee > 0
+              ? `Delivery: ${formatPrice(product.shippingFee * totalItems)}`
+              : 'Shipping included'}</span>
+        </div>
+        <strong className="purchase-summary__price">{formatPrice(totalPrice)}</strong>
       </div>
 
       <div className="pdp__actions">
-        <button
-          type="button"
-          className="btn btn-primary btn-lg"
-          disabled={!product.inStock}
-          onClick={addToCart}
-        >
-          {!product.inStock
-            ? 'Out of stock'
-            : totalItems > 1
-              ? `Add ${totalItems} to cart · ${formatPrice(totalPrice)}`
-              : `Add to cart · ${formatPrice(totalPrice)}`}
+        <button type="button" className="btn btn-primary btn-lg" disabled={!cart.hydrated || !product.inStock || !colorReady || totalItems === 0} onClick={addToCart}>
+          {!product.inStock ? 'Out of stock' : !colorReady ? 'Choose a color' : totalItems === 0 ? 'Select a quantity' : `Add ${totalItems} to cart`}
         </button>
-        <button
-          type="button"
-          className="icon-btn"
-          aria-pressed={wished}
-          aria-label={wished ? 'Remove from wishlist' : 'Save to wishlist'}
-          onClick={() => wishlist.toggle(product)}
-        >
+        <button type="button" className="icon-btn" aria-pressed={wished} aria-label={wished ? 'Remove from wishlist' : 'Save to wishlist'} onClick={() => wishlist.toggle(product)}>
           <Heart size={20} fill={wished ? 'currentColor' : 'none'} />
         </button>
         <button type="button" className="icon-btn" aria-label="Share" onClick={share}>
@@ -245,11 +190,9 @@ export function PurchasePanel({ product }: { product: StoreProduct }) {
       </div>
 
       {justAdded ? (
-        <div className="alert alert--success" style={{ marginBottom: 20, justifyContent: 'space-between' }}>
+        <div className="alert alert--success purchase-added">
           <span>Added to your cart.</span>
-          <Link href="/cart" style={{ fontWeight: 700 }}>
-            View cart →
-          </Link>
+          <Link href="/cart">View cart →</Link>
         </div>
       ) : null}
     </div>

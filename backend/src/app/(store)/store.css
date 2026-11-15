@@ -2131,6 +2131,121 @@
   font-weight: 500;
 }
 
+.purchase-panel {
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+
+.purchase-colors {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: 10px;
+}
+
+.purchase-color {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px 8px;
+  border: 2px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.purchase-color[aria-pressed='true'] {
+  border-color: var(--accent-strong);
+  background: #fff8e8;
+  font-weight: 700;
+}
+
+.purchase-color__swatch {
+  width: 44px;
+  height: 44px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.purchase-hint {
+  margin: 0;
+  padding: 16px;
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  color: var(--ink-2);
+  font-size: 13px;
+}
+
+.purchase-sizes {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+
+.purchase-size {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+}
+
+.purchase-size + .purchase-size {
+  border-top: 1px solid var(--line);
+}
+
+.purchase-size__info {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.purchase-size__info span {
+  color: var(--ink-2);
+  font-size: 12px;
+}
+
+.purchase-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  background: var(--card);
+}
+
+.purchase-summary > div {
+  display: grid;
+  gap: 2px;
+  font-size: 13px;
+}
+
+.purchase-summary > div span {
+  color: var(--ink-2);
+  font-size: 12px;
+}
+
+.purchase-summary__price {
+  color: var(--brand-blue);
+  font-size: 22px;
+  white-space: nowrap;
+}
+
+.purchase-added {
+  justify-content: space-between;
+}
+
+.purchase-added a {
+  font-weight: 700;
+}
+
 .option-list {
   display: flex;
   flex-wrap: wrap;

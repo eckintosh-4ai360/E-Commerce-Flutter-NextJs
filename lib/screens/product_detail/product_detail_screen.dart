@@ -37,9 +37,9 @@ class ProductDetailScreen extends StatefulWidget {
 }
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
-  final Set<String> _selectedColors = {};
-  final Set<String> _selectedSizes = {};
-  int _quantity = 1;
+  String? _selectedColor;
+  final Map<String, int> _sizeQuantities = {};
+  int _quantity = 0;
   int _selectedImageIndex = 0;
   late final PageController _imagePageController;
 
@@ -47,12 +47,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   void initState() {
     super.initState();
     _imagePageController = PageController();
-    if (widget.product.colors.isNotEmpty) {
-      _selectedColors.add(widget.product.colors.first);
-    }
-    if (widget.product.sizes.isNotEmpty) {
-      _selectedSizes.add(widget.product.sizes.first);
-    }
+    if (widget.product.colors.isEmpty) _quantity = 1;
   }
 
   @override
@@ -89,7 +84,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     _buildSizePicker(p),
                     const SizedBox(height: 20),
                   ],
-                  _buildQuantityPicker(),
+                  if (p.sizes.isEmpty) _buildQuantityPicker(p),
                   const SizedBox(height: 24),
                   _buildDescription(p),
                   const SizedBox(height: 24),
@@ -356,45 +351,37 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
-  List<({String? color, String? size})> _getCombinations(Product p) {
-    final colors = p.colors.isNotEmpty
-        ? (_selectedColors.isNotEmpty ? _selectedColors.toList() : [p.colors.first])
-        : <String?>[null];
-    final sizes = p.sizes.isNotEmpty
-        ? (_selectedSizes.isNotEmpty ? _selectedSizes.toList() : [p.sizes.first])
-        : <String?>[null];
+  bool _colorReady(Product p) => p.colors.isEmpty || _selectedColor != null;
 
-    final list = <({String? color, String? size})>[];
-    for (final c in colors) {
-      for (final s in sizes) {
-        list.add((color: c, size: s));
-      }
+  List<({String? size, int quantity})> _selectedLines(Product p) {
+    if (!_colorReady(p)) return [];
+    if (p.sizes.isEmpty) {
+      return _quantity > 0 ? [(size: null, quantity: _quantity)] : [];
     }
-    return list;
+    return [
+      for (final size in p.sizes)
+        if ((_sizeQuantities[size] ?? 0) > 0)
+          (size: size, quantity: _sizeQuantities[size]!),
+    ];
   }
 
   Widget _buildPriceRow(Product p) {
-    final combos = _getCombinations(p);
-    final totalCount = combos.length * _quantity;
-    final totalPrice = p.price * totalCount;
-    final originalPrice = p.originalPrice != null ? p.originalPrice! * totalCount : null;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
             Text(
-              '₵${totalPrice.toStringAsFixed(0)}',
+              formatPrice(p.price),
               style: GoogleFonts.kumbhSans(
                   fontSize: 36,
                   fontWeight: FontWeight.w700,
                   color: AppTheme.primary),
             ),
-            if (originalPrice != null) ...[
+            if (p.originalPrice != null) ...[
               const SizedBox(width: 12),
               Text(
-                '₵${originalPrice.toStringAsFixed(0)}',
+                formatPrice(p.originalPrice!),
                 style: GoogleFonts.kumbhSans(
                   fontSize: 18,
                   color: AppTheme.textLight,
@@ -409,7 +396,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
-                  'Save ₵${(originalPrice - totalPrice).toStringAsFixed(0)}',
+                  'Save ${formatPrice(p.originalPrice! - p.price)}',
                   style: GoogleFonts.kumbhSans(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
@@ -419,17 +406,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             ],
           ],
         ),
-        if (totalCount > 1) ...[
-          const SizedBox(height: 6),
-          Text(
-            '$totalCount items (${combos.length} selections × $_quantity qty)',
-            style: GoogleFonts.kumbhSans(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: AppTheme.accent,
-            ),
-          ),
-        ],
+        Text('Price per item',
+            style:
+                GoogleFonts.kumbhSans(fontSize: 12, color: AppTheme.textMed)),
       ],
     );
   }
@@ -440,7 +419,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       children: [
         Row(
           children: [
-            Text('Color',
+            Text('1. Choose a color',
                 style: GoogleFonts.kumbhSans(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -448,9 +427,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                _selectedColors.isEmpty ? 'None' : _selectedColors.join(', '),
-                style:
-                    GoogleFonts.kumbhSans(fontSize: 13, color: AppTheme.textMed),
+                _selectedColor ?? 'Select one to continue',
+                style: GoogleFonts.kumbhSans(
+                    fontSize: 13, color: AppTheme.textMed),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -461,35 +440,56 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           spacing: 8,
           runSpacing: 8,
           children: p.colors.map((color) {
-            final selected = _selectedColors.contains(color);
-            return GestureDetector(
-              onTap: () => setState(() {
-                if (selected) {
-                  if (_selectedColors.length > 1) {
-                    _selectedColors.remove(color);
-                  }
-                } else {
-                  _selectedColors.add(color);
-                }
-              }),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 150),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: selected ? AppTheme.primary : AppTheme.surface,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: selected ? AppTheme.primary : AppTheme.divider,
-                    width: selected ? 2 : 1,
+            final selected = _selectedColor == color;
+            return Semantics(
+              button: true,
+              selected: selected,
+              label: 'Color $color',
+              child: InkWell(
+                onTap: () => setState(() {
+                  if (selected) return;
+                  _selectedColor = color;
+                  _sizeQuantities.clear();
+                  _quantity = 1;
+                }),
+                borderRadius: BorderRadius.circular(10),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 150),
+                  width: 104,
+                  constraints: const BoxConstraints(minHeight: 90),
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: selected ? AppTheme.accentLight : AppTheme.surface,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: selected ? AppTheme.accent : AppTheme.divider,
+                      width: selected ? 2 : 1,
+                    ),
                   ),
-                ),
-                child: Text(
-                  color,
-                  style: GoogleFonts.kumbhSans(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: selected ? Colors.white : AppTheme.textDark,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 42,
+                        height: 42,
+                        decoration: BoxDecoration(
+                          color: _swatchColor(color),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: AppTheme.divider),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(color,
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.kumbhSans(
+                            fontSize: 11,
+                            fontWeight:
+                                selected ? FontWeight.w700 : FontWeight.w600,
+                            color: AppTheme.textDark,
+                          )),
+                    ],
                   ),
                 ),
               ),
@@ -498,78 +498,132 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         ),
       ],
     );
+  }
+
+  Color _swatchColor(String name) {
+    const colors = <String, Color>{
+      'black': Color(0xFF282A31),
+      'white': Color(0xFFF7F7F2),
+      'cream': Color(0xFFF0E3CA),
+      'brown': Color(0xFF79533D),
+      'tan': Color(0xFFB68860),
+      'khaki': Color(0xFFA89879),
+      'pink': Color(0xFFEDB5C5),
+      'red': Color(0xFFCE3548),
+      'blue': Color(0xFF4078B5),
+      'green': Color(0xFF4F8A66),
+      'yellow': Color(0xFFF6CB55),
+      'grey': Color(0xFF9A9DA3),
+      'gray': Color(0xFF9A9DA3),
+      'purple': Color(0xFF8D6AA8),
+      'orange': Color(0xFFE89250),
+      'navy': Color(0xFF263D67),
+    };
+    final lower = name.toLowerCase();
+    for (final entry in colors.entries) {
+      if (lower.contains(entry.key)) return entry.value;
+    }
+    return const Color(0xFFDBE4EE);
   }
 
   Widget _buildSizePicker(Product p) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Text('Size',
-                style: GoogleFonts.kumbhSans(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.textDark)),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                _selectedSizes.isEmpty ? 'None' : _selectedSizes.join(', '),
-                style:
-                    GoogleFonts.kumbhSans(fontSize: 13, color: AppTheme.textMed),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
+        Text(
+            p.colors.isNotEmpty
+                ? '2. Choose sizes and quantities'
+                : 'Choose sizes and quantities',
+            style: GoogleFonts.kumbhSans(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textDark)),
         const SizedBox(height: 10),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: p.sizes.map((size) {
-            final selected = _selectedSizes.contains(size);
-            return GestureDetector(
-              onTap: () => setState(() {
-                if (selected) {
-                  if (_selectedSizes.length > 1) {
-                    _selectedSizes.remove(size);
-                  }
-                } else {
-                  _selectedSizes.add(size);
-                }
-              }),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 150),
-                constraints: const BoxConstraints(minWidth: 48),
-                height: 48,
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                decoration: BoxDecoration(
-                  color: selected ? AppTheme.primary : AppTheme.surface,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: selected ? AppTheme.primary : AppTheme.divider,
-                    width: selected ? 2 : 1,
-                  ),
-                ),
-                child: Center(
-                  child: Text(
-                    size,
-                    style: GoogleFonts.kumbhSans(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: selected ? Colors.white : AppTheme.textDark,
-                    ),
-                  ),
-                ),
-              ),
-            );
-          }).toList(),
-        ),
+        if (!_colorReady(p))
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppTheme.cardBg,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text('Choose a color to set quantities for each size.',
+                style: GoogleFonts.kumbhSans(
+                    fontSize: 13, color: AppTheme.textMed)),
+          )
+        else
+          Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: AppTheme.divider),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Column(
+              children: [
+                for (var index = 0; index < p.sizes.length; index++) ...[
+                  if (index > 0) const Divider(height: 1),
+                  _buildSizeRow(p, p.sizes[index]),
+                ],
+              ],
+            ),
+          ),
       ],
     );
   }
 
-  Widget _buildQuantityPicker() {
+  Widget _buildSizeRow(Product p, String size) {
+    final quantity = _sizeQuantities[size] ?? 0;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(size,
+                    style: GoogleFonts.kumbhSans(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.textDark)),
+                Text('${formatPrice(p.price)} each',
+                    style: GoogleFonts.kumbhSans(
+                        fontSize: 12, color: AppTheme.textMed)),
+              ],
+            ),
+          ),
+          _qtyBtn(
+              Icons.remove,
+              quantity == 0
+                  ? null
+                  : () {
+                      setState(() => _sizeQuantities[size] = quantity - 1);
+                    },
+              label: 'Remove one $size',
+              key: ValueKey('size-minus-$size')),
+          SizedBox(
+            width: 34,
+            child: Text('$quantity',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.kumbhSans(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.textDark)),
+          ),
+          _qtyBtn(
+              Icons.add,
+              quantity >= AppConfig.maxQuantityPerLine
+                  ? null
+                  : () {
+                      setState(() => _sizeQuantities[size] = quantity + 1);
+                    },
+              label: 'Add one $size',
+              key: ValueKey('size-plus-$size')),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuantityPicker(Product p) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -581,44 +635,49 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         const SizedBox(height: 10),
         Row(
           children: [
-            _qtyBtn(Icons.remove, () {
-              if (_quantity > 1) setState(() => _quantity--);
-            }),
+            _qtyBtn(
+                Icons.remove,
+                !_colorReady(p) || _quantity <= 1
+                    ? null
+                    : () => setState(() => _quantity--)),
             Container(
               width: 52,
               height: 44,
               alignment: Alignment.center,
               child: Text(
-                '$_quantity',
+                '${_colorReady(p) ? _quantity : 0}',
                 style: GoogleFonts.kumbhSans(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                     color: AppTheme.textDark),
               ),
             ),
-            _qtyBtn(Icons.add, () {
-              if (_quantity < AppConfig.maxQuantityPerLine) {
-                setState(() => _quantity++);
-              }
-            }),
+            _qtyBtn(
+                Icons.add,
+                !_colorReady(p) || _quantity >= AppConfig.maxQuantityPerLine
+                    ? null
+                    : () => setState(() => _quantity++)),
           ],
         ),
       ],
     );
   }
 
-  Widget _qtyBtn(IconData icon, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: AppTheme.cardBg,
+  Widget _qtyBtn(IconData icon, VoidCallback? onTap,
+      {String? label, Key? key}) {
+    return IconButton(
+      key: key,
+      onPressed: onTap,
+      tooltip: label,
+      icon: Icon(icon, size: 18),
+      color: AppTheme.primary,
+      disabledColor: AppTheme.textLight,
+      style: IconButton.styleFrom(
+        backgroundColor: AppTheme.cardBg,
+        shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: AppTheme.divider),
+          side: const BorderSide(color: AppTheme.divider),
         ),
-        child: Icon(icon, size: 18, color: AppTheme.primary),
       ),
     );
   }
@@ -696,105 +755,117 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   Widget _buildBottomBar(BuildContext context, Product p) {
-    final combos = _getCombinations(p);
-    final totalCount = combos.length * _quantity;
+    final lines = _selectedLines(p);
+    final totalCount = lines.fold<int>(0, (sum, line) => sum + line.quantity);
     final totalPrice = p.price * totalCount;
+    final canAdd = p.inStock && _colorReady(p) && totalCount > 0;
 
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
-      decoration: BoxDecoration(
-        color: AppTheme.surface,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 20,
-            offset: const Offset(0, -4),
-          ),
-        ],
-      ),
-      child: BlocBuilder<CartBloc, CartState>(
-        builder: (context, state) {
-          final inCartTotal = combos.fold<int>(0, (sum, combo) {
-            final line = state.itemFor(CartItem.keyFor(p.id, combo.color, combo.size));
-            return sum + (line?.quantity ?? 0);
-          });
-          final inCart = inCartTotal > 0;
-          return Row(
-            children: [
-              Expanded(
-                child: GestureDetector(
-                  onTap: p.inStock ? () => _addToCart(context, p) : null,
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    height: 54,
-                    decoration: BoxDecoration(
-                      color: !p.inStock
-                          ? AppTheme.cardBg
-                          : inCart
-                              ? AppTheme.cardBg
-                              : AppTheme.primary,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: inCart || !p.inStock
-                            ? AppTheme.divider
-                            : AppTheme.primary,
-                      ),
-                    ),
-                    child: Center(
-                      child: Text(
-                        !p.inStock
-                            ? 'OUT OF STOCK'
-                            : inCart
-                                ? '$inCartTotal IN CART · ADD $totalCount MORE (₵${totalPrice.toStringAsFixed(0)})'
-                                : 'ADD $totalCount TO CART · ₵${totalPrice.toStringAsFixed(0)}',
-                        style: GoogleFonts.kumbhSans(
-                          fontSize: 12,
+    return SafeArea(
+      top: false,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+        decoration: BoxDecoration(
+          color: AppTheme.surface,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 20,
+              offset: const Offset(0, -4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              flex: 3,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('$totalCount selected',
+                      style: GoogleFonts.kumbhSans(
+                          fontSize: 11, color: AppTheme.textMed)),
+                  Text(formatPrice(totalPrice),
+                      style: GoogleFonts.kumbhSans(
+                          fontSize: 18,
                           fontWeight: FontWeight.w700,
-                          letterSpacing: 1.1,
-                          color: !p.inStock
-                              ? AppTheme.textLight
-                              : inCart
-                                  ? AppTheme.textDark
-                                  : Colors.white,
-                        ),
-                      ),
-                    ),
+                          color: AppTheme.primary)),
+                  Text('Delivery at checkout',
+                      style: GoogleFonts.kumbhSans(
+                          fontSize: 10, color: AppTheme.textMed)),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              flex: 3,
+              child: SizedBox(
+                height: 52,
+                child: FilledButton(
+                  onPressed: canAdd ? () => _addToCart(context, p) : null,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppTheme.primary,
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: Text(
+                    !p.inStock
+                        ? 'Out of stock'
+                        : !_colorReady(p)
+                            ? 'Choose color'
+                            : totalCount == 0
+                                ? 'Select quantity'
+                                : 'Add $totalCount to cart',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.kumbhSans(
+                        fontSize: 12, fontWeight: FontWeight.w700),
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
-              GestureDetector(
-                onTap: () => goToCartTab(context),
-                child: Container(
-                  height: 54,
-                  width: 54,
-                  decoration: BoxDecoration(
-                    color: AppTheme.accent,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(Icons.shopping_cart_outlined,
-                      color: AppTheme.primary, size: 22),
-                ),
+            ),
+            const SizedBox(width: 8),
+            IconButton.filledTonal(
+              onPressed: () => goToCartTab(context),
+              icon: const Icon(Icons.shopping_cart_outlined, size: 22),
+              color: AppTheme.primary,
+              style: IconButton.styleFrom(
+                backgroundColor: AppTheme.accentLight,
+                minimumSize: const Size(48, 52),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8)),
               ),
-            ],
-          );
-        },
+            ),
+          ],
+        ),
       ),
     );
   }
 
   void _addToCart(BuildContext context, Product p) {
-    final combos = _getCombinations(p);
-    final totalCount = combos.length * _quantity;
+    final lines = _selectedLines(p);
+    final totalCount = lines.fold<int>(0, (sum, line) => sum + line.quantity);
+    if (!p.inStock || totalCount == 0) return;
+    final cart = context.read<CartBloc>();
+    for (final line in lines) {
+      final key = CartItem.keyFor(p.id, _selectedColor, line.size);
+      final existing = cart.state.itemFor(key)?.quantity ?? 0;
+      if (existing + line.quantity > AppConfig.maxQuantityPerLine) {
+        showAppSnack(context,
+            'You can order at most ${AppConfig.maxQuantityPerLine} of one size and color.',
+            error: true);
+        return;
+      }
+    }
     final totalPrice = p.price * totalCount;
 
-    for (final combo in combos) {
-      context.read<CartBloc>().add(AddToCart(
-            p,
-            quantity: _quantity,
-            selectedColor: combo.color,
-            selectedSize: combo.size,
-          ));
+    for (final line in lines) {
+      cart.add(AddToCart(
+        p,
+        quantity: line.quantity,
+        selectedColor: _selectedColor,
+        selectedSize: line.size,
+      ));
     }
 
     ScaffoldMessenger.of(context)
@@ -802,7 +873,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       ..showSnackBar(
         SnackBar(
           content: Text(
-              'Added $totalCount × ${p.name} to cart (₵${totalPrice.toStringAsFixed(0)})',
+              'Added $totalCount × ${p.name} to cart (${formatPrice(totalPrice)})',
               style: GoogleFonts.kumbhSans()),
           backgroundColor: AppTheme.primary,
           behavior: SnackBarBehavior.floating,
@@ -815,7 +886,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           ),
         ),
       );
-    setState(() => _quantity = 1);
+    setState(() {
+      _sizeQuantities.clear();
+      _quantity = 1;
+    });
   }
 
   Future<void> _share(Product p) async {
