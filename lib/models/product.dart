@@ -16,6 +16,7 @@ class Product extends Equatable {
   final bool inStock;
   final List<String> sizes;
   final List<String> colors;
+  final Map<String, String> colorImages;
   final bool isNew;
   final bool isBestSeller;
 
@@ -33,6 +34,7 @@ class Product extends Equatable {
     this.inStock = true,
     this.sizes = const [],
     this.colors = const [],
+    this.colorImages = const {},
     this.isNew = false,
     this.isBestSeller = false,
   });
@@ -60,6 +62,7 @@ class Product extends Equatable {
       colors: (json['colors'] as List<dynamic>? ?? const [])
           .map((color) => color.toString())
           .toList(),
+      colorImages: _extractColorImages(json['colorImages']),
       isNew: json['isNew'] as bool? ?? false,
       isBestSeller: json['isBestSeller'] as bool? ?? false,
     );
@@ -107,6 +110,19 @@ class Product extends Equatable {
     }
 
     return results;
+  }
+
+  static Map<String, String> _extractColorImages(dynamic raw) {
+    if (raw is! Map) return {};
+    final result = <String, String>{};
+    for (final entry in raw.entries) {
+      if (entry.key is! String) continue;
+      final image = _extractImageValue(entry.value);
+      if (image == null) continue;
+      final resolved = AppConfig.resolveMediaUrl(image);
+      if (resolved.isNotEmpty) result[entry.key as String] = resolved;
+    }
+    return result;
   }
 
   static String? _extractImageValue(dynamic value) {
@@ -169,6 +185,7 @@ class Product extends Equatable {
       'inStock': inStock,
       'sizes': sizes,
       'colors': colors,
+      'colorImages': colorImages,
       'isNew': isNew,
       'isBestSeller': isBestSeller,
     };
@@ -193,7 +210,8 @@ class Product extends Equatable {
   bool get hasPrimaryImage => primaryImage != null;
 
   @override
-  List<Object?> get props => [id, name, price, originalPrice, images, category];
+  List<Object?> get props =>
+      [id, name, price, originalPrice, images, category, colorImages];
 }
 
 // Data source - GlobaCart GH products

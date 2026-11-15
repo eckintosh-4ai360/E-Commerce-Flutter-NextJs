@@ -324,7 +324,10 @@ class _CartItemCard extends StatelessWidget {
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: ProductThumb(
-                  imageUrl: item.product.primaryImage,
+                  imageUrl: item.selectedColor == null
+                      ? item.product.primaryImage
+                      : item.product.colorImages[item.selectedColor] ??
+                          item.product.primaryImage,
                   width: 80,
                   height: 90,
                 ),

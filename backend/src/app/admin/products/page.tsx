@@ -25,6 +25,7 @@ type Product = {
   inStock: boolean;
   sizes: string;
   colors: string;
+  colorImages: string;
   isNew: boolean;
   isBestSeller: boolean;
   isArchived: boolean;
@@ -46,6 +47,7 @@ type FormState = {
   inStock: boolean;
   sizes: string;
   colors: string;
+  colorImages: Record<string, string>;
   isNew: boolean;
   isBestSeller: boolean;
   isArchived: boolean;
@@ -66,6 +68,7 @@ const createEmptyForm = (): FormState => ({
   inStock: true,
   sizes: '',
   colors: '',
+  colorImages: {},
   isNew: false,
   isBestSeller: false,
   isArchived: false,
@@ -77,6 +80,17 @@ function parseList(value: string) {
     return Array.isArray(parsed) ? parsed.map(String) : [];
   } catch {
     return [];
+  }
+}
+
+function parseColorImages(value: string): Record<string, string> {
+  try {
+    const parsed: unknown = JSON.parse(value);
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {};
+    return Object.fromEntries(Object.entries(parsed).filter((entry): entry is [string, string] =>
+      typeof entry[1] === 'string'));
+  } catch {
+    return {};
   }
 }
 
@@ -116,7 +130,7 @@ function ImageUploader({ values, onChange }: { values: string[]; onChange: (path
 
   const uploadFiles = async (files: File[]) => {
     if (files.length === 0) return;
-    const remaining = 5 - values.length;
+    const remaining = 100 - values.length;
     if (remaining <= 0 || files.length > remaining) {
       setError(`You can add ${remaining <= 0 ? 'no more' : `only ${remaining} more`} image${remaining === 1 ? '' : 's'}.`);
       return;
@@ -336,6 +350,7 @@ export default function ProductsPage() {
       inStock: product.inventoryManaged ? product.stockQuantity > 0 : product.inStock,
       sizes: parseList(product.sizes).join(', '),
       colors: parseList(product.colors).join(', '),
+      colorImages: parseColorImages(product.colorImages),
       isNew: product.isNew,
       isBestSeller: product.isBestSeller,
       isArchived: product.isArchived,
@@ -347,6 +362,13 @@ export default function ProductsPage() {
     setSaving(true);
     setFormError(null);
     const stockQty = form.inStock ? Math.max(0, Number(form.stockQuantity) || 0) : 0;
+    const colorNames = splitList(form.colors);
+    const colorImages = Object.fromEntries(colorNames.flatMap((color) => {
+      const photo = form.colorImages[color];
+      return photo && photo !== form.images[0] && form.images.includes(photo)
+        ? [[color, photo]]
+        : [];
+    }));
     const payload = {
       name: form.name,
       description: form.description,
@@ -358,7 +380,8 @@ export default function ProductsPage() {
       category: form.category,
       tags: splitList(form.tags),
       sizes: splitList(form.sizes),
-      colors: splitList(form.colors),
+      colors: colorNames,
+      colorImages,
       rating: Number(form.rating),
       reviewCount: Number(form.reviewCount),
       stockQuantity: stockQty,
@@ -577,6 +600,44 @@ export default function ProductsPage() {
           <div className="admin-field"><label htmlFor="p-description">Description</label><textarea id="p-description" className="admin-textarea" value={form.description} onChange={(e) => set('description', e.target.value)} /></div>
           <div className="admin-field"><label htmlFor="p-tags">Tags (comma-separated)</label><input id="p-tags" className="admin-input" placeholder="Fashion, Top, Summer" value={form.tags} onChange={(e) => set('tags', e.target.value)} /></div>
           <div className="admin-field"><label htmlFor="p-colors">Colours (comma-separated)</label><input id="p-colors" className="admin-input" placeholder="Black, White, Red" value={form.colors} onChange={(e) => set('colors', e.target.value)} /></div>
+          {splitList(form.colors).length > 0 ? (
+            <div className="admin-field">
+              <span className="admin-label">Photos for each color</span>
+              <span style={{ fontSize: 12, color: 'var(--a-text-3)', display: 'block', marginBottom: 10 }}>
+                Upload each color photo in Product images above, then assign it here. Unassigned colors use the main product photo.
+              </span>
+              <div style={{ display: 'grid', gap: 10 }}>
+                {splitList(form.colors).map((color, index) => {
+                  const assigned = form.colorImages[color];
+                  const photo = assigned && form.images.includes(assigned) ? assigned : form.images[0];
+                  return (
+                    <div key={`${color}-${index}`} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 10, border: '1px solid var(--a-line)', borderRadius: 8 }}>
+                      {photo ? <img src={photo} alt="" style={{ width: 64, height: 64, objectFit: 'contain', borderRadius: 6, background: '#fff' }} /> : <ImageIcon size={28} color="var(--a-text-3)" />}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <label htmlFor={`p-color-image-${index}`} style={{ display: 'block', fontWeight: 600, marginBottom: 4 }}>{color}</label>
+                        <select
+                          id={`p-color-image-${index}`}
+                          className="admin-input"
+                          value={assigned && assigned !== form.images[0] && form.images.includes(assigned) ? assigned : ''}
+                          onChange={(event) => setForm((current) => {
+                            const colorImages = { ...current.colorImages };
+                            if (event.target.value) colorImages[color] = event.target.value;
+                            else delete colorImages[color];
+                            return { ...current, colorImages };
+                          })}
+                        >
+                          <option value="">Main product photo</option>
+                          {form.images.slice(1).map((image, photoIndex) => (
+                            <option key={image} value={image}>Product image {photoIndex + 2}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
           <div className="admin-field"><label htmlFor="p-sizes">Sizes (comma-separated)</label><input id="p-sizes" className="admin-input" placeholder="S, M, L, XL" value={form.sizes} onChange={(e) => set('sizes', e.target.value)} /></div>
 
           <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', margin: '8px 0 18px' }}>

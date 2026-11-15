@@ -44,6 +44,7 @@ model Product {
   originalPrice Float?
   imagePath     String
   galleryImages String         @default("[]")
+  colorImages   String         @default("{}")
   category      String
   tags          String         @default("[]")
   rating        Float          @default(4.5)

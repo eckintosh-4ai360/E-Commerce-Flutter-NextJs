@@ -39,6 +39,7 @@ export const POST = route(async (request) => {
     tags: JSON.stringify(input.tags),
     sizes: JSON.stringify(input.sizes),
     colors: JSON.stringify(input.colors),
+    colorImages: JSON.stringify(input.colorImages),
   };
 
   // Product ids are plain integers; retry if two admins create at once.

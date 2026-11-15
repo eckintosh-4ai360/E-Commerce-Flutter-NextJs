@@ -152,3 +152,21 @@ test('products allow one main image and up to 99 distinct gallery images', () =>
     false,
   );
 });
+
+test('color photos must use a product image and a listed color', () => {
+  const product = {
+    ...validProduct,
+    colors: ['Black', 'Cream'],
+    galleryImages: ['/products/tote-black.jpg'],
+    colorImages: { Black: '/products/tote-black.jpg' },
+  };
+  assert.equal(createProductSchema.safeParse(product).success, true);
+  assert.equal(createProductSchema.safeParse({
+    ...product,
+    colorImages: { Red: '/products/tote-black.jpg' },
+  }).success, false);
+  assert.equal(createProductSchema.safeParse({
+    ...product,
+    colorImages: { Black: '/products/unrelated.jpg' },
+  }).success, false);
+});

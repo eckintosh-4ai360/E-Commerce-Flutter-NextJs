@@ -279,18 +279,19 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
-  Widget _buildProductImage(String imagePath) {
+  Widget _buildProductImage(String imagePath, {BoxFit fit = BoxFit.cover}) {
+    if (imagePath.isEmpty) return _buildErrorImage();
     if (imagePath.startsWith('assets/')) {
       return Image.asset(
         imagePath,
-        fit: BoxFit.cover,
+        fit: fit,
         errorBuilder: (_, __, ___) => _buildErrorImage(),
       );
     }
 
     return CachedNetworkImage(
       imageUrl: imagePath,
-      fit: BoxFit.cover,
+      fit: fit,
       placeholder: (context, url) => Container(
         color: AppTheme.cardBg,
         child: const Center(
@@ -455,9 +456,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 borderRadius: BorderRadius.circular(10),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 150),
-                  width: 104,
-                  constraints: const BoxConstraints(minHeight: 90),
-                  padding: const EdgeInsets.all(8),
+                  width: 108,
+                  padding: const EdgeInsets.all(5),
                   decoration: BoxDecoration(
                     color: selected ? AppTheme.accentLight : AppTheme.surface,
                     borderRadius: BorderRadius.circular(10),
@@ -469,13 +469,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Container(
-                        width: 42,
-                        height: 42,
-                        decoration: BoxDecoration(
-                          color: _swatchColor(color),
-                          shape: BoxShape.circle,
-                          border: Border.all(color: AppTheme.divider),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(6),
+                        child: SizedBox(
+                          width: 94,
+                          height: 94,
+                          child: _buildProductImage(
+                            p.colorImages[color] ?? p.primaryImage ?? '',
+                            fit: BoxFit.contain,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 6),
@@ -498,32 +500,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         ),
       ],
     );
-  }
-
-  Color _swatchColor(String name) {
-    const colors = <String, Color>{
-      'black': Color(0xFF282A31),
-      'white': Color(0xFFF7F7F2),
-      'cream': Color(0xFFF0E3CA),
-      'brown': Color(0xFF79533D),
-      'tan': Color(0xFFB68860),
-      'khaki': Color(0xFFA89879),
-      'pink': Color(0xFFEDB5C5),
-      'red': Color(0xFFCE3548),
-      'blue': Color(0xFF4078B5),
-      'green': Color(0xFF4F8A66),
-      'yellow': Color(0xFFF6CB55),
-      'grey': Color(0xFF9A9DA3),
-      'gray': Color(0xFF9A9DA3),
-      'purple': Color(0xFF8D6AA8),
-      'orange': Color(0xFFE89250),
-      'navy': Color(0xFF263D67),
-    };
-    final lower = name.toLowerCase();
-    for (final entry in colors.entries) {
-      if (lower.contains(entry.key)) return entry.value;
-    }
-    return const Color(0xFFDBE4EE);
   }
 
   Widget _buildSizePicker(Product p) {

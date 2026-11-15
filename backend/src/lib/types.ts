@@ -16,6 +16,7 @@ export type StoreProduct = {
   inStock: boolean;
   sizes: string[];
   colors: string[];
+  colorImages: Record<string, string>;
   isNew: boolean;
   isBestSeller: boolean;
 };

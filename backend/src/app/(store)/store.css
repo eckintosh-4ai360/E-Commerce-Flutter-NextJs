@@ -2140,16 +2140,16 @@
 
 .purchase-colors {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
   gap: 10px;
 }
 
 .purchase-color {
   display: grid;
   justify-items: center;
-  gap: 8px;
+  gap: 6px;
   min-width: 0;
-  padding: 12px 8px;
+  padding: 5px 5px 10px;
   border: 2px solid var(--line);
   border-radius: var(--radius-sm);
   background: var(--surface);
@@ -2165,12 +2165,18 @@
   font-weight: 700;
 }
 
-.purchase-color__swatch {
-  width: 44px;
-  height: 44px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  border-radius: 50%;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+.purchase-color__photo {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  border-radius: 5px;
+  background: var(--card);
+}
+
+.purchase-color__photo img {
+  object-fit: contain;
 }
 
 .purchase-hint {

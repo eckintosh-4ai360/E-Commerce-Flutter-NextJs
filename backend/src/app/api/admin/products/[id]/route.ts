@@ -13,10 +13,11 @@ import { getPrisma } from '@/lib/prisma';
 import { revalidateStorefront } from '@/lib/revalidate';
 import {
   assertOriginalPriceAbovePrice,
+  productColorImagesAreValid,
   productImagesAreDistinct,
   updateProductSchema,
 } from '@/lib/validation';
-import { parseList } from '@/lib/serializers';
+import { parseColorImages, parseList } from '@/lib/serializers';
 
 export const runtime = 'nodejs';
 
@@ -70,10 +71,27 @@ export const PUT = route<Context>(async (request, { params }) => {
     );
   }
 
+  const nextColors = input.colors ?? parseList(existing.colors);
+  const nextColorImages = input.colorImages ?? parseColorImages(existing.colorImages);
+  if (!productColorImagesAreValid({
+    colors: nextColors,
+    colorImages: nextColorImages,
+    imagePath,
+    galleryImages,
+  })) {
+    throw new HttpError(
+      400,
+      'Each color photo must match a listed color and an uploaded product image.',
+      {},
+      { field: 'colorImages' },
+    );
+  }
+
   const {
     tags,
     sizes,
     colors,
+    colorImages,
     galleryImages: nextGalleryImages,
     stockQuantity,
     ...fields
@@ -93,6 +111,7 @@ export const PUT = route<Context>(async (request, { params }) => {
     ...(tags !== undefined ? { tags: JSON.stringify(tags) } : {}),
     ...(sizes !== undefined ? { sizes: JSON.stringify(sizes) } : {}),
     ...(colors !== undefined ? { colors: JSON.stringify(colors) } : {}),
+    ...(colorImages !== undefined ? { colorImages: JSON.stringify(colorImages) } : {}),
   };
 
   const product = await getPrisma().product.update({

@@ -111,7 +111,7 @@ export function CartView() {
             return (
               <li key={line.key} className="cart-line">
                 <Link href={`/product/${line.product.id}`} className="cart-line__media" tabIndex={-1} aria-hidden="true">
-                  <ProductImage src={line.product.images[0]} alt="" sizes="84px" />
+                  <ProductImage src={(line.selectedColor && line.product.colorImages?.[line.selectedColor]) || line.product.images[0]} alt="" sizes="84px" />
                 </Link>
                 <div style={{ minWidth: 0 }}>
                   <Link href={`/product/${line.product.id}`} className="cart-line__name">

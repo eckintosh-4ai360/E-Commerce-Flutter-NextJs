@@ -29,6 +29,19 @@ export function parseList(value: string): string[] {
   }
 }
 
+export function parseColorImages(value: string): Record<string, string> {
+  try {
+    const parsed: unknown = JSON.parse(value);
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {};
+    return Object.fromEntries(
+      Object.entries(parsed).filter((entry): entry is [string, string] =>
+        typeof entry[1] === 'string' && entry[1].trim().length > 0),
+    );
+  } catch {
+    return {};
+  }
+}
+
 /**
  * Local images (`/products/...`) are made absolute only when PUBLIC_APP_URL is
  * configured. Otherwise they stay relative and clients resolve them against
@@ -82,6 +95,12 @@ export function serialiseProduct(
     inStock: productIsInStock(product),
     sizes: parseList(product.sizes),
     colors: parseList(product.colors),
+    colorImages: Object.fromEntries(
+      Object.entries(parseColorImages(product.colorImages)).map(([color, path]) => [
+        color,
+        resolveImageUrl(path, { absolute: absoluteImages }),
+      ]),
+    ),
     isNew: product.isNew,
     isBestSeller: product.isBestSeller,
   };

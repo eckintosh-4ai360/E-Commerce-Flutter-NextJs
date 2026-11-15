@@ -56,6 +56,8 @@ void main() {
     expect(cart.state.items, isEmpty);
 
     await tester.ensureVisible(find.text('Black'));
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, -180));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Black'));
     await tester.pumpAndSettle();
 

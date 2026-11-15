@@ -157,6 +157,10 @@ const galleryImagesSchema = z
   .max(99, 'A product can have at most 100 images including the main image.')
   .transform((values) => Array.from(new Set(values)));
 
+const colorImagesSchema = z
+  .record(z.string().trim().min(1).max(40), imagePathSchema)
+  .refine((images) => Object.keys(images).length <= 30, 'At most 30 color photos are allowed.');
+
 const productFields = {
   name: text('Product name', 2, 120),
   description: text('Description', 1, 2000),
@@ -187,6 +191,7 @@ const productFields = {
     .max(10_000_000, 'Stock quantity is too large.'),
   sizes: listOfLabels('Sizes'),
   colors: listOfLabels('Colors'),
+  colorImages: colorImagesSchema,
   isNew: z.boolean(),
   isBestSeller: z.boolean(),
   isArchived: z.boolean(),
@@ -220,6 +225,22 @@ export function productImagesAreDistinct(value: {
   );
 }
 
+export function productColorImagesAreValid(value: {
+  colors: string[];
+  colorImages: Record<string, string>;
+  imagePath: string;
+  galleryImages: string[];
+}) {
+  const photos = new Set([value.imagePath, ...value.galleryImages]);
+  return Object.entries(value.colorImages).every(([color, image]) =>
+    value.colors.includes(color) && photos.has(image));
+}
+
+const validColorImagesMessage = {
+  message: 'Each color photo must match a listed color and an uploaded product image.',
+  path: ['colorImages'],
+};
+
 const distinctProductImagesMessage = {
   message: 'The main image cannot also be included in the additional images.',
   path: ['galleryImages'],
@@ -232,6 +253,7 @@ export const createProductSchema = z
     tags: productFields.tags.default([]),
     sizes: productFields.sizes.default([]),
     colors: productFields.colors.default([]),
+    colorImages: productFields.colorImages.default({}),
     shippingFee: productFields.shippingFee.default(0),
     rating: productFields.rating.default(4.5),
     reviewCount: productFields.reviewCount.default(0),
@@ -241,7 +263,8 @@ export const createProductSchema = z
     isArchived: productFields.isArchived.default(false),
   })
   .refine(originalPriceAbovePrice, originalPriceMessage)
-  .refine(productImagesAreDistinct, distinctProductImagesMessage);
+  .refine(productImagesAreDistinct, distinctProductImagesMessage)
+  .refine(productColorImagesAreValid, validColorImagesMessage);
 
 export const updateProductSchema = z
   .object(productFields)

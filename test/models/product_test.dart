@@ -75,5 +75,21 @@ void main() {
         AppConfig.resolveMediaUrl('/products/fallback.jpg'),
       );
     });
+
+    test('resolves and preserves photos assigned to colors', () {
+      final product = Product.fromJson(const {
+        'id': 5,
+        'name': 'Shirt',
+        'price': 50,
+        'images': ['/products/shirt.jpg'],
+        'colors': ['Black', 'Cream'],
+        'colorImages': {'Black': '/products/shirt-black.jpg'},
+      });
+
+      expect(product.colorImages['Black'],
+          AppConfig.resolveMediaUrl('/products/shirt-black.jpg'));
+      expect(
+          Product.fromJson(product.toJson()).colorImages, product.colorImages);
+    });
   });
 }

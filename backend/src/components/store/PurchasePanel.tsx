@@ -11,17 +11,7 @@ import { formatPrice } from '@/lib/money';
 import { storeConfig } from '@/lib/store-config';
 import type { StoreProduct } from '@/lib/types';
 
-const swatches: Record<string, string> = {
-  black: '#282a31', white: '#f7f7f2', cream: '#f0e3ca', brown: '#79533d',
-  tan: '#b68860', khaki: '#a89879', pink: '#edb5c5', red: '#ce3548',
-  blue: '#4078b5', green: '#4f8a66', yellow: '#f6cb55', grey: '#9a9da3',
-  gray: '#9a9da3', purple: '#8d6aa8', orange: '#e89250', navy: '#263d67',
-};
-
-function swatchFor(color: string) {
-  const name = color.toLowerCase();
-  return Object.entries(swatches).find(([key]) => name.includes(key))?.[1] ?? '#dbe4ee';
-}
+import { ProductImage } from './ProductImage';
 
 export function PurchasePanel({ product }: { product: StoreProduct }) {
   const cart = useCart();
@@ -110,7 +100,13 @@ export function PurchasePanel({ product }: { product: StoreProduct }) {
           <div className="purchase-colors">
             {product.colors.map((color) => (
               <button key={color} type="button" className="purchase-color" aria-pressed={selectedColor === color} onClick={() => selectColor(color)}>
-                <span className="purchase-color__swatch" style={{ backgroundColor: swatchFor(color) }} />
+                <span className="purchase-color__photo">
+                  <ProductImage
+                    src={product.colorImages[color] ?? product.images[0]}
+                    alt={product.colorImages[color] ? `${product.name} in ${color}` : `${product.name} product photo`}
+                    sizes="(min-width: 900px) 130px, 30vw"
+                  />
+                </span>
                 <span>{color}</span>
               </button>
             ))}
