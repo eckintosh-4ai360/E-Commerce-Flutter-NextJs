@@ -7,20 +7,22 @@ export default function manifest(): MetadataRoute.Manifest {
     name: `${storeConfig.name} — ${storeConfig.tagline}`,
     short_name: storeConfig.shortName,
     description: storeConfig.description,
+    id: '/',
     start_url: '/',
+    scope: '/',
     display: 'standalone',
     background_color: '#001a3a',
     theme_color: '#001a3a',
     icons: [
       {
-        src: '/logo.jpeg',
+        src: '/icons/icon-192.png',
         sizes: '192x192',
-        type: 'image/jpeg',
+        type: 'image/png',
       },
       {
-        src: '/logo.jpeg',
+        src: '/icons/icon-512.png',
         sizes: '512x512',
-        type: 'image/jpeg',
+        type: 'image/png',
       },
     ],
   };

@@ -72,7 +72,8 @@ export function SiteFooter() {
           </div>
           <div>
             <h3>Get the app</h3>
-            <StoreBadges />
+            <p><Link href="/get-the-app">Add GlobaCart to your home screen or desktop</Link></p>
+            {storeConfig.appLinks.android || storeConfig.appLinks.ios ? <StoreBadges /> : null}
           </div>
         </div>
         <div className="footer-bottom">
