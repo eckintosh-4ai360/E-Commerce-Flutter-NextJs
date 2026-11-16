@@ -1,5 +1,5 @@
 import type { Order, OrderItem, ReturnRequest } from '@prisma/client';
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 
 import { getPublicBaseUrl } from './http';
 import { formatMoney } from './money';
@@ -51,33 +51,40 @@ async function sendEmail({
     return { status: 'skipped', message: 'Customer does not have an email address on file.' };
   }
 
-  const apiKey = process.env.RESEND_API_KEY?.trim();
-  const from = process.env.ORDER_EMAIL_FROM?.trim();
-  if (!apiKey || !from) {
+  const gmailUser = process.env.GMAIL_USER?.trim();
+  const appPassword = process.env.GMAIL_APP_PASSWORD?.replace(/\s+/g, '');
+  if (!gmailUser || !appPassword) {
     return {
       status: 'skipped',
       message:
-        'Email delivery is not configured yet. Set RESEND_API_KEY and ORDER_EMAIL_FROM in backend/.env.',
+        'Email delivery is not configured yet. Set GMAIL_USER and GMAIL_APP_PASSWORD in the server environment.',
     };
   }
 
   try {
-    const { data, error } = await new Resend(apiKey).emails.send({
-      from,
-      to: [recipient],
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: { user: gmailUser, pass: appPassword },
+      connectionTimeout: 10_000,
+      greetingTimeout: 10_000,
+      socketTimeout: 15_000,
+    });
+    const result = await transporter.sendMail({
+      from: { name: storeConfig.name, address: gmailUser },
+      to: recipient,
       subject,
       html,
       text,
     });
-    if (error) {
-      return { status: 'failed', message: `Resend rejected the email: ${error.message}` };
+    if (result.accepted.length === 0) {
+      return { status: 'failed', message: 'Gmail did not accept the recipient.' };
     }
-    return { status: 'sent', message: `Email sent to ${recipient}.`, emailId: data?.id };
+    return { status: 'sent', message: `Email sent to ${recipient}.`, emailId: result.messageId };
   } catch (error) {
     console.error('[email] Delivery failed', error);
     return {
       status: 'failed',
-      message: error instanceof Error ? error.message : 'Email delivery failed.',
+      message: 'Gmail could not send the email. Check the account, app password and sending limits.',
     };
   }
 }
@@ -180,7 +187,7 @@ export async function sendOrderStatusUpdateEmail({
   note,
 }: {
   order: EmailOrder;
-  previousStatus: string;
+  previousStatus?: string;
   note?: string | null;
 }) {
   const code = order.trackingCode ?? trackingCodeFor(order.id);
@@ -197,7 +204,9 @@ export async function sendOrderStatusUpdateEmail({
   const text = [
     `Hi ${greetingName(order.customerName)},`,
     '',
-    `Your order #${code} has been updated from ${titleCase(previousStatus)} to ${status}.`,
+    previousStatus
+      ? `Your order #${code} has been updated from ${titleCase(previousStatus)} to ${status}.`
+      : `Your order #${code} is currently ${status}.`,
     note ? `Note from our team: ${note}` : '',
     link ? `Track your order: ${link}` : `Track your order in the app with code ${code}.`,
     '',
@@ -212,7 +221,9 @@ export async function sendOrderStatusUpdateEmail({
       heading: `Your order is now ${status}`,
       paragraphs: [
         `Hi ${escapeHtml(greetingName(order.customerName))},`,
-        `We've updated order <strong>#${escapeHtml(code)}</strong> from <strong>${escapeHtml(titleCase(previousStatus))}</strong> to <strong>${escapeHtml(status)}</strong>.`,
+        previousStatus
+          ? `We've updated order <strong>#${escapeHtml(code)}</strong> from <strong>${escapeHtml(titleCase(previousStatus))}</strong> to <strong>${escapeHtml(status)}</strong>.`
+          : `Order <strong>#${escapeHtml(code)}</strong> is currently <strong>${escapeHtml(status)}</strong>.`,
         ...(note ? [`Note from our team: ${escapeHtml(note)}`] : []),
       ],
       rows,

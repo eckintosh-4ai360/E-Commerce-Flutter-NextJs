@@ -63,6 +63,24 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
     }
   };
 
+  const sendCurrentStatusEmail = async () => {
+    setUpdating(true);
+    setNotice(null);
+    try {
+      const { emailNotification } = await authedFetch<{
+        emailNotification: { status: 'sent' | 'skipped' | 'failed'; message: string };
+      }>(`/api/admin/orders/${id}/email`, { method: 'POST' });
+      setNotice({
+        tone: emailNotification.status === 'sent' ? 'success' : emailNotification.status === 'failed' ? 'error' : 'warning',
+        text: emailNotification.message,
+      });
+    } catch (caught) {
+      setNotice({ tone: 'error', text: errorMessage(caught, 'We could not send the status email.') });
+    } finally {
+      setUpdating(false);
+    }
+  };
+
   if (loadError) {
     return (
       <div className="admin-page">
@@ -176,6 +194,17 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                 </button>
               ))}
             </div>
+            {order.customerEmail ? (
+              <button
+                type="button"
+                className="admin-btn admin-btn--sm"
+                style={{ marginTop: 14 }}
+                disabled={updating}
+                onClick={() => void sendCurrentStatusEmail()}
+              >
+                <Mail size={14} /> Send current status email
+              </button>
+            ) : null}
           </div>
         </div>
       </div>

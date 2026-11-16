@@ -25,7 +25,7 @@ A full-stack Ghanaian e-commerce store. Customers can shop in the **Flutter mobi
 ## Tech stack
 
 - **App**: Flutter, BLoC, Firebase Auth (Google), shared_preferences
-- **Backend & website**: Next.js 16 (App Router), React 19, Prisma, PostgreSQL (Neon), zod, Firebase Admin, Resend (email), Cloudinary (images)
+- **Backend & website**: Next.js 16 (App Router), React 19, Prisma, PostgreSQL (Neon), zod, Firebase Admin, Gmail SMTP (email), Cloudinary (images)
 
 ---
 
@@ -70,11 +70,13 @@ Key settings in `backend/.env` (all are documented in `.env.example`):
 | `PAYSTACK_SECRET_KEY`, `PAYSTACK_PUBLIC_KEY` | Required for online checkout; use matching live keys in production |
 | Paystack webhook | Set to `https://<your-domain>/api/payments/paystack/webhook` in Paystack's dashboard so payments can be confirmed |
 | `FIREBASE_ADMIN_PROJECT_ID` | Verifying sign-ins (defaults to this project) |
-| `RESEND_API_KEY`, `ORDER_EMAIL_FROM` | Order emails (skipped when unset) |
+| `GMAIL_USER`, `GMAIL_APP_PASSWORD` | Order emails through Gmail (skipped when unset) |
 | `CLOUDINARY_*` | Image uploads in the admin |
 | `NEXT_PUBLIC_ANDROID_APP_URL`, `NEXT_PUBLIC_IOS_APP_URL` | "Get the app" links on the website |
 
 For Google sign-in on the website, add your domain (for example `localhost` and your production domain) in Firebase Console → Authentication → Settings → Authorized domains.
+
+To send order and return emails, enable 2-Step Verification on the sending Gmail account, create a Google App Password, and set `GMAIL_USER` and `GMAIL_APP_PASSWORD` in the backend and Vercel server environment. Use the Gmail address as the sender; do not use your normal Google password.
 
 The Flutter app opens a Paystack-hosted payment page. Set `PUBLIC_APP_URL` to a public HTTPS URL so Paystack can return customers to the order tracking page after payment. Orders stay pending until the signed Paystack webhook confirms payment.
 
