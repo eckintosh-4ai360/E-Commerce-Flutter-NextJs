@@ -38,8 +38,7 @@ class ProductDetailScreen extends StatefulWidget {
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
   String? _selectedColor;
-  final Map<String, int> _sizeQuantities = {};
-  int _quantity = 0;
+  final Map<String, int> _quantities = {};
   int _selectedImageIndex = 0;
   late final PageController _imagePageController;
 
@@ -47,7 +46,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   void initState() {
     super.initState();
     _imagePageController = PageController();
-    if (widget.product.colors.isEmpty) _quantity = 1;
+    if (widget.product.colors.isEmpty && widget.product.sizes.isEmpty) {
+      _quantities[CartItem.keyFor(widget.product.id, null, null)] = 1;
+    }
   }
 
   @override
@@ -354,15 +355,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   bool _colorReady(Product p) => p.colors.isEmpty || _selectedColor != null;
 
-  List<({String? size, int quantity})> _selectedLines(Product p) {
-    if (!_colorReady(p)) return [];
-    if (p.sizes.isEmpty) {
-      return _quantity > 0 ? [(size: null, quantity: _quantity)] : [];
-    }
+  String _selectionKey(Product p, String? color, String? size) =>
+      CartItem.keyFor(p.id, color, size);
+
+  List<({String? color, String? size, int quantity})> _selectedLines(
+      Product p) {
     return [
-      for (final size in p.sizes)
-        if ((_sizeQuantities[size] ?? 0) > 0)
-          (size: size, quantity: _sizeQuantities[size]!),
+      for (final color in p.colors.isEmpty ? <String?>[null] : p.colors)
+        for (final size in p.sizes.isEmpty ? <String?>[null] : p.sizes)
+          if ((_quantities[_selectionKey(p, color, size)] ?? 0) > 0)
+            (color: color, size: size,
+              quantity: _quantities[_selectionKey(p, color, size)]!),
     ];
   }
 
@@ -442,6 +445,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           runSpacing: 8,
           children: p.colors.map((color) {
             final selected = _selectedColor == color;
+            final selectedCount = _selectedLines(p)
+                .where((line) => line.color == color)
+                .fold<int>(0, (sum, line) => sum + line.quantity);
             return Semantics(
               button: true,
               selected: selected,
@@ -450,8 +456,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 onTap: () => setState(() {
                   if (selected) return;
                   _selectedColor = color;
-                  _sizeQuantities.clear();
-                  _quantity = 1;
+                  if (p.sizes.isEmpty) {
+                    _quantities.putIfAbsent(_selectionKey(p, color, null), () => 1);
+                  }
                 }),
                 borderRadius: BorderRadius.circular(10),
                 child: AnimatedContainer(
@@ -481,7 +488,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         ),
                       ),
                       const SizedBox(height: 6),
-                      Text(color,
+                      Text('$color${selectedCount > 0 ? ' ($selectedCount)' : ''}',
                           textAlign: TextAlign.center,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
@@ -547,7 +554,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   Widget _buildSizeRow(Product p, String size) {
-    final quantity = _sizeQuantities[size] ?? 0;
+    final key = _selectionKey(p, _selectedColor, size);
+    final quantity = _quantities[key] ?? 0;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       child: Row(
@@ -572,7 +580,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               quantity == 0
                   ? null
                   : () {
-                      setState(() => _sizeQuantities[size] = quantity - 1);
+                      setState(() => _quantities[key] = quantity - 1);
                     },
               label: 'Remove one $size',
               key: ValueKey('size-minus-$size')),
@@ -590,7 +598,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               quantity >= AppConfig.maxQuantityPerLine
                   ? null
                   : () {
-                      setState(() => _sizeQuantities[size] = quantity + 1);
+                      setState(() => _quantities[key] = quantity + 1);
                     },
               label: 'Add one $size',
               key: ValueKey('size-plus-$size')),
@@ -600,6 +608,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   Widget _buildQuantityPicker(Product p) {
+    final key = _selectionKey(p, _selectedColor, null);
+    final quantity = _quantities[key] ?? 0;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -613,15 +623,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           children: [
             _qtyBtn(
                 Icons.remove,
-                !_colorReady(p) || _quantity <= 1
+                !_colorReady(p) || quantity <= 1
                     ? null
-                    : () => setState(() => _quantity--)),
+                    : () => setState(() => _quantities[key] = quantity - 1)),
             Container(
               width: 52,
               height: 44,
               alignment: Alignment.center,
               child: Text(
-                '${_colorReady(p) ? _quantity : 0}',
+                '${_colorReady(p) ? quantity : 0}',
                 style: GoogleFonts.kumbhSans(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
@@ -630,9 +640,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             ),
             _qtyBtn(
                 Icons.add,
-                !_colorReady(p) || _quantity >= AppConfig.maxQuantityPerLine
+                !_colorReady(p) || quantity >= AppConfig.maxQuantityPerLine
                     ? null
-                    : () => setState(() => _quantity++)),
+                    : () => setState(() => _quantities[key] = quantity + 1)),
           ],
         ),
       ],
@@ -758,7 +768,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('$totalCount selected',
+                  Text('Grand total · $totalCount selected',
                       style: GoogleFonts.kumbhSans(
                           fontSize: 11, color: AppTheme.textMed)),
                   Text(formatPrice(totalPrice),
@@ -824,7 +834,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     if (!p.inStock || totalCount == 0) return;
     final cart = context.read<CartBloc>();
     for (final line in lines) {
-      final key = CartItem.keyFor(p.id, _selectedColor, line.size);
+      final key = CartItem.keyFor(p.id, line.color, line.size);
       final existing = cart.state.itemFor(key)?.quantity ?? 0;
       if (existing + line.quantity > AppConfig.maxQuantityPerLine) {
         showAppSnack(context,
@@ -839,7 +849,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       cart.add(AddToCart(
         p,
         quantity: line.quantity,
-        selectedColor: _selectedColor,
+        selectedColor: line.color,
         selectedSize: line.size,
       ));
     }
@@ -863,8 +873,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         ),
       );
     setState(() {
-      _sizeQuantities.clear();
-      _quantity = 1;
+      _quantities.clear();
+      _selectedColor = null;
+      if (p.colors.isEmpty && p.sizes.isEmpty) {
+        _quantities[_selectionKey(p, null, null)] = 1;
+      }
     });
   }
 

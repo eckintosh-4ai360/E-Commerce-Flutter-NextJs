@@ -365,11 +365,18 @@ class _CartItemCard extends StatelessWidget {
                       ),
                     const SizedBox(height: 8),
                     Text(
-                      formatPrice(item.product.price),
+                      formatPrice(item.totalPrice),
                       style: GoogleFonts.kumbhSans(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
                         color: AppTheme.primary,
+                      ),
+                    ),
+                    Text(
+                      '${item.quantity} × ${formatPrice(item.product.price)}',
+                      style: GoogleFonts.kumbhSans(
+                        fontSize: 12,
+                        color: AppTheme.textMed,
                       ),
                     ),
                   ],

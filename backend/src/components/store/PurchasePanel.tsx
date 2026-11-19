@@ -4,10 +4,11 @@ import { Heart, Minus, Plus, Share2 } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 
-import { cartLineKey, useCart } from '@/components/providers/CartProvider';
+import { useCart } from '@/components/providers/CartProvider';
 import { useToast } from '@/components/providers/ToastProvider';
 import { useWishlist } from '@/components/providers/WishlistProvider';
 import { formatPrice } from '@/lib/money';
+import { cartLineKey, selectedProductVariants } from '@/lib/product-selection';
 import { storeConfig } from '@/lib/store-config';
 import type { StoreProduct } from '@/lib/types';
 
@@ -18,31 +19,50 @@ export function PurchasePanel({ product }: { product: StoreProduct }) {
   const wishlist = useWishlist();
   const toast = useToast();
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
-  const [sizeQuantities, setSizeQuantities] = useState<Record<string, number>>({});
-  const [quantity, setQuantity] = useState(product.colors.length === 0 ? 1 : 0);
+  const [quantities, setQuantities] = useState<Record<string, number>>(() =>
+    product.colors.length === 0 && product.sizes.length === 0
+      ? { [cartLineKey(product.id, null, null)]: 1 }
+      : {},
+  );
   const [justAdded, setJustAdded] = useState(false);
   const wished = wishlist.hydrated && wishlist.contains(product.id);
   const colorReady = product.colors.length === 0 || selectedColor !== null;
 
-  const selections = product.sizes.length > 0
-    ? product.sizes.map((size) => ({ size, quantity: sizeQuantities[size] ?? 0 }))
-        .filter((selection) => selection.quantity > 0)
-    : quantity > 0 ? [{ size: null, quantity }] : [];
+  const selections = selectedProductVariants(product, quantities);
+  const colorCounts = selections.reduce<Record<string, number>>((counts, selection) => {
+    if (selection.color !== null) {
+      counts[selection.color] = (counts[selection.color] ?? 0) + selection.quantity;
+    }
+    return counts;
+  }, {});
+  const currentQuantity = quantities[cartLineKey(product.id, selectedColor, null)] ?? 0;
   const totalItems = selections.reduce((sum, selection) => sum + selection.quantity, 0);
   const totalPrice = product.price * totalItems;
 
   const selectColor = (color: string) => {
     if (color === selectedColor) return;
     setSelectedColor(color);
-    setSizeQuantities({});
-    setQuantity(1);
+    if (product.sizes.length === 0) {
+      const key = cartLineKey(product.id, color, null);
+      setQuantities((previous) => key in previous ? previous : { ...previous, [key]: 1 });
+    }
     setJustAdded(false);
   };
 
   const changeSizeQuantity = (size: string, delta: number) => {
-    setSizeQuantities((previous) => ({
+    const key = cartLineKey(product.id, selectedColor, size);
+    setQuantities((previous) => ({
       ...previous,
-      [size]: Math.max(0, Math.min(storeConfig.maxQuantityPerLine, (previous[size] ?? 0) + delta)),
+      [key]: Math.max(0, Math.min(storeConfig.maxQuantityPerLine, (previous[key] ?? 0) + delta)),
+    }));
+    setJustAdded(false);
+  };
+
+  const changeQuantity = (delta: number) => {
+    const key = cartLineKey(product.id, selectedColor, null);
+    setQuantities((previous) => ({
+      ...previous,
+      [key]: Math.max(1, Math.min(storeConfig.maxQuantityPerLine, (previous[key] ?? 0) + delta)),
     }));
     setJustAdded(false);
   };
@@ -50,8 +70,8 @@ export function PurchasePanel({ product }: { product: StoreProduct }) {
   const addToCart = () => {
     if (!product.inStock || !colorReady || totalItems === 0) return;
 
-    const exceedsLimit = selections.some(({ size, quantity: selectedQuantity }) => {
-      const key = cartLineKey(product.id, selectedColor, size);
+    const exceedsLimit = selections.some(({ color, size, quantity: selectedQuantity }) => {
+      const key = cartLineKey(product.id, color, size);
       const existing = cart.lines.find((line) => line.key === key)?.quantity ?? 0;
       return existing + selectedQuantity > storeConfig.maxQuantityPerLine;
     });
@@ -63,12 +83,14 @@ export function PurchasePanel({ product }: { product: StoreProduct }) {
     for (const selection of selections) {
       cart.add(product, {
         quantity: selection.quantity,
-        selectedColor,
+        selectedColor: selection.color,
         selectedSize: selection.size,
       });
     }
-    setSizeQuantities({});
-    setQuantity(1);
+    setQuantities(product.colors.length === 0 && product.sizes.length === 0
+      ? { [cartLineKey(product.id, null, null)]: 1 }
+      : {});
+    setSelectedColor(null);
     setJustAdded(true);
     toast(`Added ${totalItems} × ${product.name} to cart (${formatPrice(totalPrice)})`, 'success');
   };
@@ -107,7 +129,7 @@ export function PurchasePanel({ product }: { product: StoreProduct }) {
                     sizes="(min-width: 900px) 130px, 30vw"
                   />
                 </span>
-                <span>{color}</span>
+                <span>{color}{colorCounts[color] ? ` (${colorCounts[color]})` : ''}</span>
               </button>
             ))}
           </div>
@@ -124,7 +146,7 @@ export function PurchasePanel({ product }: { product: StoreProduct }) {
           ) : (
             <div className="purchase-sizes">
               {product.sizes.map((size) => {
-                const selectedQuantity = sizeQuantities[size] ?? 0;
+                const selectedQuantity = quantities[cartLineKey(product.id, selectedColor, size)] ?? 0;
                 return (
                   <div className="purchase-size" key={size}>
                     <div className="purchase-size__info">
@@ -150,11 +172,11 @@ export function PurchasePanel({ product }: { product: StoreProduct }) {
         <div className="option-group">
           <div className="option-group__label" id="qty-label">Quantity</div>
           <div className="qty" role="group" aria-labelledby="qty-label">
-            <button type="button" aria-label="Decrease quantity" disabled={!colorReady || quantity <= 1} onClick={() => setQuantity((value) => Math.max(1, value - 1))}>
+            <button type="button" aria-label="Decrease quantity" disabled={!colorReady || currentQuantity <= 1} onClick={() => changeQuantity(-1)}>
               <Minus size={16} aria-hidden="true" />
             </button>
-            <output aria-live="polite">{colorReady ? quantity : 0}</output>
-            <button type="button" aria-label="Increase quantity" disabled={!colorReady || quantity >= storeConfig.maxQuantityPerLine} onClick={() => setQuantity((value) => Math.min(storeConfig.maxQuantityPerLine, value + 1))}>
+            <output aria-live="polite">{colorReady ? currentQuantity : 0}</output>
+            <button type="button" aria-label="Increase quantity" disabled={!colorReady || currentQuantity >= storeConfig.maxQuantityPerLine} onClick={() => changeQuantity(1)}>
               <Plus size={16} aria-hidden="true" />
             </button>
           </div>
@@ -163,7 +185,7 @@ export function PurchasePanel({ product }: { product: StoreProduct }) {
 
       <div className="purchase-summary" aria-live="polite">
         <div>
-          <strong>{totalItems} selected</strong>
+          <strong>Grand total · {totalItems} selected</strong>
           <span>{totalItems === 0
             ? 'Delivery shown at checkout'
             : product.shippingFee > 0

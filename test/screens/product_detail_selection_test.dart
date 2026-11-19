@@ -24,7 +24,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   GoogleFonts.config.allowRuntimeFetching = false;
 
-  testWidgets('selects one color and separate quantities per size',
+  testWidgets('sums size quantities across colors before adding to cart',
       (tester) async {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
@@ -72,30 +72,38 @@ void main() {
     await tester.tap(large);
     await tester.pump();
 
-    expect(find.text('3 selected'), findsOneWidget);
+    expect(find.text('Grand total · 3 selected'), findsOneWidget);
     expect(find.text('GH₵150'), findsOneWidget);
-    await tester.tap(find.text('Add 3 to cart'));
-    await tester.pump();
-
-    expect(cart.state.items, hasLength(2));
-    expect(cart.state.itemFor(CartItem.keyFor(101, 'Black', 'M'))?.quantity, 2);
-    expect(cart.state.itemFor(CartItem.keyFor(101, 'Black', 'L'))?.quantity, 1);
 
     await tester.ensureVisible(find.text('Cream'));
     await tester.drag(find.byType(CustomScrollView), const Offset(0, 180));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Cream'));
     await tester.pumpAndSettle();
-    expect(find.text('0 selected'), findsOneWidget);
+    expect(find.text('Grand total · 3 selected'), findsOneWidget);
 
     final small = find.byKey(const ValueKey('size-plus-S'));
     await tester.ensureVisible(small);
     await tester.tap(small);
     await tester.pump();
-    await tester.tap(find.text('Add 1 to cart'));
+    expect(find.text('Grand total · 4 selected'), findsOneWidget);
+    expect(find.text('GH₵200'), findsOneWidget);
+
+    await tester.ensureVisible(find.text('Black (3)'));
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, 200));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Black (3)'));
+    await tester.pumpAndSettle();
+    expect(find.text('Grand total · 4 selected'), findsOneWidget);
+
+    await tester.tap(find.text('Add 4 to cart'));
     await tester.pump();
 
     expect(cart.state.items, hasLength(3));
+    expect(cart.state.itemFor(CartItem.keyFor(101, 'Black', 'M'))?.quantity, 2);
+    expect(cart.state.itemFor(CartItem.keyFor(101, 'Black', 'L'))?.quantity, 1);
     expect(cart.state.itemFor(CartItem.keyFor(101, 'Cream', 'S'))?.quantity, 1);
+    expect(cart.state.subtotal, 200);
+    expect(cart.state.total, 225);
   });
 }

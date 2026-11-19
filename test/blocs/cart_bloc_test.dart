@@ -25,6 +25,17 @@ const watch = Product(
   category: 'Watches',
 );
 
+const shirt = Product(
+  id: 10,
+  name: 'Cotton shirt',
+  description: 'Shirt',
+  price: 50,
+  images: [],
+  category: 'Clothing',
+  colors: ['Cream', 'Black'],
+  sizes: ['S', 'M'],
+);
+
 const soldOut = Product(
   id: 4,
   name: 'Luxury Clutch',
@@ -55,6 +66,21 @@ void main() {
     expect(bloc.state.items, hasLength(2));
     expect(bloc.state.itemFor(CartItem.keyFor(2, 'Brown', null))!.quantity, 3);
     expect(bloc.state.totalItems, 4);
+    await bloc.close();
+  });
+
+  test('grand total includes every size and color of one product', () async {
+    final bloc = CartBloc(store: store)
+      ..add(const AddToCart(shirt, selectedColor: 'Black', selectedSize: 'M', quantity: 2))
+      ..add(const AddToCart(shirt, selectedColor: 'Black', selectedSize: 'S'))
+      ..add(const AddToCart(shirt, selectedColor: 'Cream', selectedSize: 'M'));
+    await settle();
+
+    expect(bloc.state.items, hasLength(3));
+    expect(bloc.state.totalItems, 4);
+    expect(bloc.state.subtotal, 200);
+    expect(bloc.state.shippingFee, 25);
+    expect(bloc.state.total, 225);
     await bloc.close();
   });
 

@@ -13,6 +13,7 @@ import {
 
 import { readStored, removeStored, writeStored } from '@/lib/client/storage';
 import { roundMoney, shippingFeeForLines } from '@/lib/money';
+import { cartLineKey } from '@/lib/product-selection';
 import { storeConfig } from '@/lib/store-config';
 import type { StoreProduct } from '@/lib/types';
 
@@ -48,10 +49,6 @@ type CartContextValue = {
 
 const storageKey = 'globacart.cart.v1';
 const CartContext = createContext<CartContextValue | null>(null);
-
-export function cartLineKey(productId: number, color: string | null, size: string | null) {
-  return `${productId}|${color ?? ''}|${size ?? ''}`;
-}
 
 function isCartLine(value: unknown): value is CartLine {
   const line = value as CartLine;

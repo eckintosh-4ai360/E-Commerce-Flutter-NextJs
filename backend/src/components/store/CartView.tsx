@@ -123,7 +123,10 @@ export function CartView() {
                       <strong style={{ color: 'var(--error)', display: 'block' }}>Out of stock</strong>
                     ) : null}
                   </div>
-                  <div className="price">{formatPrice(line.product.price)}</div>
+                  <div className="price">{formatPrice(line.product.price * line.quantity)}</div>
+                  <div className="muted" style={{ fontSize: 12 }}>
+                    {line.quantity} × {formatPrice(line.product.price)}
+                  </div>
                   {line.product.shippingFee > 0 ? (
                     <div className="muted" style={{ fontSize: 12, marginTop: 3 }}>
                       Delivery: {formatMoney(line.product.shippingFee)} each
