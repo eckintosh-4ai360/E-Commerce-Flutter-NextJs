@@ -3,7 +3,8 @@ import type { MetadataRoute } from 'next';
 import { getActiveProducts, getCategories } from '@/lib/catalog';
 import { getSiteBaseUrl } from '@/lib/http';
 
-export const revalidate = 3600;
+// Fetch catalogue entries on request instead of caching an incomplete build-time sitemap.
+export const dynamic = 'force-dynamic';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = getSiteBaseUrl();

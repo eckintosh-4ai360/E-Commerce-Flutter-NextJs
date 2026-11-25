@@ -14,8 +14,8 @@ import { discountPercent } from '@/lib/money';
 import { serialiseProduct } from '@/lib/serializers';
 import { storeConfig } from '@/lib/store-config';
 
-// Rebuilt at most every 5 minutes, and immediately when the admin edits products.
-export const revalidate = 300;
+// Load the catalogue on request so a database outage cannot break deployment.
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: `${storeConfig.name} — ${storeConfig.tagline} | Online Shopping Ghana`,
