@@ -23,6 +23,7 @@ const navItems = [
   { href: '/admin/products', label: 'Products', icon: Package },
   { href: '/admin/orders', label: 'Orders', icon: ShoppingBag },
   { href: '/admin/returns', label: 'Returns', icon: RotateCcw },
+  { href: '/admin/buy-for-me', label: 'Buy for me', icon: ShoppingBag },
 ];
 
 function isActive(pathname: string, href: string) {

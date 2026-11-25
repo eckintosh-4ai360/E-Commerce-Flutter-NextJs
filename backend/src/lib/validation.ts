@@ -277,3 +277,30 @@ export function assertOriginalPriceAbovePrice(value: {
 }) {
   return originalPriceAbovePrice(value);
 }
+
+export const buyForMeStatuses = ['REQUESTED', 'REVIEWING', 'CONTACTED', 'COMPLETED', 'CANCELLED'] as const;
+export const createBuyForMeSchema = z.object({
+  itemName: text('Item name', 2, 120),
+  itemUrl: text('Item link', 1, 2048).refine((value) => {
+    try { const url = new URL(value); return ['http:', 'https:'].includes(url.protocol); } catch { return false; }
+  }, 'Enter a valid http or https product link.'),
+  itemValue: z.number().finite().nonnegative().max(1_000_000),
+  currency: z.enum(['USD', 'GBP', 'EUR', 'GHS']),
+  quantity: z.number().int().min(1).max(100),
+  retailerShipping: z.number().finite().nonnegative().max(1_000_000).nullish(),
+  shippingFrom: text('Shipping country', 2, 80),
+  shippingMode: z.enum(['AIR', 'SEA']),
+  category: optionalText('Category', 80),
+  instructions: optionalText('Instructions', 1000),
+  insurance: z.boolean(),
+  deliveryMethod: z.enum(['DELIVERY', 'PICKUP']),
+  deliveryAddress: optionalText('Delivery address', 300),
+  contactName: text('Contact name', 2, 100),
+  contactPhone: phoneSchema,
+}).refine((value) => value.deliveryMethod !== 'DELIVERY' || (value.deliveryAddress?.length ?? 0) >= 5, {
+  message: 'Enter a delivery address of at least 5 characters.', path: ['deliveryAddress'],
+});
+export const updateBuyForMeSchema = z.object({
+  status: z.enum(buyForMeStatuses),
+  adminNote: optionalText('Note', 500),
+});

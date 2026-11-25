@@ -14,6 +14,7 @@ import { BrandLogo } from './BrandLogo';
 const navLinks = [
   { href: '/', label: 'Home' },
   { href: '/shop', label: 'Shop' },
+  { href: '/buy-for-me', label: 'Buy for me' },
   { href: '/shop?featured=new', label: 'New in' },
   { href: '/shop?featured=sale', label: 'Sale' },
   { href: '/track', label: 'Track order' },

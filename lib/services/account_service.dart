@@ -80,6 +80,18 @@ class AccountService {
     return payload['message'] as String? ?? 'Return request submitted.';
   }
 
+  Future<List<Map<String, dynamic>>> listBuyForMeRequests() async {
+    final payload = await _api.get('/me/buy-for-me', auth: true);
+    return (payload['requests'] as List<dynamic>? ?? const [])
+        .whereType<Map<String, dynamic>>()
+        .toList();
+  }
+
+  Future<String> submitBuyForMeRequest(Map<String, dynamic> body) async {
+    final payload = await _api.post('/me/buy-for-me', auth: true, body: body);
+    return payload['message'] as String? ?? 'Request submitted.';
+  }
+
   List<Product> _products(Map<String, dynamic> payload) {
     return (payload['products'] as List<dynamic>? ?? const [])
         .whereType<Map<String, dynamic>>()

@@ -20,6 +20,7 @@ A full-stack Ghanaian e-commerce store. Customers can shop in the **Flutter mobi
 - **Cart**: per-variant lines, saved on the device, prices refreshed from the live catalogue, free-shipping progress.
 - **Checkout**: Google sign-in, saved addresses, online card or Mobile Money payment through Paystack, server-side pricing, protection against duplicate submissions and price changes.
 - **After purchase**: confirmation and status emails, order timeline, public tracking by code (personal details hidden), cancel while pending, return requests within 14 days, buy again.
+- **Buy for me**: customers can request an item from another retailer in the app or website; admins review it, contact the customer and update its status and note. Item values are estimates, and no payment is collected through this request.
 - **Admin**: dashboard, paginated order search, status updates with customer notes and emails, product management (products that appear in orders are archived, not deleted), return handling.
 
 ## Tech stack

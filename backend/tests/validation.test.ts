@@ -4,6 +4,8 @@ import { test } from 'node:test';
 import {
   addressSchema,
   createOrderSchema,
+  createBuyForMeSchema,
+  updateBuyForMeSchema,
   createProductSchema,
   phoneSchema,
   updateProfileSchema,
@@ -169,4 +171,22 @@ test('color photos must use a product image and a listed color', () => {
     ...product,
     colorImages: { Black: '/products/unrelated.jpg' },
   }).success, false);
+});
+
+
+test('buy for me requests validate retailer links, delivery and quantities', () => {
+  const request = {
+    itemName: 'Laptop', itemUrl: 'https://example.com/item', itemValue: 250,
+    currency: 'USD', quantity: 1, retailerShipping: null, shippingFrom: 'USA',
+    shippingMode: 'AIR', category: '', instructions: '', insurance: false,
+    deliveryMethod: 'DELIVERY', deliveryAddress: 'Accra, Ghana',
+    contactName: 'Ama Mensah', contactPhone: '024 307 3148',
+  };
+  assert.equal(createBuyForMeSchema.safeParse(request).success, true);
+  assert.equal(createBuyForMeSchema.safeParse({ ...request, itemUrl: 'javascript:alert(1)' }).success, false);
+  assert.equal(createBuyForMeSchema.safeParse({ ...request, quantity: 1.5 }).success, false);
+  assert.equal(createBuyForMeSchema.safeParse({ ...request, deliveryAddress: '' }).success, false);
+  assert.equal(createBuyForMeSchema.safeParse({ ...request, deliveryMethod: 'PICKUP', deliveryAddress: '' }).success, true);
+  assert.equal(updateBuyForMeSchema.safeParse({ status: 'REVIEWING', adminNote: '' }).success, true);
+  assert.equal(updateBuyForMeSchema.safeParse({ status: 'PAID', adminNote: '' }).success, false);
 });

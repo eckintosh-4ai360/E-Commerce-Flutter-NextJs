@@ -83,6 +83,7 @@ export function AccountView() {
   }, [uid, authedFetch]);
 
   const shopping: MenuItem[] = [
+    { icon: <Receipt size={18} />, label: 'Buy for me', href: '/buy-for-me' },
     { icon: <Receipt size={18} />, label: 'My Orders', href: '/account/orders' },
     { icon: <Truck size={18} />, label: 'Track Order', href: '/track' },
     { icon: <RotateCcw size={18} />, label: 'Returns & Refunds', href: '/account/returns' },

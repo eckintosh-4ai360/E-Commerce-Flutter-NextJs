@@ -196,3 +196,32 @@ model ReturnRequest {
   @@index([status, createdAt])
   @@index([orderId])
 }
+
+// Requests for items sold by other retailers; prices are estimates until reviewed.
+model BuyForMeRequest {
+  id              String   @id @default(cuid())
+  customerUid     String
+  customerEmail   String?
+  itemName        String
+  itemUrl         String
+  itemValue       Float
+  currency        String
+  quantity        Int
+  retailerShipping Float?
+  shippingFrom    String
+  shippingMode    String
+  category        String?
+  instructions    String?
+  insurance       Boolean  @default(false)
+  deliveryMethod  String
+  deliveryAddress String?
+  contactName     String
+  contactPhone    String
+  status          String   @default("REQUESTED")
+  adminNote       String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([customerUid, createdAt])
+  @@index([status, createdAt])
+}

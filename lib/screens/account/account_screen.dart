@@ -10,6 +10,7 @@ import '../../widgets/brand_logo.dart';
 import '../order_tracking/order_tracking_screen.dart';
 import '../orders/orders_screen.dart';
 import 'delivery_addresses_screen.dart';
+import 'buy_for_me_screen.dart';
 import 'edit_profile_screen.dart';
 import 'faq_help_screen.dart';
 import 'payment_methods_screen.dart';
@@ -44,6 +45,11 @@ class AccountScreen extends StatelessWidget {
                 _buildOrderTracking(context),
                 const SizedBox(height: 20),
                 _buildMenuSection('Shopping', [
+                  (
+                    Icons.add_shopping_cart,
+                    'Buy for me',
+                    () => _push(context, const BuyForMeScreen())
+                  ),
                   (
                     Icons.receipt_long_outlined,
                     'My Orders',
@@ -350,7 +356,8 @@ class AccountScreen extends StatelessWidget {
                         color: AppTheme.cardBg,
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Icon(items[i].$1, size: 18, color: AppTheme.primary),
+                      child:
+                          Icon(items[i].$1, size: 18, color: AppTheme.primary),
                     ),
                     title: Text(items[i].$2,
                         style: GoogleFonts.kumbhSans(
@@ -359,7 +366,8 @@ class AccountScreen extends StatelessWidget {
                         size: 18, color: AppTheme.textLight),
                     onTap: items[i].$3,
                   ),
-                  if (i < items.length - 1) const Divider(indent: 66, height: 1),
+                  if (i < items.length - 1)
+                    const Divider(indent: 66, height: 1),
                 ],
               ],
             ),
