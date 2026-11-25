@@ -58,6 +58,10 @@ export function SiteHeader() {
           />
         </form>
 
+        <Link href="/buy-for-me" className="header-buy-for-me" aria-current={pathname === '/buy-for-me' ? 'page' : undefined}>
+          Buy for me
+        </Link>
+
         <div className="header-actions">
           <Link href="/wishlist" className="icon-btn hide-mobile" aria-label="Wishlist">
             <Heart size={21} />

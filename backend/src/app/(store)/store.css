@@ -576,6 +576,30 @@
   font-size: 14px;
 }
 
+/* Tablets hide the desktop links and the phone tab bar. */
+.header-buy-for-me {
+  display: none;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.header-buy-for-me[aria-current='page'] {
+  background: var(--card);
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .header-buy-for-me {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+}
+
 .header-actions {
   display: flex;
   align-items: center;
@@ -660,6 +684,22 @@
   transition: opacity 0.15s ease, transform 0.15s ease;
 }
 
+.tab-bar .tab-bar__buy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  opacity: 1;
+}
+
+.tab-bar__label {
+  max-width: 100%;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1.1;
+  text-align: center;
+}
+
 .tab-bar a[aria-current='page'] {
   opacity: 1;
   transform: scale(1.1);
@@ -673,6 +713,10 @@
   height: 4px;
   border-radius: 50%;
   background: var(--accent);
+}
+
+.tab-bar .tab-bar__buy[aria-current='page']::after {
+  bottom: 3px;
 }
 
 .tab-bar .count-badge {
